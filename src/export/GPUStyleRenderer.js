@@ -988,26 +988,9 @@ export class GPUStyleRenderer {
   }
 
   setupComposers() {
-    // Main effect composer - renders to screen
+    // Initial composer — will be fully rebuilt by updateStyle() when enabled
     this.composer = new EffectComposer(this.renderer);
-
-    // First: render the 3D scene
-    this.renderPass = new RenderPass(this.scene, this.camera);
-    this.composer.addPass(this.renderPass);
-
-    // Bloom pass for glow effects (will be added dynamically when needed)
-    this.bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(this.width, this.height),
-      0.5,  // strength
-      0.4,  // radius
-      0.85  // threshold
-    );
-
-    // Style-specific passes (we'll swap these based on style)
     this.stylePass = null;
-
-    // Output pass for color space conversion
-    this.outputPass = new OutputPass();
   }
 
   createCharacterTexture() {
@@ -1091,12 +1074,14 @@ export class GPUStyleRenderer {
   }
 
   updateStyle() {
-    // Create a fresh composer each time to avoid state issues
+    // Create a completely fresh composer and passes each time
+    // Reusing pass instances across composers causes black screen
+    // (passes bind internal framebuffer state to the composer they're added to)
     this.composer = new EffectComposer(this.renderer);
-    this.composer.setSize(window.innerWidth, window.innerHeight);
+    this.composer.setSize(this.width, this.height);
 
-    // Add render pass first
-    this.renderPass = new RenderPass(this.scene, this.camera);
+    // Render the 3D scene
+    this.renderPass = new RenderPass(this.engine.scene, this.engine.camera);
     this.composer.addPass(this.renderPass);
 
     // Map style names to shader definitions
@@ -1118,23 +1103,21 @@ export class GPUStyleRenderer {
 
     const shader = shaderMap[this.style] || CleanEdgeShader;
 
-    // Add Sobel edge detection pass (used by most styles)
-    this.sobelPass = new ShaderPass(SobelEdgeShader);
-    this.sobelPass.uniforms.resolution.value.set(this.width, this.height);
-    this.sobelPass.uniforms.threshold.value = this.threshold * 0.2;
-    this.sobelPass.uniforms.thickness.value = this.lineWidth;
-
-    // Add style-specific shader pass
+    // Style-specific shader pass (each style has inline edge detection)
     this.stylePass = new ShaderPass(shader);
     this.composer.addPass(this.stylePass);
 
-    // Add bloom for neon/synthwave/scifi styles
+    // Bloom for glow styles — create fresh each time
     if (['neon', 'synthwave', 'scifi'].includes(this.style)) {
-      this.composer.addPass(this.bloomPass);
+      const bloom = new UnrealBloomPass(
+        new THREE.Vector2(this.width, this.height),
+        0.5, 0.4, 0.85
+      );
+      this.composer.addPass(bloom);
     }
 
-    // Output pass for color space conversion
-    this.composer.addPass(this.outputPass);
+    // Fresh output pass for color space conversion
+    this.composer.addPass(new OutputPass());
 
     // Apply current uniform values
     this.updateStyleUniforms();
@@ -1229,7 +1212,9 @@ export class GPUStyleRenderer {
     // Resize render targets
     this.sceneTarget.setSize(this.width, this.height);
     this.edgeTarget.setSize(this.width, this.height);
-    this.composer.setSize(this.width, this.height);
+    if (this.composer) {
+      this.composer.setSize(this.width, this.height);
+    }
 
     // Update shader uniforms
     if (this.sobelPass) {
@@ -1240,9 +1225,14 @@ export class GPUStyleRenderer {
 
   render(forceRender = false) {
     if (!this.enabled) {
-      // If disabled but called, render normally
-      this.renderer.render(this.scene, this.camera);
+      this.renderer.render(this.engine.scene, this.engine.camera);
       return;
+    }
+
+    // Update time uniform for animated styles
+    this.time += 0.016;
+    if (this.stylePass && this.stylePass.uniforms.time) {
+      this.stylePass.uniforms.time.value = this.time;
     }
 
     this.composer.render();
