@@ -928,17 +928,6 @@ const CleanEdgeShader = {
     }
 
     void main() {
-      // DEBUG: Output red to test if shader is running
-      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); return;
-
-      // DEBUG: Output the input texture directly
-      // gl_FragColor = texture2D(tDiffuse, vUv); return;
-
-      // DEBUG: Output edge detection value as grayscale
-      // float edge = detectEdge(vUv);
-      // gl_FragColor = vec4(vec3(edge), 1.0); return;
-
-      // Normal operation
       float edge = detectEdge(vUv);
       vec3 finalColor = mix(bgColor, lineColor, edge);
       gl_FragColor = vec4(finalColor, 1.0);
@@ -1110,8 +1099,45 @@ export class GPUStyleRenderer {
     this.renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(this.renderPass);
 
-    // Just render pass for now - no post-processing
-    // This should show the scene exactly as it would without GPU mode
+    // Map style names to shader definitions
+    const shaderMap = {
+      clean: CleanEdgeShader,
+      sketch: SketchShader,
+      ink: InkShader,
+      crosshatch: CrosshatchShader,
+      blueprint: BlueprintShader,
+      comic: HalftoneShader,
+      saturated: SaturatedShader,
+      neon: NeonShader,
+      scifi: SciFiShader,
+      watercolor: WatercolorShader,
+      noir: NoirShader,
+      synthwave: SynthwaveShader,
+      ascii: ASCIIShader
+    };
+
+    const shader = shaderMap[this.style] || CleanEdgeShader;
+
+    // Add Sobel edge detection pass (used by most styles)
+    this.sobelPass = new ShaderPass(SobelEdgeShader);
+    this.sobelPass.uniforms.resolution.value.set(this.width, this.height);
+    this.sobelPass.uniforms.threshold.value = this.threshold * 0.2;
+    this.sobelPass.uniforms.thickness.value = this.lineWidth;
+
+    // Add style-specific shader pass
+    this.stylePass = new ShaderPass(shader);
+    this.composer.addPass(this.stylePass);
+
+    // Add bloom for neon/synthwave/scifi styles
+    if (['neon', 'synthwave', 'scifi'].includes(this.style)) {
+      this.composer.addPass(this.bloomPass);
+    }
+
+    // Output pass for color space conversion
+    this.composer.addPass(this.outputPass);
+
+    // Apply current uniform values
+    this.updateStyleUniforms();
   }
 
   updateStyleUniforms() {
@@ -1219,9 +1245,7 @@ export class GPUStyleRenderer {
       return;
     }
 
-    // TEST: Bypass composer entirely - just render the scene directly
-    // This should look identical to GPU mode OFF
-    this.renderer.render(this.scene, this.camera);
+    this.composer.render();
   }
 
   update() {
