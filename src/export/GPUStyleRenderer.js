@@ -66,7 +66,7 @@ const SobelEdgeShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
@@ -74,14 +74,14 @@ const SobelEdgeShader = {
       vec2 texel = vec2(thickness) / resolution;
 
       // Sobel kernels
-      float tl = luminance(texture2D(tDiffuse, vUv + vec2(-texel.x, texel.y)).rgb);
-      float t  = luminance(texture2D(tDiffuse, vUv + vec2(0.0, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, vUv + vec2(texel.x, texel.y)).rgb);
-      float l  = luminance(texture2D(tDiffuse, vUv + vec2(-texel.x, 0.0)).rgb);
-      float r  = luminance(texture2D(tDiffuse, vUv + vec2(texel.x, 0.0)).rgb);
-      float bl = luminance(texture2D(tDiffuse, vUv + vec2(-texel.x, -texel.y)).rgb);
-      float b  = luminance(texture2D(tDiffuse, vUv + vec2(0.0, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, vUv + vec2(texel.x, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, vUv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, vUv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, vUv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, vUv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, vUv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, vUv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, vUv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, vUv + vec2(texel.x, -texel.y)).rgb);
 
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
@@ -120,7 +120,7 @@ const CrosshatchShader = {
     uniform float lineWidth;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
@@ -133,7 +133,7 @@ const CrosshatchShader = {
 
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
-      float lum = luminance(texColor.rgb);
+      float lum = luma(texColor.rgb);
       float darkness = 1.0 - lum;
 
       vec2 pixelCoord = vUv * resolution;
@@ -184,13 +184,13 @@ const HalftoneShader = {
     uniform float spacing;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
-      float lum = luminance(texColor.rgb);
+      float lum = luma(texColor.rgb);
       float darkness = 1.0 - lum;
 
       vec2 pixelCoord = vUv * resolution;
@@ -236,7 +236,7 @@ const ASCIIShader = {
     uniform int colorMode;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
@@ -248,7 +248,7 @@ const ASCIIShader = {
 
       // Sample the center of this cell
       vec4 texColor = texture2D(tDiffuse, cellUv);
-      float lum = luminance(texColor.rgb);
+      float lum = luma(texColor.rgb);
 
       // Map luminance to character index (0-9 for " .:-=+*#%@")
       int charIndex = int(lum * 9.0);
@@ -308,18 +308,18 @@ const NeonShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
@@ -366,18 +366,18 @@ const SynthwaveShader = {
     uniform float time;
     varying vec2 vUv;
 
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
@@ -457,20 +457,20 @@ const NoirShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness * 1.5) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float t  = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float l  = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r  = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float b  = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
@@ -479,7 +479,7 @@ const NoirShader = {
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
       float edge = detectEdge(vUv);
-      float lum = luminance(texColor.rgb);
+      float lum = luma(texColor.rgb);
 
       // High contrast threshold
       float bw = step(threshold, lum);
@@ -529,20 +529,20 @@ const WatercolorShader = {
       return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
     }
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float t  = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float l  = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r  = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float b  = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.03, 0.12, sqrt(gx*gx + gy*gy));
@@ -595,18 +595,18 @@ const SciFiShader = {
     uniform float time;
     varying vec2 vUv;
 
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.2, sqrt(gx*gx + gy*gy));
@@ -659,18 +659,18 @@ const BlueprintShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
@@ -718,19 +718,19 @@ const SketchShader = {
     varying vec2 vUv;
 
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv, vec2 offset) {
       vec2 texel = vec2(thickness) / resolution;
       vec2 uvOff = uv + offset;
-      float tl = luminance(texture2D(tDiffuse, uvOff + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uvOff + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uvOff + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uvOff + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uvOff + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uvOff + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uvOff + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uvOff + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uvOff + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uvOff + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uvOff + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uvOff + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uvOff + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uvOff + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uvOff + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uvOff + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.03, 0.12, sqrt(gx*gx + gy*gy));
@@ -772,18 +772,18 @@ const InkShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness * 1.5) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-      float l = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float t = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float b = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.04, 0.15, sqrt(gx*gx + gy*gy));
@@ -792,7 +792,7 @@ const InkShader = {
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
       float edge = detectEdge(vUv);
-      float lum = luminance(texColor.rgb);
+      float lum = luma(texColor.rgb);
 
       // Cream paper
       vec3 paper = vec3(1.0, 0.996, 0.94);
@@ -835,20 +835,20 @@ const SaturatedShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
     }
 
     float detectEdge(vec2 uv) {
       vec2 texel = vec2(thickness) / resolution;
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float t  = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float l  = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r  = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float b  = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
       return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
@@ -897,7 +897,7 @@ const CleanEdgeShader = {
     uniform float thickness;
     varying vec2 vUv;
 
-    float luminance(vec3 color) {
+    float luma(vec3 color) {
       // Clamp to handle HDR/linear values
       vec3 c = clamp(color, 0.0, 1.0);
       return dot(c, vec3(0.299, 0.587, 0.114));
@@ -911,14 +911,14 @@ const CleanEdgeShader = {
 
       vec2 texel = vec2(thickness) / resolution;
 
-      float tl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
-      float t  = luminance(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
-      float tr = luminance(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
-      float l  = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
-      float r  = luminance(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float bl = luminance(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
-      float b  = luminance(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
-      float br = luminance(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
 
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
