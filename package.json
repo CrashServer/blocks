@@ -1,0 +1,19 @@
+{
+  "name": "blocks",
+  "version": "0.1.0",
+  "description": "3D block modeling tool for game assets",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "three": "^0.170.0",
+    "three-bvh-csg": "^0.0.17"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

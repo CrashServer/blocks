@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blocks</title>
+  
+</head>
+<body>
+  <div id="app">
+    <canvas id="viewport"></canvas>
+
+    <!-- Top Menu Bar -->
+    <div id="menubar">
+      <button id="btn-new" title="New Project">New</button>
+      <button id="btn-save" title="Save Project">Save</button>
+      <button id="btn-load" title="Load Project">Load</button>
+      <button id="btn-clear" title="Clear All">Clear</button>
+      <span class="separator"></span>
+      <button id="btn-templates" title="Browse Templates">Templates</button>
+      <span class="separator"></span>
+      <button id="btn-export" title="Export GLTF/GLB">Export</button>
+      <button id="btn-bake" title="Bake Lighting">Bake Light</button>
+      <button id="btn-clear-bake" title="Clear Baked Lighting">Clear Bake</button>
+      <span class="separator"></span>
+      <button id="btn-undo" title="Undo (Ctrl+Z)">Undo</button>
+      <button id="btn-redo" title="Redo (Ctrl+Y)">Redo</button>
+      <span class="separator"></span>
+      <button id="btn-toggle-timeline" title="Toggle Timeline">Timeline</button>
+    </div>
+
+    <!-- Left Toolbar -->
+    <div id="toolbar">
+      <div class="toolbar-section" id="tools-section">
+        <span class="section-label">Tools</span>
+        <div class="tools-grid">
+          <button class="tool active" data-tool="place" title="Place Block (1)">
+            <span>+</span>
+          </button>
+          <button class="tool" data-tool="delete" title="Delete Block (2)">
+            <span>−</span>
+          </button>
+          <button class="tool" data-tool="select" title="Select (3)">
+            <span>◻</span>
+          </button>
+          <button class="tool" data-tool="paint" title="Paint (4)">
+            <span>🖌</span>
+          </button>
+          <button class="tool" data-tool="pick" title="Pick Color (5)">
+            <span>💉</span>
+          </button>
+          <button class="tool" data-tool="shape" title="Shape Brush (6)">
+            <span>◍</span>
+          </button>
+          <button class="tool" data-tool="scatter" title="Generative Scatter (7)">
+            <span>✦</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar-section" id="paint-section" style="display: none;">
+        <span class="section-label">Paint Mode</span>
+        <div class="paint-options">
+          <button class="paint-mode active" data-mode="face" title="Paint single face">Face</button>
+          <button class="paint-mode" data-mode="block" title="Paint entire block">Block</button>
+        </div>
+      </div>
+
+      <div class="toolbar-section" id="shape-section" style="display: none;">
+        <span class="section-label">Shape Brush</span>
+        <div class="shape-grid">
+          <button class="shape-type active" data-shape="sphere" title="Sphere">●</button>
+          <button class="shape-type" data-shape="cube" title="Filled Cube">■</button>
+          <button class="shape-type" data-shape="hollowCube" title="Hollow Cube">□</button>
+          <button class="shape-type" data-shape="cylinder" title="Cylinder">◯</button>
+          <button class="shape-type" data-shape="disc" title="Disc">◉</button>
+          <button class="shape-type" data-shape="circle" title="Circle">○</button>
+          <button class="shape-type" data-shape="dome" title="Dome">◠</button>
+          <button class="shape-type" data-shape="line3d" title="3D Line">╱</button>
+          <button class="shape-type" data-shape="wall" title="Wall">▭</button>
+        </div>
+      </div>
+
+      <div class="toolbar-section" id="scatter-section" style="display: none;">
+        <span class="section-label">Scatter</span>
+        <div class="scatter-row">
+          <label>Preset:</label>
+          <select id="scatter-preset"></select>
+        </div>
+        <div class="scatter-row">
+          <label>Algorithm:</label>
+          <select id="scatter-algorithm"></select>
+        </div>
+        <div class="scatter-row">
+          <label>Count:</label>
+          <input type="range" id="scatter-count" min="10" max="200" value="50">
+          <span id="scatter-count-val">50</span>
+        </div>
+        <div class="scatter-row">
+          <label>Branch:</label>
+          <input type="range" id="scatter-branch" min="0" max="0.5" step="0.05" value="0.2">
+          <span id="scatter-branch-val">20%</span>
+        </div>
+        <div class="scatter-row">
+          <label>Scale Mix:</label>
+          <input type="range" id="scatter-scale-ratio" min="0" max="1" step="0.1" value="0.8">
+          <span id="scatter-scale-ratio-val">80% 1×</span>
+        </div>
+        <div class="scatter-row">
+          <label>Colors:</label>
+          <select id="scatter-harmony">
+            <option value="analogous">Analogous</option>
+            <option value="complementary">Complementary</option>
+            <option value="triadic">Triadic</option>
+            <option value="monochrome">Monochrome</option>
+            <option value="split">Split</option>
+          </select>
+        </div>
+        <div class="scatter-hint">Click to generate from point</div>
+      </div>
+
+      <!-- Block Palette - dynamically generated -->
+      <div class="toolbar-section">
+        <span class="section-label">Blocks</span>
+        <input type="text" id="block-search" placeholder="Search blocks..." autocomplete="off">
+      </div>
+      <div id="block-palette"></div>
+
+      <div class="toolbar-section">
+        <span class="section-label">Transform</span>
+        <button id="btn-rotate" title="Rotate 90° (R)">↻</button>
+        <div class="scale-toggle">
+          <button id="btn-scale-1x" class="scale-btn active" title="Normal blocks (1x1)">1×</button>
+          <button id="btn-scale-2x" class="scale-btn" title="Large blocks (2x2)">2×</button>
+          <button id="btn-scale-4x" class="scale-btn" title="Extra large blocks (4x4)">4×</button>
+        </div>
+      </div>
+
+      <div class="toolbar-section">
+        <span class="section-label">Mirror Selected</span>
+        <div class="mirror-buttons">
+          <button id="btn-mirror-x" class="mirror-btn" title="Mirror across X axis">X</button>
+          <button id="btn-mirror-y" class="mirror-btn" title="Mirror across Y axis">Y</button>
+          <button id="btn-mirror-z" class="mirror-btn" title="Mirror across Z axis">Z</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Colors & Properties -->
+    <div id="right-panel">
+      <div class="panel-section">
+        <span class="section-label">View</span>
+        <div class="view-row">
+          <input type="checkbox" id="show-edges" checked>
+          <label for="show-edges">Show Edges</label>
+        </div>
+        <div class="view-row">
+          <label>Edge Opacity:</label>
+          <input type="range" id="edge-opacity" min="0.1" max="1" step="0.1" value="0.3">
+        </div>
+      </div>
+
+      <!-- Stylized Render Mode -->
+      <div class="panel-section" id="tattoo-section">
+        <span class="section-label">Stylized Render</span>
+        <div class="tattoo-row">
+          <input type="checkbox" id="tattoo-enabled">
+          <label for="tattoo-enabled">Enable Stylized View</label>
+        </div>
+        <div class="tattoo-row">
+          <input type="checkbox" id="gpu-acceleration" checked>
+          <label for="gpu-acceleration">GPU Acceleration</label>
+        </div>
+        <div class="tattoo-row">
+          <label>Style:</label>
+          <select id="render-style">
+            <option value="clean">Clean</option>
+            <option value="saturated">Saturated</option>
+            <option value="sketch">Sketch</option>
+            <option value="ink">Ink</option>
+            <option value="crosshatch">Cross-Hatch</option>
+            <option value="blueprint">Blueprint</option>
+            <option value="comic">Comic</option>
+            <option value="neon">Neon / Tron</option>
+            <option value="scifi">Sci-Fi</option>
+            <option value="watercolor">Watercolor</option>
+            <option value="noir">Noir</option>
+            <option value="synthwave">Synthwave</option>
+            <option value="ascii">ASCII Art</option>
+          </select>
+        </div>
+        <div class="tattoo-row">
+          <input type="checkbox" id="tattoo-inverted">
+          <label for="tattoo-inverted">Invert Colors</label>
+        </div>
+        <div class="tattoo-row">
+          <input type="checkbox" id="tattoo-grayscale">
+          <label for="tattoo-grayscale">Grayscale</label>
+        </div>
+        <div class="tattoo-row">
+          <input type="checkbox" id="tattoo-fills" checked>
+          <label for="tattoo-fills">Show Fills</label>
+        </div>
+        <div class="tattoo-row">
+          <label>Quality:</label>
+          <select id="render-quality">
+            <option value="low">Low (Fast)</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High (Slow)</option>
+          </select>
+        </div>
+        <div class="tattoo-row">
+          <label>Threshold:</label>
+          <input type="range" id="tattoo-threshold" min="0" max="1" step="0.05" value="0.5">
+          <span id="tattoo-threshold-val">0.5</span>
+        </div>
+        <div class="tattoo-row">
+          <label>Line Width:</label>
+          <input type="range" id="tattoo-line-width" min="1" max="8" step="0.5" value="2">
+          <span id="tattoo-line-width-val">2</span>
+        </div>
+        <div class="tattoo-actions">
+          <button id="btn-tattoo-png" title="Save as PNG">Save PNG</button>
+          <button id="btn-tattoo-svg" title="Export as SVG">Export SVG</button>
+        </div>
+        <div class="tattoo-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+          <button id="btn-flatten" title="Merge touching blocks into single meshes" style="width: 100%;">Flatten Blocks</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <span class="section-label">Camera Presets</span>
+        <div class="camera-presets">
+          <button class="preset-btn" data-preset="front" title="Front View">F</button>
+          <button class="preset-btn" data-preset="back" title="Back View">B</button>
+          <button class="preset-btn" data-preset="left" title="Left View">L</button>
+          <button class="preset-btn" data-preset="right" title="Right View">R</button>
+          <button class="preset-btn" data-preset="top" title="Top View">T</button>
+          <button class="preset-btn" data-preset="iso" title="Isometric View">3D</button>
+        </div>
+        <div class="bookmark-controls">
+          <button id="btn-save-view" title="Save current view">Save View</button>
+        </div>
+        <div id="camera-bookmarks"></div>
+      </div>
+
+      <div class="panel-section">
+        <span class="section-label">Camera Animation</span>
+        <div style="margin-bottom: 8px; font-size: 11px; opacity: 0.7;">
+          Save 2+ camera views above, then render animation
+        </div>
+        <div class="prop-row" style="margin-bottom: 8px;">
+          <label>Frames:</label>
+          <input type="number" id="camera-anim-frames" value="300" min="10" max="3600" step="10" style="width: 80px;">
+        </div>
+        <div class="prop-row" style="margin-bottom: 8px;">
+          <label>FPS:</label>
+          <input type="number" id="camera-anim-fps" value="30" min="15" max="60" step="5" style="width: 60px;">
+          <span id="camera-anim-duration" style="margin-left: 8px; font-size: 11px; opacity: 0.7;">10.0s</span>
+        </div>
+        <div class="prop-row" style="margin-bottom: 8px;">
+          <label>Curve:</label>
+          <select id="camera-anim-curve" style="flex: 1;">
+            <option value="linear">Linear</option>
+            <option value="easeInOut" selected>Ease In-Out</option>
+            <option value="easeIn">Ease In</option>
+            <option value="easeOut">Ease Out</option>
+            <option value="smoothstep">Smoothstep</option>
+          </select>
+        </div>
+        <button id="btn-camera-preview" style="width: 100%; margin-bottom: 8px;">Preview Animation</button>
+        <button id="btn-camera-export-jpg" style="width: 100%; margin-bottom: 4px;">Export JPG Sequence (ZIP)</button>
+        <button id="btn-camera-export-mp4" style="width: 100%;">Export as Video (WebM)</button>
+        <div id="camera-anim-progress" style="display: none; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+          <div style="font-size: 11px; margin-bottom: 4px;">Rendering frames...</div>
+          <div style="background: rgba(255,255,255,0.1); height: 20px; border-radius: 4px; overflow: hidden;">
+            <div id="camera-anim-progress-bar" style="background: #5588cc; height: 100%; width: 0%; transition: width 0.2s;"></div>
+          </div>
+          <div id="camera-anim-progress-text" style="font-size: 11px; margin-top: 4px; text-align: center;">0%</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <span class="section-label">Color</span>
+        <div id="color-picker">
+          <input type="color" id="current-color" value="#5588cc">
+        </div>
+        <div id="color-palette"></div>
+      </div>
+
+      <div class="panel-section">
+        <span class="section-label">Emissive (Glow)</span>
+        <div class="emissive-row">
+          <input type="checkbox" id="emissive-enabled">
+          <label for="emissive-enabled">Enable Glow</label>
+        </div>
+        <div class="emissive-row">
+          <label>Color:</label>
+          <input type="color" id="emissive-color" value="#ffaa00">
+        </div>
+        <div class="emissive-row">
+          <label>Intensity:</label>
+          <input type="range" id="emissive-intensity" min="0.1" max="5" step="0.1" value="1">
+          <span id="emissive-intensity-val">1.0</span>
+        </div>
+        <div class="emissive-row">
+          <label>Radius:</label>
+          <input type="range" id="emissive-radius" min="1" max="10" step="0.5" value="3">
+          <span id="emissive-radius-val">3.0</span>
+        </div>
+      </div>
+
+      <!-- Layer Panel -->
+      <div class="panel-section" id="layers-section">
+        <div class="section-header">
+          <span class="section-label">Layers</span>
+          <button id="btn-add-layer" title="Add Layer">+</button>
+        </div>
+        <div id="layer-list"></div>
+      </div>
+
+      <div class="panel-section" id="selection-props" style="display: none;">
+        <span class="section-label">Selected Block</span>
+        <div class="prop-row">
+          <label>Type:</label>
+          <span id="prop-type">-</span>
+        </div>
+        <div class="prop-row">
+          <label>Position:</label>
+          <span id="prop-position">-</span>
+        </div>
+        <div class="prop-row">
+          <label>Rotation:</label>
+          <span id="prop-rotation">-</span>
+        </div>
+        <div class="move-controls">
+          <span class="section-label">Move (Arrow Keys)</span>
+          <div class="move-grid">
+            <button class="move-btn" data-dir="up" title="Move +Z">&#9650;</button>
+            <button class="move-btn" data-dir="left" title="Move -X">&#9664;</button>
+            <button class="move-btn" data-dir="down" title="Move -Z">&#9660;</button>
+            <button class="move-btn" data-dir="right" title="Move +X">&#9654;</button>
+          </div>
+          <div class="move-vertical">
+            <button class="move-btn" data-dir="raise" title="Move +Y (PgUp)">+Y</button>
+            <button class="move-btn" data-dir="lower" title="Move -Y (PgDn)">-Y</button>
+          </div>
+        </div>
+        <div class="prop-actions">
+          <button id="btn-copy" title="Copy (Ctrl+C)">Copy</button>
+          <button id="btn-delete-sel" title="Delete (Del)">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Timeline -->
+    <div id="timeline-panel">
+      <div id="timeline-controls">
+        <button id="btn-add-anim" title="New Animation">+ Anim</button>
+        <button id="btn-delete-anim" title="Delete Animation">× Anim</button>
+        <select id="anim-select">
+          <option value="">-- No Animation --</option>
+        </select>
+        <button id="btn-play" title="Play/Pause (Space)">▶</button>
+        <button id="btn-stop" title="Stop">■</button>
+        <span id="time-display">0.00s</span>
+        <label class="timeline-label">Duration:</label>
+        <input type="number" id="anim-duration" value="2000" min="100" max="60000" step="100" title="Duration in ms">
+        <label class="timeline-label">Speed:</label>
+        <select id="anim-speed" title="Playback Speed">
+          <option value="0.25">0.25x</option>
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="2">2x</option>
+          <option value="4">4x</option>
+        </select>
+        <label class="timeline-label">Curve:</label>
+        <select id="anim-curve" title="Interpolation Curve">
+          <option value="linear">Linear</option>
+          <option value="easeInOut" selected>Ease In-Out</option>
+          <option value="easeIn">Ease In</option>
+          <option value="easeOut">Ease Out</option>
+          <option value="smoothstep">Smoothstep</option>
+        </select>
+        <input type="checkbox" id="anim-loop">
+        <label for="anim-loop">Loop</label>
+      </div>
+      <div id="timeline-track">
+        <div id="timeline-scrubber"></div>
+        <div id="keyframes-container"></div>
+        <input type="range" id="timeline-slider" min="0" max="2000" value="0">
+      </div>
+      <div id="timeline-actions">
+        <button id="btn-add-keyframe" title="Add Keyframe (+/=/K)">+ Key</button>
+        <button id="btn-remove-keyframe" title="Remove Keyframe (-)">- Key</button>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div id="info">
+      <span id="grid-pos">Grid: 0, 0, 0</span>
+      <span id="block-count">Blocks: 0</span>
+      <span id="tool-hint">Left-click: place | Shift+click: fill line/rect | Middle-click: delete | Right-drag: rotate | Shift+Right-drag: pan | Scroll: zoom | U: hide UI</span>
+    </div>
+
+    <!-- Hidden file input for loading -->
+    <input type="file" id="file-input" accept=".blocks,.json" style="display: none;">
+
+    <!-- Toast notifications container -->
+    <div id="notifications"></div>
+
+    <!-- Templates Modal -->
+    <div id="templates-modal" class="modal" style="display: none;">
+      <div class="modal-content templates-modal-content">
+        <div class="modal-header">
+          <h3>Templates</h3>
+          <button class="modal-close" id="templates-modal-close">&times;</button>
+        </div>
+        <div class="modal-body" id="templates-list">
+          <!-- Categories will be dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Export Settings</h3>
+          <button class="modal-close" id="export-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-section">
+            <span class="section-label">Format</span>
+            <div class="export-row">
+              <label>
+                <input type="radio" name="export-format" value="glb" checked>
+                GLB (Binary)
+              </label>
+              <label>
+                <input type="radio" name="export-format" value="gltf">
+                GLTF (JSON)
+              </label>
+            </div>
+          </div>
+
+          <div class="export-section">
+            <span class="section-label">Optimization</span>
+            <div class="export-row">
+              <input type="checkbox" id="opt-face-cull" checked>
+              <label for="opt-face-cull">Cull hidden faces</label>
+              <span class="hint">Remove faces between adjacent blocks</span>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="opt-merge-cubes" checked>
+              <label for="opt-merge-cubes">Merge adjacent cubes</label>
+              <span class="hint">Combine same-color cubes into larger meshes</span>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="opt-material-batch" checked>
+              <label for="opt-material-batch">Batch by material</label>
+              <span class="hint">Group geometry by color for fewer draw calls</span>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="opt-deduplicate" checked>
+              <label for="opt-deduplicate">Deduplicate vertices</label>
+              <span class="hint">Merge duplicate vertices to reduce mesh size</span>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="opt-merge-all">
+              <label for="opt-merge-all">Merge all into single mesh</label>
+              <span class="hint">Combine everything using vertex colors (1 draw call)</span>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="opt-instancing">
+              <label for="opt-instancing">Use GPU instancing</label>
+              <span class="hint">Best for scenes with many identical block types</span>
+            </div>
+          </div>
+
+          <div class="export-section">
+            <span class="section-label">Include</span>
+            <div class="export-row">
+              <input type="checkbox" id="inc-animations" checked>
+              <label for="inc-animations">Animations</label>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="inc-baked-lighting">
+              <label for="inc-baked-lighting">Baked lighting texture</label>
+              <span class="hint">Include lightmap if baked</span>
+            </div>
+          </div>
+
+          <div class="export-section">
+            <span class="section-label">Debug Exports</span>
+            <div class="export-row">
+              <input type="checkbox" id="dbg-lightmap">
+              <label for="dbg-lightmap">Export lightmap PNG</label>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="dbg-colors">
+              <label for="dbg-colors">Export debug colors PNG</label>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="dbg-palette">
+              <label for="dbg-palette">Export color palette PNG</label>
+            </div>
+            <div class="export-row">
+              <input type="checkbox" id="dbg-json">
+              <label for="dbg-json">Also export GLTF JSON</label>
+              <span class="hint">For debugging structure</span>
+            </div>
+          </div>
+
+          <div class="export-stats" id="export-stats">
+            <span class="section-label">Statistics</span>
+            <div class="stats-row">
+              <span>Blocks:</span>
+              <span id="stat-blocks">0</span>
+            </div>
+            <div class="stats-row">
+              <span>Estimated faces:</span>
+              <span id="stat-faces">0</span>
+            </div>
+            <div class="stats-row">
+              <span>After optimization:</span>
+              <span id="stat-optimized">0</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="export-cancel">Cancel</button>
+          <button id="export-confirm" class="primary">Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="./assets/app.js"></script>
+</body>
+</html>
