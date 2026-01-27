@@ -158,7 +158,7 @@ const CrosshatchShader = {
   `
 };
 
-// Halftone Dot Pattern Shader
+// Halftone Dot Pattern Shader (Comic style with bold edges)
 const HalftoneShader = {
   uniforms: {
     tDiffuse: { value: null },
@@ -166,7 +166,8 @@ const HalftoneShader = {
     dotColor: { value: new THREE.Color(0x000000) },
     bgColor: { value: new THREE.Color(0xffffff) },
     dotSize: { value: 4.0 },
-    spacing: { value: 8.0 }
+    spacing: { value: 8.0 },
+    thickness: { value: 2.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -182,10 +183,26 @@ const HalftoneShader = {
     uniform vec3 bgColor;
     uniform float dotSize;
     uniform float spacing;
+    uniform float thickness;
     varying vec2 vUv;
 
     float luma(vec3 color) {
       return dot(color, vec3(0.299, 0.587, 0.114));
+    }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness * 2.0) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l  = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r  = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+      float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
+      return smoothstep(0.04, 0.12, sqrt(gx*gx + gy*gy));
     }
 
     void main() {
@@ -200,9 +217,14 @@ const HalftoneShader = {
 
       // Dot radius based on darkness
       float radius = darkness * dotSize;
-      float dot = 1.0 - smoothstep(radius - 0.5, radius + 0.5, dist);
+      float dt = 1.0 - smoothstep(radius - 0.5, radius + 0.5, dist);
 
-      vec3 finalColor = mix(bgColor, dotColor, dot);
+      vec3 finalColor = mix(bgColor, dotColor, dt);
+
+      // Bold edge overlay (comic-style thick outlines)
+      float edge = detectEdge(vUv);
+      finalColor = mix(finalColor, dotColor, edge);
+
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -871,13 +893,14 @@ const SaturatedShader = {
   `
 };
 
-// Clean Edge Shader (simple outline with inline edge detection)
+// Clean Edge Shader (solid fills with edge outlines)
 const CleanEdgeShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     bgColor: { value: new THREE.Color(1.0, 1.0, 1.0) },
     lineColor: { value: new THREE.Color(0.0, 0.0, 0.0) },
+    sceneBg: { value: new THREE.Color(0x1a1a2e) },
     threshold: { value: 0.1 },
     thickness: { value: 1.0 }
   },
@@ -893,24 +916,19 @@ const CleanEdgeShader = {
     uniform vec2 resolution;
     uniform vec3 bgColor;
     uniform vec3 lineColor;
+    uniform vec3 sceneBg;
     uniform float threshold;
     uniform float thickness;
     varying vec2 vUv;
 
     float luma(vec3 color) {
-      // Clamp to handle HDR/linear values
       vec3 c = clamp(color, 0.0, 1.0);
       return dot(c, vec3(0.299, 0.587, 0.114));
     }
 
     float detectEdge(vec2 uv) {
-      // Safety check for resolution
-      if (resolution.x < 1.0 || resolution.y < 1.0) {
-        return 0.0;
-      }
-
+      if (resolution.x < 1.0 || resolution.y < 1.0) return 0.0;
       vec2 texel = vec2(thickness) / resolution;
-
       float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
       float t  = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
       float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
@@ -919,17 +937,24 @@ const CleanEdgeShader = {
       float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
       float b  = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
       float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
-
       float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
       float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
-
-      float mag = sqrt(gx*gx + gy*gy);
-      return smoothstep(threshold, threshold + 0.1, mag);
+      return smoothstep(threshold, threshold + 0.1, sqrt(gx*gx + gy*gy));
     }
 
     void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
       float edge = detectEdge(vUv);
-      vec3 finalColor = mix(bgColor, lineColor, edge);
+
+      // Detect background vs geometry by comparing to scene clear color
+      float dist = length(texColor.rgb - sceneBg);
+      float isGeometry = smoothstep(0.02, 0.08, dist);
+
+      // Show block fills where geometry exists, style bgColor otherwise
+      vec3 fills = mix(bgColor, texColor.rgb, isGeometry);
+
+      // Overlay edge lines
+      vec3 finalColor = mix(fills, lineColor, edge);
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
