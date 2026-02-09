@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Brush, Evaluator, ADDITION } from 'three-bvh-csg';
 import { MergedMesh } from '../blocks/MergedMesh.js';
+import { getWorldBounds } from '../blocks/BlockTypes.js';
 
 /**
  * BlockFlattener - Merges touching blocks into single unified meshes using CSG
@@ -19,34 +20,73 @@ export class BlockFlattener {
   }
 
   /**
+   * Check if two axis-aligned bounding boxes are touching (adjacent but not overlapping)
+   * or overlapping (which also means connected)
+   */
+  areBoundsTouching(a, b) {
+    const eps = 0.01; // Tolerance for floating point comparison
+
+    // Check if boxes overlap or touch on each axis
+    const xOverlap = a.min.x <= b.max.x + eps && a.max.x >= b.min.x - eps;
+    const yOverlap = a.min.y <= b.max.y + eps && a.max.y >= b.min.y - eps;
+    const zOverlap = a.min.z <= b.max.z + eps && a.max.z >= b.min.z - eps;
+
+    // If all three axes overlap/touch, the boxes are connected
+    if (xOverlap && yOverlap && zOverlap) {
+      // Make sure they actually touch (not just close)
+      // At least one axis should be touching (difference near zero) or overlapping
+      const xTouching = Math.abs(a.max.x - b.min.x) < eps || Math.abs(b.max.x - a.min.x) < eps ||
+                        (a.min.x < b.max.x && a.max.x > b.min.x);
+      const yTouching = Math.abs(a.max.y - b.min.y) < eps || Math.abs(b.max.y - a.min.y) < eps ||
+                        (a.min.y < b.max.y && a.max.y > b.min.y);
+      const zTouching = Math.abs(a.max.z - b.min.z) < eps || Math.abs(b.max.z - a.min.z) < eps ||
+                        (a.min.z < b.max.z && a.max.z > b.min.z);
+
+      return xTouching && yTouching && zTouching;
+    }
+
+    return false;
+  }
+
+  /**
    * Find all connected islands of blocks
-   * Uses flood-fill to group touching blocks
+   * Uses bounds-based touching detection for accurate grouping with any block type/scale
    */
   findIslands(blocks) {
     if (blocks.length === 0) return [];
 
-    // Build position map for fast neighbor lookup
-    const posMap = new Map();
-    const blockSet = new Set(blocks.map(b => b.id));
-
+    // Pre-compute world bounds for all blocks
+    const boundsMap = new Map();
     for (const block of blocks) {
-      const pos = block.gridPosition;
-      const key = `${pos.x},${pos.y},${pos.z}`;
-      posMap.set(key, block);
+      boundsMap.set(block.id, getWorldBounds(block));
     }
 
-    // Track which blocks have been assigned to an island
+    // Build adjacency list - which blocks touch which
+    const adjacency = new Map();
+    for (const block of blocks) {
+      adjacency.set(block.id, []);
+    }
+
+    // Check all pairs for touching (O(n²) but necessary for accurate detection)
+    for (let i = 0; i < blocks.length; i++) {
+      const blockA = blocks[i];
+      const boundsA = boundsMap.get(blockA.id);
+
+      for (let j = i + 1; j < blocks.length; j++) {
+        const blockB = blocks[j];
+        const boundsB = boundsMap.get(blockB.id);
+
+        if (this.areBoundsTouching(boundsA, boundsB)) {
+          adjacency.get(blockA.id).push(blockB);
+          adjacency.get(blockB.id).push(blockA);
+        }
+      }
+    }
+
+    // Flood fill to find connected components using adjacency list
     const visited = new Set();
     const islands = [];
 
-    // 6-connected neighbors (faces touching)
-    const neighbors = [
-      [1, 0, 0], [-1, 0, 0],
-      [0, 1, 0], [0, -1, 0],
-      [0, 0, 1], [0, 0, -1]
-    ];
-
-    // Flood fill to find connected components
     for (const block of blocks) {
       if (visited.has(block.id)) continue;
 
@@ -60,13 +100,9 @@ export class BlockFlattener {
         visited.add(current.id);
         island.push(current);
 
-        // Check all 6 neighbors
-        const pos = current.gridPosition;
-        for (const [dx, dy, dz] of neighbors) {
-          const neighborKey = `${pos.x + dx},${pos.y + dy},${pos.z + dz}`;
-          const neighbor = posMap.get(neighborKey);
-
-          if (neighbor && blockSet.has(neighbor.id) && !visited.has(neighbor.id)) {
+        // Add all touching neighbors to queue
+        for (const neighbor of adjacency.get(current.id)) {
+          if (!visited.has(neighbor.id)) {
             queue.push(neighbor);
           }
         }

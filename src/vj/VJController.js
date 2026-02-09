@@ -425,7 +425,6 @@ export class VJController {
           this.gpuRenderer.setStyle(this.styles[idx]);
           // Re-inject VJ passes after style change rebuilds composer
           setTimeout(() => this.onStyleChanged(), 50);
-          this._showOverlayMessage(this.styles[idx]);
         }
         e.preventDefault();
         break;
@@ -475,7 +474,6 @@ export class VJController {
         this.currentStyleIndex = Math.floor(Math.random() * this.styles.length);
         this.gpuRenderer.setStyle(this.styles[this.currentStyleIndex]);
         setTimeout(() => this.onStyleChanged(), 50);
-        this._showOverlayMessage(this.styles[this.currentStyleIndex]);
         break;
 
       case '+': case '=': // Increase reactivity

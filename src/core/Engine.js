@@ -72,7 +72,7 @@ export class Engine {
     this.controls.dampingFactor = 0.1;
     this.controls.minDistance = 5;
     this.controls.maxDistance = 50;
-    this.controls.maxPolarAngle = Math.PI / 2 - 0.05; // Prevent going below ground
+    this.controls.maxPolarAngle = Math.PI; // Allow full 360° rotation including below the ground
     this.controls.mouseButtons = {
       LEFT: null, // We'll handle left click for placing
       MIDDLE: THREE.MOUSE.DOLLY,

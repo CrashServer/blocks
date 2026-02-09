@@ -1753,8 +1753,22 @@ class App {
     const pngBtn = document.getElementById('btn-tattoo-png');
     const svgBtn = document.getElementById('btn-tattoo-svg');
 
-    // Sync GPU checkbox with initial state
-    gpuCheckbox.checked = this.useGPURenderer;
+    // Sync all checkboxes with renderer's initial state
+    const syncCheckboxesToRenderer = () => {
+      gpuCheckbox.checked = this.useGPURenderer;
+      enabledCheckbox.checked = this.tattooRenderer.enabled;
+      invertedCheckbox.checked = this.tattooRenderer.inverted;
+      grayscaleCheckbox.checked = this.tattooRenderer.grayscale;
+      fillsCheckbox.checked = this.tattooRenderer.showFills;
+      styleSelect.value = this.tattooRenderer.style;
+      thresholdSlider.value = this.tattooRenderer.threshold;
+      thresholdVal.textContent = this.tattooRenderer.threshold.toFixed(2);
+      lineWidthSlider.value = this.tattooRenderer.lineWidth;
+      lineWidthVal.textContent = this.tattooRenderer.lineWidth.toFixed(1);
+    };
+
+    // Initial sync
+    syncCheckboxesToRenderer();
 
     // GPU acceleration toggle
     gpuCheckbox.addEventListener('change', (e) => {
@@ -1793,13 +1807,17 @@ class App {
         this.vjController.gpuRenderer = this.tattooRenderer;
       }
 
-      // Restore enabled state and current settings
+      // Apply all current UI settings to new renderer
+      this.tattooRenderer.setStyle(styleSelect.value);
+      this.tattooRenderer.setInverted(invertedCheckbox.checked);
+      this.tattooRenderer.setGrayscale(grayscaleCheckbox.checked);
+      this.tattooRenderer.setShowFills(fillsCheckbox.checked);
+      this.tattooRenderer.setQuality(qualitySelect.value);
+      this.tattooRenderer.setThreshold(parseFloat(thresholdSlider.value));
+      this.tattooRenderer.setLineWidth(parseFloat(lineWidthSlider.value));
+
+      // Restore enabled state if it was on
       if (wasEnabled) {
-        this.tattooRenderer.setStyle(styleSelect.value);
-        this.tattooRenderer.setInverted(invertedCheckbox.checked);
-        this.tattooRenderer.setGrayscale(grayscaleCheckbox.checked);
-        this.tattooRenderer.setShowFills(fillsCheckbox.checked);
-        this.tattooRenderer.setQuality(qualitySelect.value);
         this.tattooRenderer.setEnabled(true);
       }
     });
@@ -2151,6 +2169,57 @@ class App {
       toggleBtn.classList.toggle('active', isHidden);
       localStorage.setItem('timelineHidden', !isHidden);
     });
+
+    // Toggle right panel visibility with persistence
+    const rightPanel = document.getElementById('right-panel');
+    const panelToggleBtn = document.getElementById('btn-toggle-panel');
+
+    // Restore saved state
+    const panelHidden = localStorage.getItem('rightPanelHidden') === 'true';
+    if (panelHidden) {
+      rightPanel.classList.add('hidden');
+      panelToggleBtn.classList.remove('active');
+    } else {
+      panelToggleBtn.classList.add('active');
+    }
+
+    panelToggleBtn.addEventListener('click', () => {
+      const isHidden = rightPanel.classList.contains('hidden');
+      rightPanel.classList.toggle('hidden', !isHidden);
+      panelToggleBtn.classList.toggle('active', isHidden);
+      localStorage.setItem('rightPanelHidden', !isHidden);
+    });
+
+    // Setup collapsible panel sections
+    this.setupCollapsibleSections();
+  }
+
+  setupCollapsibleSections() {
+    const collapsibleSections = document.querySelectorAll('.panel-section.collapsible');
+    const savedStates = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+
+    collapsibleSections.forEach(section => {
+      const sectionId = section.dataset.section;
+      const header = section.querySelector('.collapsible-header');
+
+      // Restore saved state
+      if (savedStates[sectionId]) {
+        section.classList.add('collapsed');
+      }
+
+      // Add click handler to toggle
+      header.addEventListener('click', (e) => {
+        // Don't collapse if clicking on a button inside header
+        if (e.target.tagName === 'BUTTON') return;
+
+        section.classList.toggle('collapsed');
+
+        // Save state
+        const states = JSON.parse(localStorage.getItem('collapsedSections') || '{}');
+        states[sectionId] = section.classList.contains('collapsed');
+        localStorage.setItem('collapsedSections', JSON.stringify(states));
+      });
+    });
   }
 
   toggleUIVisibility() {
@@ -2420,6 +2489,7 @@ class App {
     const presetNameEl = document.getElementById('vj-preset-name');
 
     const toolbar = document.getElementById('toolbar');
+    const timelinePanel = document.getElementById('timeline-panel');
 
     // VJ button toggles VJ mode on/off
     vjBtn.addEventListener('click', async () => {
@@ -2427,7 +2497,7 @@ class App {
         this.vjController.stop();
         vjBtn.classList.remove('active');
         vjPanel.style.display = 'none';
-        toolbar.style.display = '';
+        timelinePanel.style.display = '';
         this.grid.gridGroup.visible = true;
         this.showNotification('VJ Mode stopped', 'info', 2000);
       } else {
@@ -2442,7 +2512,7 @@ class App {
           await this.vjController.start();
           vjBtn.classList.add('active');
           vjPanel.style.display = '';
-          toolbar.style.display = 'none';
+          timelinePanel.style.display = 'none'; // Hide timeline, keep toolbar visible
           this.grid.gridGroup.visible = false;
           this.showNotification('VJ Mode started — use mic audio', 'success', 3000);
         } catch (e) {
@@ -2613,7 +2683,7 @@ class App {
     this.vjController.onStateChange = (active) => {
       vjBtn.classList.toggle('active', active);
       vjPanel.style.display = active ? '' : 'none';
-      toolbar.style.display = active ? 'none' : '';
+      timelinePanel.style.display = active ? 'none' : ''; // Hide timeline, keep toolbar
       this.grid.gridGroup.visible = !active;
     };
 
@@ -2648,6 +2718,11 @@ class App {
         // Toggle UI visibility
         case 'u':
           this.toggleUIVisibility();
+          break;
+
+        // Toggle right panel
+        case 'p':
+          document.getElementById('btn-toggle-panel').click();
           break;
 
         // Undo/Redo

@@ -52,6 +52,10 @@ export class CameraModes {
     this.baseDistance = this.camera.position.distanceTo(this.controls.target);
     this.baseFov = this.camera.fov;
 
+    // Allow full 360° rotation for all camera modes
+    this.controls.maxPolarAngle = Math.PI;
+    this.controls.minPolarAngle = 0;
+
     if (mode === 'orbit') {
       this.controls.autoRotate = true;
     } else {

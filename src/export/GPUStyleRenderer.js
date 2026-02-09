@@ -48,7 +48,8 @@ const SobelEdgeShader = {
     edgeColor: { value: new THREE.Color(0x000000) },
     bgColor: { value: new THREE.Color(0xffffff) },
     threshold: { value: 0.1 },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -64,6 +65,7 @@ const SobelEdgeShader = {
     uniform vec3 bgColor;
     uniform float threshold;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -89,7 +91,12 @@ const SobelEdgeShader = {
       float edge = sqrt(gx*gx + gy*gy);
       edge = smoothstep(threshold, threshold + 0.1, edge);
 
-      gl_FragColor = vec4(mix(bgColor, edgeColor, edge), 1.0);
+      vec3 finalColor = mix(bgColor, edgeColor, edge);
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
+      gl_FragColor = vec4(finalColor, 1.0);
     }
   `
 };
@@ -102,7 +109,8 @@ const CrosshatchShader = {
     lineColor: { value: new THREE.Color(0x000000) },
     bgColor: { value: new THREE.Color(0xffffff) },
     spacing: { value: 8.0 },
-    lineWidth: { value: 1.0 }
+    lineWidth: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -118,6 +126,7 @@ const CrosshatchShader = {
     uniform vec3 bgColor;
     uniform float spacing;
     uniform float lineWidth;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -153,6 +162,10 @@ const CrosshatchShader = {
       }
 
       vec3 finalColor = mix(bgColor, lineColor, hatch);
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -251,7 +264,8 @@ const ASCIIShader = {
     charSize: { value: new THREE.Vector2(8, 16) },
     textColor: { value: new THREE.Color(0x00ff00) },
     bgColor: { value: new THREE.Color(0x000000) },
-    colorMode: { value: 0 } // 0 = monochrome, 1 = colored
+    colorMode: { value: 0 }, // 0 = monochrome, 1 = colored
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -268,6 +282,7 @@ const ASCIIShader = {
     uniform vec3 textColor;
     uniform vec3 bgColor;
     uniform int colorMode;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -309,6 +324,11 @@ const ASCIIShader = {
         color = mix(bgColor, textColor, charValue);
       }
 
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+
       gl_FragColor = vec4(color, 1.0);
     }
   `
@@ -323,7 +343,8 @@ const NeonShader = {
     accentColor: { value: new THREE.Color(0xff00ff) },
     bgColor: { value: new THREE.Color(0x0a0a0f) },
     glowIntensity: { value: 2.0 },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -340,6 +361,7 @@ const NeonShader = {
     uniform vec3 bgColor;
     uniform float glowIntensity;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
@@ -373,6 +395,10 @@ const NeonShader = {
       // Combine
       vec3 finalColor = mix(darkBase + bgColor * 0.5, edgeGlow * glowIntensity, edge);
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -384,7 +410,8 @@ const SynthwaveShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     thickness: { value: 1.0 },
-    time: { value: 0 }
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -398,6 +425,7 @@ const SynthwaveShader = {
     uniform vec2 resolution;
     uniform float thickness;
     uniform float time;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
@@ -464,6 +492,10 @@ const SynthwaveShader = {
         finalColor += vec3(0.0, 1.0, 0.97) * grid;
       }
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -475,7 +507,8 @@ const NoirShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     threshold: { value: 0.45 },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -489,6 +522,7 @@ const NoirShader = {
     uniform vec2 resolution;
     uniform float threshold;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -521,6 +555,7 @@ const NoirShader = {
       // Add edge emphasis (white edges on black)
       bw = max(bw, edge);
 
+      // Noir is already grayscale, so grayscale uniform has no effect
       gl_FragColor = vec4(vec3(bw), 1.0);
     }
   `
@@ -532,7 +567,8 @@ const WatercolorShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     thickness: { value: 1.0 },
-    time: { value: 0 }
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -546,6 +582,7 @@ const WatercolorShader = {
     uniform vec2 resolution;
     uniform float thickness;
     uniform float time;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float hash(vec2 p) {
@@ -602,6 +639,10 @@ const WatercolorShader = {
       vec3 finalColor = mix(softened, edgeColor, edge * 0.6);
       finalColor = mix(finalColor, vec3(0.98, 0.97, 0.96), 0.1);
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -613,7 +654,8 @@ const SciFiShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     thickness: { value: 1.0 },
-    time: { value: 0 }
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -627,6 +669,7 @@ const SciFiShader = {
     uniform vec2 resolution;
     uniform float thickness;
     uniform float time;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
@@ -668,6 +711,10 @@ const SciFiShader = {
       float bracket = step(corner.x, 0.02) * step(corner.y, 0.05) + step(corner.y, 0.02) * step(corner.x, 0.05);
       finalColor += vec3(0.14, 0.53, 0.21) * bracket * 0.5;
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -678,7 +725,8 @@ const BlueprintShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -691,6 +739,7 @@ const BlueprintShader = {
     uniform sampler2D tDiffuse;
     uniform vec2 resolution;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
@@ -724,6 +773,10 @@ const BlueprintShader = {
       vec3 finalColor = bg + accentColor * minorGrid + accentColor * majorGrid;
       finalColor = mix(finalColor, lineColor * 1.3, edge);
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -735,7 +788,8 @@ const SketchShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     thickness: { value: 1.0 },
-    time: { value: 0 }
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -749,6 +803,7 @@ const SketchShader = {
     uniform vec2 resolution;
     uniform float thickness;
     uniform float time;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -781,6 +836,10 @@ const SketchShader = {
       edge = min(edge / 2.0, 1.0);
 
       vec3 finalColor = mix(paper, vec3(0.17), edge);
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -791,7 +850,8 @@ const InkShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -804,6 +864,7 @@ const InkShader = {
     uniform sampler2D tDiffuse;
     uniform vec2 resolution;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
@@ -842,6 +903,10 @@ const InkShader = {
       finalColor = mix(finalColor, paper * 0.85, wash);
       finalColor = mix(finalColor, ink, min(lineThickness, 1.0));
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `
@@ -853,7 +918,8 @@ const SaturatedShader = {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
     saturation: { value: 1.4 },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -867,6 +933,7 @@ const SaturatedShader = {
     uniform vec2 resolution;
     uniform float saturation;
     uniform float thickness;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -900,6 +967,10 @@ const SaturatedShader = {
       // Thin dark outlines
       vec3 finalColor = mix(saturated, vec3(0.0), edge * 0.8);
 
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
       gl_FragColor = vec4(finalColor, 1.0);
     }
   `

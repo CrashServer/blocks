@@ -38,6 +38,11 @@ export class AudioReactor {
     this.prevEnergy = 0;
     this.onsetDecay = 0.92;
 
+    // Smoothing for output values (higher = more smoothing, 0-1)
+    this.smoothing = 0.7;
+    this.smoothedBands = { sub: 0, bass: 0, mid: 0, high: 0, presence: 0 };
+    this.smoothedEnergy = 0;
+
     // Gain
     this.gain = 1.0;
     this.sensitivity = 1.0;
@@ -109,6 +114,11 @@ export class AudioReactor {
     this.sensitivity = Math.max(0.1, value);
   }
 
+  setSmoothing(value) {
+    // Higher value = more smoothing (less jitter, but slower response)
+    this.smoothing = Math.max(0, Math.min(0.95, value));
+  }
+
   update() {
     if (!this.running || !this.analyser) return;
 
@@ -132,13 +142,23 @@ export class AudioReactor {
       this.bands[key] = Math.min(1, this.bands[key] * this.sensitivity);
     }
 
+    // Apply smoothing to reduce jitter (lerp toward new values)
+    const s = this.smoothing;
+    for (const key in this.bands) {
+      this.smoothedBands[key] = this.smoothedBands[key] * s + this.bands[key] * (1 - s);
+      this.bands[key] = this.smoothedBands[key];
+    }
+
     // Overall RMS energy from time domain
     let sumSquares = 0;
     for (let i = 0; i < this.timeData.length; i++) {
       const normalized = (this.timeData[i] - 128) / 128;
       sumSquares += normalized * normalized;
     }
-    this.energy = Math.min(1, Math.sqrt(sumSquares / this.timeData.length) * 3 * this.sensitivity);
+    const rawEnergy = Math.min(1, Math.sqrt(sumSquares / this.timeData.length) * 3 * this.sensitivity);
+    // Smooth energy to reduce jitter
+    this.smoothedEnergy = this.smoothedEnergy * this.smoothing + rawEnergy * (1 - this.smoothing);
+    this.energy = this.smoothedEnergy;
 
     // Beat detection: spectral flux in sub+bass
     const lowEnergy = (this.bands.sub + this.bands.bass) * 0.5;

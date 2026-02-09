@@ -31,6 +31,8 @@
       <button id="btn-toggle-timeline" title="Toggle Timeline">Timeline</button>
       <span class="separator"></span>
       <button id="btn-vj" title="VJ Mode (Audio Reactive)">VJ</button>
+      <span class="separator"></span>
+      <button id="btn-toggle-panel" title="Toggle Right Panel (P)" class="panel-toggle active">Panel</button>
     </div>
 
     <!-- Left Toolbar -->
@@ -154,8 +156,12 @@
 
     <!-- Right Panel - Colors & Properties -->
     <div id="right-panel">
-      <div class="panel-section">
-        <span class="section-label">View</span>
+      <div class="panel-section collapsible" data-section="view">
+        <div class="section-header collapsible-header">
+          <span class="section-label">View</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div class="view-row">
           <input type="checkbox" id="show-edges" checked>
           <label for="show-edges">Show Edges</label>
@@ -164,11 +170,16 @@
           <label>Edge Opacity:</label>
           <input type="range" id="edge-opacity" min="0.1" max="1" step="0.1" value="0.3">
         </div>
+        </div>
       </div>
 
       <!-- Stylized Render Mode -->
-      <div class="panel-section" id="tattoo-section">
-        <span class="section-label">Stylized Render</span>
+      <div class="panel-section collapsible" id="tattoo-section" data-section="stylized">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Stylized Render</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div class="tattoo-row">
           <input type="checkbox" id="tattoo-enabled">
           <label for="tattoo-enabled">Enable Stylized View</label>
@@ -232,10 +243,15 @@
         <div class="tattoo-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
           <button id="btn-flatten" title="Merge touching blocks into single meshes" style="width: 100%;">Flatten Blocks</button>
         </div>
+        </div>
       </div>
 
-      <div class="panel-section">
-        <span class="section-label">Camera Presets</span>
+      <div class="panel-section collapsible" data-section="camera">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Camera Presets</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div class="camera-presets">
           <button class="preset-btn" data-preset="front" title="Front View">F</button>
           <button class="preset-btn" data-preset="back" title="Back View">B</button>
@@ -248,10 +264,15 @@
           <button id="btn-save-view" title="Save current view">Save View</button>
         </div>
         <div id="camera-bookmarks"></div>
+        </div>
       </div>
 
-      <div class="panel-section">
-        <span class="section-label">Camera Animation</span>
+      <div class="panel-section collapsible" data-section="camera-anim">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Camera Animation</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div style="margin-bottom: 8px; font-size: 11px; opacity: 0.7;">
           Save 2+ camera views above, then render animation
         </div>
@@ -284,18 +305,28 @@
           </div>
           <div id="camera-anim-progress-text" style="font-size: 11px; margin-top: 4px; text-align: center;">0%</div>
         </div>
+        </div>
       </div>
 
-      <div class="panel-section">
-        <span class="section-label">Color</span>
+      <div class="panel-section collapsible" data-section="color">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Color</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div id="color-picker">
           <input type="color" id="current-color" value="#5588cc">
         </div>
         <div id="color-palette"></div>
+        </div>
       </div>
 
-      <div class="panel-section">
-        <span class="section-label">Emissive (Glow)</span>
+      <div class="panel-section collapsible" data-section="emissive">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Emissive (Glow)</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div class="emissive-row">
           <input type="checkbox" id="emissive-enabled">
           <label for="emissive-enabled">Enable Glow</label>
@@ -314,19 +345,27 @@
           <input type="range" id="emissive-radius" min="1" max="10" step="0.5" value="3">
           <span id="emissive-radius-val">3.0</span>
         </div>
+        </div>
       </div>
 
       <!-- Layer Panel -->
-      <div class="panel-section" id="layers-section">
-        <div class="section-header">
+      <div class="panel-section collapsible" id="layers-section" data-section="layers">
+        <div class="section-header collapsible-header">
           <span class="section-label">Layers</span>
+          <span class="collapse-icon">▼</span>
           <button id="btn-add-layer" title="Add Layer">+</button>
         </div>
+        <div class="section-content">
         <div id="layer-list"></div>
+        </div>
       </div>
 
-      <div class="panel-section" id="selection-props" style="display: none;">
-        <span class="section-label">Selected Block</span>
+      <div class="panel-section collapsible" id="selection-props" data-section="selection" style="display: none;">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Selected Block</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
         <div class="prop-row">
           <label>Type:</label>
           <span id="prop-type">-</span>
@@ -355,6 +394,7 @@
         <div class="prop-actions">
           <button id="btn-copy" title="Copy (Ctrl+C)">Copy</button>
           <button id="btn-delete-sel" title="Delete (Del)">Delete</button>
+        </div>
         </div>
       </div>
     </div>
