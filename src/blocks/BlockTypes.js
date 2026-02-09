@@ -4682,23 +4682,112 @@ export function boundsOverlap(a, b) {
 }
 
 /**
- * Get world-space bounds for a block, accounting for scale
+ * Get world-space bounds for a block, accounting for scale and rotation
  */
 export function getWorldBounds(block) {
   const local = getBlockBounds(block.type, block.dimensions);
   const pos = block.gridPosition;
   const scale = block.scale || 1;
+  const rotation = block.rotation || { x: 0, y: 0, z: 0 };
+
+  // Get scaled local bounds relative to block center (0.5, 0.5, 0.5 in grid units)
+  const dims = block.dimensions || { w: 1, h: 1, d: 1 };
+  const centerX = dims.w * scale / 2;
+  const centerY = dims.h * scale / 2;
+  const centerZ = dims.d * scale / 2;
+
+  // Local bounds scaled and centered
+  const minX = local.min.x * scale - centerX;
+  const maxX = local.max.x * scale - centerX;
+  const minY = local.min.y * scale - centerY;
+  const maxY = local.max.y * scale - centerY;
+  const minZ = local.min.z * scale - centerZ;
+  const maxZ = local.max.z * scale - centerZ;
+
+  // 8 corners of the local bounding box
+  const corners = [
+    { x: minX, y: minY, z: minZ },
+    { x: maxX, y: minY, z: minZ },
+    { x: minX, y: maxY, z: minZ },
+    { x: maxX, y: maxY, z: minZ },
+    { x: minX, y: minY, z: maxZ },
+    { x: maxX, y: minY, z: maxZ },
+    { x: minX, y: maxY, z: maxZ },
+    { x: maxX, y: maxY, z: maxZ }
+  ];
+
+  // Rotate corners around Y axis (most common rotation in block building)
+  // Normalize rotation to 0, 90, 180, 270
+  const yRot = ((rotation.y % 360) + 360) % 360;
+  const radY = yRot * Math.PI / 180;
+  const cosY = Math.cos(radY);
+  const sinY = Math.sin(radY);
+
+  // Also handle X and Z rotation for completeness
+  const xRot = ((rotation.x % 360) + 360) % 360;
+  const radX = xRot * Math.PI / 180;
+  const cosX = Math.cos(radX);
+  const sinX = Math.sin(radX);
+
+  const zRot = ((rotation.z % 360) + 360) % 360;
+  const radZ = zRot * Math.PI / 180;
+  const cosZ = Math.cos(radZ);
+  const sinZ = Math.sin(radZ);
+
+  // Find min/max of rotated corners
+  let rMinX = Infinity, rMaxX = -Infinity;
+  let rMinY = Infinity, rMaxY = -Infinity;
+  let rMinZ = Infinity, rMaxZ = -Infinity;
+
+  for (const c of corners) {
+    // Apply rotation: Y first, then X, then Z (matching Three.js default order XYZ applied in reverse)
+    // Actually Three.js applies in XYZ order, so we do X, then Y, then Z
+    let x = c.x, y = c.y, z = c.z;
+
+    // Rotate around X
+    if (xRot !== 0) {
+      const y1 = y * cosX - z * sinX;
+      const z1 = y * sinX + z * cosX;
+      y = y1; z = z1;
+    }
+
+    // Rotate around Y
+    if (yRot !== 0) {
+      const x1 = x * cosY + z * sinY;
+      const z1 = -x * sinY + z * cosY;
+      x = x1; z = z1;
+    }
+
+    // Rotate around Z
+    if (zRot !== 0) {
+      const x1 = x * cosZ - y * sinZ;
+      const y1 = x * sinZ + y * cosZ;
+      x = x1; y = y1;
+    }
+
+    rMinX = Math.min(rMinX, x);
+    rMaxX = Math.max(rMaxX, x);
+    rMinY = Math.min(rMinY, y);
+    rMaxY = Math.max(rMaxY, y);
+    rMinZ = Math.min(rMinZ, z);
+    rMaxZ = Math.max(rMaxZ, z);
+  }
+
+  // Translate back from center to world position
+  const worldCenterX = pos.x + centerX;
+  const worldCenterY = pos.y + centerY;
+  const worldCenterZ = pos.z + centerZ;
 
   return {
     min: {
-      x: pos.x + local.min.x * scale,
-      y: pos.y + local.min.y * scale,
-      z: pos.z + local.min.z * scale
+      x: worldCenterX + rMinX,
+      y: worldCenterY + rMinY,
+      z: worldCenterZ + rMinZ
     },
     max: {
-      x: pos.x + local.max.x * scale,
-      y: pos.y + local.max.y * scale,
-      z: pos.z + local.max.z * scale
+      x: worldCenterX + rMaxX,
+      y: worldCenterY + rMaxY,
+      z: worldCenterZ + rMaxZ
     }
   };
 }

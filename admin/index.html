@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Block Admin - Review & Cleanup</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #16213e;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #0f3460;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 1.4em;
+      color: #e94560;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 0.9em;
+    }
+
+    .stat {
+      padding: 5px 12px;
+      border-radius: 4px;
+      background: #0f3460;
+    }
+
+    .stat.keep { background: #1b4332; color: #95d5b2; }
+    .stat.delete { background: #5c1a1a; color: #f4a4a4; }
+    .stat.broken { background: #5c4a1a; color: #f4d4a4; }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+      transition: all 0.2s;
+    }
+
+    button.primary {
+      background: #e94560;
+      color: white;
+    }
+
+    button.primary:hover {
+      background: #ff6b6b;
+    }
+
+    button.secondary {
+      background: #0f3460;
+      color: #eee;
+    }
+
+    button.secondary:hover {
+      background: #1a4a7a;
+    }
+
+    .toolbar {
+      background: #16213e;
+      padding: 10px 20px;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .toolbar label {
+      font-size: 0.85em;
+      color: #aaa;
+    }
+
+    .toolbar select {
+      padding: 5px 10px;
+      border-radius: 4px;
+      background: #0f3460;
+      color: #eee;
+      border: 1px solid #1a4a7a;
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .filter-buttons button {
+      padding: 5px 10px;
+      font-size: 0.8em;
+    }
+
+    .filter-buttons button.active {
+      background: #e94560;
+    }
+
+    .keyboard-hint {
+      margin-left: auto;
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    .keyboard-hint kbd {
+      background: #0f3460;
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin: 0 2px;
+    }
+
+    .main {
+      padding: 20px;
+    }
+
+    .category-section {
+      margin-bottom: 30px;
+    }
+
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #0f3460;
+    }
+
+    .category-header h2 {
+      font-size: 1.1em;
+      color: #e94560;
+    }
+
+    .category-header .category-stats {
+      font-size: 0.8em;
+      color: #888;
+    }
+
+    .category-actions button {
+      padding: 4px 8px;
+      font-size: 0.75em;
+    }
+
+    .blocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .block-card {
+      background: #16213e;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .block-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .block-card.keep {
+      border-color: #2d6a4f;
+      background: #1b3d2f;
+    }
+
+    .block-card.delete {
+      border-color: #9d0208;
+      background: #3d1b1b;
+    }
+
+    .block-card.broken {
+      border-color: #f4a400;
+      background: #3d351b;
+    }
+
+    .block-card.selected {
+      border-color: #e94560;
+      box-shadow: 0 0 0 2px #e94560;
+    }
+
+    .block-preview {
+      height: 100px;
+      background: #0a0a15;
+      position: relative;
+    }
+
+    .block-preview canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .block-preview .error {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f4a400;
+      font-size: 0.7em;
+      text-align: center;
+      padding: 5px;
+    }
+
+    .block-info {
+      padding: 8px;
+    }
+
+    .block-name {
+      font-size: 0.8em;
+      font-weight: 500;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .block-type {
+      font-size: 0.7em;
+      color: #888;
+      font-family: monospace;
+    }
+
+    .block-status {
+      display: flex;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .block-status span {
+      font-size: 0.65em;
+      padding: 2px 6px;
+      border-radius: 3px;
+      background: #0f3460;
+    }
+
+    .block-status .keep-badge { background: #1b4332; color: #95d5b2; }
+    .block-status .delete-badge { background: #5c1a1a; color: #f4a4a4; }
+    .block-status .broken-badge { background: #5c4a1a; color: #f4d4a4; }
+
+    .export-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .export-modal.visible {
+      display: flex;
+    }
+
+    .export-content {
+      background: #16213e;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow: auto;
+    }
+
+    .export-content h2 {
+      margin-bottom: 20px;
+      color: #e94560;
+    }
+
+    .export-content pre {
+      background: #0a0a15;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 0.8em;
+      overflow: auto;
+      max-height: 300px;
+    }
+
+    .export-content .actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 50vh;
+      font-size: 1.2em;
+      color: #888;
+    }
+
+    .loading::after {
+      content: '';
+      width: 20px;
+      height: 20px;
+      border: 2px solid #e94560;
+      border-top-color: transparent;
+      border-radius: 50%;
+      margin-left: 10px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Block Admin - Review & Cleanup</h1>
+    <div class="stats">
+      <div class="stat">Total: <span id="stat-total">0</span></div>
+      <div class="stat keep">Keep: <span id="stat-keep">0</span></div>
+      <div class="stat delete">Delete: <span id="stat-delete">0</span></div>
+      <div class="stat broken">Broken: <span id="stat-broken">0</span></div>
+    </div>
+    <div class="controls">
+      <button class="secondary" id="btn-detect-broken">Detect Broken</button>
+      <button class="secondary" id="btn-reset">Reset All</button>
+      <button class="primary" id="btn-export">Export Cleaned Config</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <label>Category:</label>
+    <select id="filter-category">
+      <option value="all">All Categories</option>
+    </select>
+
+    <label>Show:</label>
+    <div class="filter-buttons">
+      <button class="secondary active" data-filter="all">All</button>
+      <button class="secondary" data-filter="keep">Keep</button>
+      <button class="secondary" data-filter="delete">Delete</button>
+      <button class="secondary" data-filter="undecided">Undecided</button>
+      <button class="secondary" data-filter="broken">Broken</button>
+    </div>
+
+    <div class="keyboard-hint">
+      Click to toggle | <kbd>K</kbd> Keep all visible | <kbd>D</kbd> Delete all visible
+    </div>
+  </div>
+
+  <div class="main" id="main">
+    <div class="loading">Loading blocks...</div>
+  </div>
+
+  <div class="export-modal" id="export-modal">
+    <div class="export-content">
+      <h2>Export Cleaned Configuration</h2>
+      <p>This will generate a new <code>categories.js</code> with only the kept blocks.</p>
+      <div id="export-summary"></div>
+      <pre id="export-preview"></pre>
+      <div class="actions">
+        <button class="primary" id="btn-download">Download categories.js</button>
+        <button class="secondary" id="btn-close-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./reviewer.js"></script>
+</body>
+</html>

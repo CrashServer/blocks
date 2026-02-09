@@ -1,0 +1,605 @@
+import * as THREE from 'three';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { AudioReactor } from '../audio/AudioReactor.js';
+import { ParameterBus } from './ParameterBus.js';
+import { CameraModes } from './CameraModes.js';
+import { MeshReactor } from './MeshReactor.js';
+import { ParticleSpawner } from './ParticleSpawner.js';
+import { SceneBank } from './SceneBank.js';
+import { AudioGenerative } from './AudioGenerative.js';
+import {
+  ChromaticAberrationShader,
+  GlitchShader,
+  HueShiftShader,
+  VignetteShader,
+  FeedbackShader
+} from './VJShaders.js';
+
+/**
+ * VJController - Master orchestrator for VJ mode
+ *
+ * Connects audio analysis to visual parameters:
+ * - Shader uniforms (edge thickness, chromatic aberration, etc.)
+ * - Camera modes (orbit, drift, shake, etc.)
+ * - Mesh distortion (block bounce, vertex displacement)
+ * - Post-processing effects (glitch, vignette, hue shift)
+ */
+
+export class VJController {
+  constructor(engine, blockManager, gpuRenderer, cameraBookmarks) {
+    this.engine = engine;
+    this.blockManager = blockManager;
+    this.gpuRenderer = gpuRenderer;
+    this.cameraBookmarks = cameraBookmarks;
+
+    // Sub-systems
+    this.audioReactor = new AudioReactor();
+    this.parameterBus = new ParameterBus();
+    this.cameraModes = new CameraModes(engine, cameraBookmarks);
+    this.meshReactor = new MeshReactor(blockManager, engine);
+    this.particleSpawner = new ParticleSpawner(engine.scene);
+    this.sceneBank = new SceneBank();
+    this.audioGenerative = new AudioGenerative(engine.scene);
+
+    // VJ shader passes
+    this.vjPasses = {};
+    this.vjPassesActive = false;
+
+    // Feedback ping-pong targets
+    this.feedbackTargetA = null;
+    this.feedbackTargetB = null;
+    this.feedbackFlip = false;
+
+    // State
+    this.active = false;
+    this.performanceMode = false;
+    this.currentPreset = 'hard';
+
+    // Styles for cycling
+    this.styles = ['clean', 'sketch', 'ink', 'crosshatch', 'blueprint', 'comic', 'saturated', 'neon', 'scifi', 'watercolor', 'noir', 'synthwave', 'ascii'];
+    this.currentStyleIndex = 0;
+
+    // Camera modes for cycling
+    this.cameraModeNames = ['orbit', 'drift', 'lock', 'rail', 'chaos'];
+    this.currentCameraModeIndex = 0;
+
+    // Fill toggle state for beat trigger
+    this.fillsOn = true;
+
+    // Master reactivity
+    this.reactivity = 1.0;
+
+    // Keyboard handler
+    this._keyHandler = (e) => this._handleKeyboard(e);
+
+    // Layer manager reference (set from main.js for scene switching)
+    this._layerManager = null;
+
+    // Callbacks
+    this.onStateChange = null;
+  }
+
+  async start() {
+    if (this.active) return;
+
+    try {
+      await this.audioReactor.start();
+    } catch (e) {
+      console.warn('VJController: Audio start failed:', e);
+      throw e;
+    }
+
+    // Load default preset
+    this.parameterBus.loadPreset(this.currentPreset);
+
+    // Enable GPU renderer if not already
+    if (!this.gpuRenderer.enabled) {
+      this.gpuRenderer.setEnabled(true);
+    }
+
+    // Setup VJ shader passes
+    this._setupVJPasses();
+
+    // Enable sub-systems
+    this.cameraModes.setMode('orbit');
+    this.cameraModes.setEnabled(true);
+    this.meshReactor.setEnabled(true);
+    this.particleSpawner.updateSceneBounds(this.blockManager);
+
+    // Wire into render loop
+    this.engine.onVJUpdate = (delta) => this.update(delta);
+
+    // Keyboard
+    window.addEventListener('keydown', this._keyHandler);
+
+    this.active = true;
+    if (this.onStateChange) this.onStateChange(true);
+  }
+
+  stop() {
+    if (!this.active) return;
+
+    // Disconnect from render loop
+    this.engine.onVJUpdate = null;
+
+    // Stop sub-systems
+    this.audioReactor.stop();
+    this.cameraModes.setEnabled(false);
+    this.meshReactor.setEnabled(false);
+    this.particleSpawner.setEnabled(false);
+    this.audioGenerative.setEnabled(false);
+
+    // Remove VJ passes
+    this._removeVJPasses();
+
+    // Exit performance mode if active
+    if (this.performanceMode) {
+      this.exitPerformanceMode();
+    }
+
+    window.removeEventListener('keydown', this._keyHandler);
+
+    this.active = false;
+    if (this.onStateChange) this.onStateChange(false);
+  }
+
+  update(delta) {
+    if (!this.active) return;
+
+    // 1. Update audio analysis
+    this.audioReactor.update();
+
+    // 2. Run parameter mappings
+    const params = this.parameterBus.update(this.audioReactor, delta);
+
+    // 3. Apply mapped parameters
+    this._applyParams(params, delta);
+
+    // 4. Update camera
+    this.cameraModes.update(this.audioReactor, delta);
+
+    // 5. Update mesh distortion
+    this.meshReactor.update(this.audioReactor, delta);
+
+    // 6. Update VJ shader passes
+    this._updateVJPasses(delta);
+
+    // 7. Particle spawner
+    if (this.particleSpawner.enabled) {
+      // Spawn on beat
+      if (this.audioReactor.beat) {
+        const count = 1 + Math.floor(this.audioReactor.energy * 4);
+        for (let i = 0; i < count; i++) {
+          this.particleSpawner.spawn(this.audioReactor.energy);
+        }
+      }
+      this.particleSpawner.update(delta);
+    }
+
+    // 8. Audio generative growth
+    if (this.audioGenerative.enabled) {
+      this.audioGenerative.update(this.audioReactor, delta);
+    }
+  }
+
+  _applyParams(params, delta) {
+    for (const [target, data] of params) {
+      const { value, trigger } = data;
+      const scaled = trigger ? value : value * this.reactivity;
+
+      switch (target) {
+        // Shader params
+        case 'shader.thickness':
+          this.gpuRenderer.setLineWidth(scaled);
+          break;
+        case 'shader.threshold':
+          this.gpuRenderer.setThreshold(scaled);
+          break;
+        case 'shader.fills':
+          if (trigger) {
+            this.fillsOn = !this.fillsOn;
+            this.gpuRenderer.setShowFills(this.fillsOn);
+          }
+          break;
+        case 'shader.chromatic':
+          if (this.vjPasses.chromatic) {
+            this.vjPasses.chromatic.uniforms.uAmount.value = scaled;
+          }
+          break;
+        case 'shader.glitch':
+          if (this.vjPasses.glitch) {
+            this.vjPasses.glitch.uniforms.uGlitch.value = scaled;
+          }
+          break;
+        case 'shader.hueShift':
+          if (this.vjPasses.hueShift) {
+            this.vjPasses.hueShift.uniforms.uShift.value = scaled;
+          }
+          break;
+        case 'shader.vignette':
+          if (this.vjPasses.vignette) {
+            this.vjPasses.vignette.uniforms.uIntensity.value = scaled;
+          }
+          break;
+        case 'shader.feedback':
+          if (this.vjPasses.feedback) {
+            this.vjPasses.feedback.uniforms.uFeedback.value = scaled;
+          }
+          break;
+
+        // Camera params
+        case 'camera.shake':
+          this.cameraModes.shake = scaled;
+          break;
+        case 'camera.orbitSpeed':
+          this.cameraModes.orbitSpeed = scaled;
+          break;
+
+        // Mesh params
+        case 'mesh.vertexDistort':
+          this.meshReactor.setVertexDistortion(scaled);
+          break;
+        case 'mesh.blockBounce':
+          this.meshReactor.setBlockDistortion(scaled);
+          break;
+
+        // Emissive
+        case 'emissive.intensity':
+          this._setGlobalEmissiveIntensity(scaled);
+          break;
+
+        // Bloom
+        case 'bloom.strength':
+          this._setBloomStrength(scaled);
+          break;
+      }
+    }
+  }
+
+  _setGlobalEmissiveIntensity(intensity) {
+    const blocks = this.blockManager.getAllBlocks();
+    for (const block of blocks) {
+      if (block.emissive && block.emissive.enabled) {
+        const materials = Array.isArray(block.mesh.material) ? block.mesh.material : [block.mesh.material];
+        for (const mat of materials) {
+          mat.emissiveIntensity = intensity;
+        }
+      }
+    }
+  }
+
+  _setBloomStrength(strength) {
+    if (!this.gpuRenderer.composer) return;
+    const passes = this.gpuRenderer.composer.passes;
+    for (const pass of passes) {
+      if (pass.strength !== undefined) {
+        pass.strength = strength;
+      }
+    }
+  }
+
+  // --- VJ Shader Pass Management ---
+
+  _setupVJPasses() {
+    if (this.vjPassesActive) return;
+
+    this.vjPasses.chromatic = new ShaderPass(ChromaticAberrationShader);
+    this.vjPasses.glitch = new ShaderPass(GlitchShader);
+    this.vjPasses.hueShift = new ShaderPass(HueShiftShader);
+    this.vjPasses.vignette = new ShaderPass(VignetteShader);
+    this.vjPasses.feedback = new ShaderPass(FeedbackShader);
+
+    // Setup feedback render targets
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const params = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat };
+    this.feedbackTargetA = new THREE.WebGLRenderTarget(w, h, params);
+    this.feedbackTargetB = new THREE.WebGLRenderTarget(w, h, params);
+
+    this.vjPassesActive = true;
+
+    // Inject passes into GPU renderer's composer
+    this._injectVJPasses();
+  }
+
+  _injectVJPasses() {
+    if (!this.gpuRenderer.composer || !this.vjPassesActive) return;
+
+    const composer = this.gpuRenderer.composer;
+    const passes = composer.passes;
+
+    // Find OutputPass index (always last)
+    const outputIdx = passes.length - 1;
+
+    // Insert VJ passes before OutputPass
+    const vjPassList = [
+      this.vjPasses.chromatic,
+      this.vjPasses.glitch,
+      this.vjPasses.hueShift,
+      this.vjPasses.vignette,
+      // feedback handled separately
+    ];
+
+    // Remove OutputPass, add VJ passes, re-add OutputPass
+    const outputPass = passes[outputIdx];
+    passes.splice(outputIdx, 1);
+
+    for (const pass of vjPassList) {
+      composer.addPass(pass);
+    }
+
+    composer.addPass(outputPass);
+  }
+
+  _removeVJPasses() {
+    if (!this.vjPassesActive) return;
+
+    // Dispose feedback targets
+    if (this.feedbackTargetA) this.feedbackTargetA.dispose();
+    if (this.feedbackTargetB) this.feedbackTargetB.dispose();
+    this.feedbackTargetA = null;
+    this.feedbackTargetB = null;
+
+    this.vjPasses = {};
+    this.vjPassesActive = false;
+
+    // Rebuild GPU renderer without VJ passes
+    if (this.gpuRenderer.enabled) {
+      this.gpuRenderer.updateStyle();
+    }
+  }
+
+  _updateVJPasses(delta) {
+    if (!this.vjPassesActive) return;
+
+    // Update glitch time
+    if (this.vjPasses.glitch) {
+      this.vjPasses.glitch.uniforms.uTime.value += delta;
+    }
+  }
+
+  /**
+   * Called when GPU renderer rebuilds its pipeline (style change).
+   * Re-inject our VJ passes.
+   */
+  onStyleChanged() {
+    if (this.vjPassesActive) {
+      this._injectVJPasses();
+    }
+  }
+
+  // --- Performance Mode ---
+
+  enterPerformanceMode() {
+    this.performanceMode = true;
+
+    // Fullscreen
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+
+    // Hide UI panels
+    document.querySelectorAll('#right-panel, #bottom-toolbar, #top-menu, #timeline-panel, .modal').forEach(el => {
+      el.dataset.vjHidden = el.style.display;
+      el.style.display = 'none';
+    });
+
+    // Show performance overlay
+    const overlay = document.getElementById('vj-overlay');
+    if (overlay) overlay.style.display = 'flex';
+  }
+
+  exitPerformanceMode() {
+    this.performanceMode = false;
+
+    // Exit fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    }
+
+    // Restore UI panels
+    document.querySelectorAll('#right-panel, #bottom-toolbar, #top-menu, #timeline-panel').forEach(el => {
+      el.style.display = el.dataset.vjHidden || '';
+      delete el.dataset.vjHidden;
+    });
+
+    // Hide performance overlay
+    const overlay = document.getElementById('vj-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  // --- Keyboard Controls ---
+
+  _handleKeyboard(e) {
+    if (!this.active) return;
+
+    // Don't capture if typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key) {
+      // 1-9: switch styles
+      case '1': case '2': case '3': case '4': case '5':
+      case '6': case '7': case '8': case '9': {
+        const idx = parseInt(e.key) - 1;
+        if (idx < this.styles.length) {
+          this.currentStyleIndex = idx;
+          this.gpuRenderer.setStyle(this.styles[idx]);
+          // Re-inject VJ passes after style change rebuilds composer
+          setTimeout(() => this.onStyleChanged(), 50);
+          this._showOverlayMessage(this.styles[idx]);
+        }
+        e.preventDefault();
+        break;
+      }
+
+      case ' ': // Space: toggle fills
+        this.fillsOn = !this.fillsOn;
+        this.gpuRenderer.setShowFills(this.fillsOn);
+        this._showOverlayMessage(this.fillsOn ? 'Fills ON' : 'Fills OFF');
+        e.preventDefault();
+        break;
+
+      case 'g': // Grayscale
+        this.gpuRenderer.grayscale = !this.gpuRenderer.grayscale;
+        this.gpuRenderer.updateStyleUniforms();
+        this._showOverlayMessage(this.gpuRenderer.grayscale ? 'Grayscale' : 'Color');
+        break;
+
+      case 'i': // Invert
+        this.gpuRenderer.setInverted(!this.gpuRenderer.inverted);
+        this._showOverlayMessage(this.gpuRenderer.inverted ? 'Inverted' : 'Normal');
+        break;
+
+      case 'c': // Cycle camera mode
+        this.currentCameraModeIndex = (this.currentCameraModeIndex + 1) % this.cameraModeNames.length;
+        const modeName = this.cameraModeNames[this.currentCameraModeIndex];
+        this.cameraModes.setMode(modeName);
+        this._showOverlayMessage(`Camera: ${modeName}`);
+        break;
+
+      case 'f': // Fullscreen / performance mode
+        if (this.performanceMode) {
+          this.exitPerformanceMode();
+        } else {
+          this.enterPerformanceMode();
+        }
+        break;
+
+      case 'm': // Mute audio
+        if (this.audioReactor.running) {
+          this.audioReactor.setGain(this.audioReactor.gain > 0 ? 0 : 1);
+          this._showOverlayMessage(this.audioReactor.gain > 0 ? 'Audio ON' : 'Audio MUTED');
+        }
+        break;
+
+      case 'r': // Randomize style
+        this.currentStyleIndex = Math.floor(Math.random() * this.styles.length);
+        this.gpuRenderer.setStyle(this.styles[this.currentStyleIndex]);
+        setTimeout(() => this.onStyleChanged(), 50);
+        this._showOverlayMessage(this.styles[this.currentStyleIndex]);
+        break;
+
+      case '+': case '=': // Increase reactivity
+        this.reactivity = Math.min(3, this.reactivity + 0.1);
+        this._showOverlayMessage(`Reactivity: ${this.reactivity.toFixed(1)}`);
+        break;
+
+      case '-': // Decrease reactivity
+        this.reactivity = Math.max(0.1, this.reactivity - 0.1);
+        this._showOverlayMessage(`Reactivity: ${this.reactivity.toFixed(1)}`);
+        break;
+
+      case '[': // Decrease smoothing
+        this._adjustAllSmoothing(-0.02);
+        this._showOverlayMessage('Smoother');
+        break;
+
+      case ']': // Increase smoothing
+        this._adjustAllSmoothing(0.02);
+        this._showOverlayMessage('Snappier');
+        break;
+
+      case '0': // Reset
+        this.reactivity = 1.0;
+        this.parameterBus.loadPreset(this.currentPreset);
+        this._showOverlayMessage('Reset');
+        break;
+
+      case 'p': // Cycle presets
+        const presetNames = ['chill', 'hard', 'psychedelic'];
+        const pidx = presetNames.indexOf(this.currentPreset);
+        this.currentPreset = presetNames[(pidx + 1) % presetNames.length];
+        this.parameterBus.loadPreset(this.currentPreset);
+        this._showOverlayMessage(`Preset: ${this.currentPreset}`);
+        break;
+
+      case 'n': // Next scene
+        if (this.sceneBank.count > 0) {
+          this.sceneBank.next(this.blockManager, this._layerManager);
+          this.meshReactor.setEnabled(true); // Re-capture after scene switch
+          this.particleSpawner.updateSceneBounds(this.blockManager);
+          this._showOverlayMessage(`Scene: ${this.sceneBank.currentName} (${this.sceneBank.currentIndex + 1}/${this.sceneBank.count})`);
+        }
+        break;
+
+      case 'b': // Previous scene
+        if (this.sceneBank.count > 0) {
+          this.sceneBank.previous(this.blockManager, this._layerManager);
+          this.meshReactor.setEnabled(true);
+          this.particleSpawner.updateSceneBounds(this.blockManager);
+          this._showOverlayMessage(`Scene: ${this.sceneBank.currentName} (${this.sceneBank.currentIndex + 1}/${this.sceneBank.count})`);
+        }
+        break;
+
+      case 'v': { // Cycle movement modes
+        const modes = ['bounce', 'jump', 'wave', 'scatter'];
+        const mi = modes.indexOf(this.meshReactor.movementMode);
+        const nextMode = modes[(mi + 1) % modes.length];
+        this.meshReactor.setMovementMode(nextMode);
+        this._showOverlayMessage(`Move: ${nextMode}`);
+        break;
+      }
+
+      case 'x': { // Toggle generative mode
+        const gen = this.audioGenerative;
+        if (gen.enabled) {
+          gen.setEnabled(false);
+          this._showOverlayMessage('Generative OFF');
+        } else {
+          gen.initFromScene(this.blockManager);
+          gen.setEnabled(true);
+          this._showOverlayMessage('Generative ON');
+        }
+        break;
+      }
+    }
+  }
+
+  _adjustAllSmoothing(delta) {
+    for (const m of this.parameterBus.mappings) {
+      m.smooth = Math.max(0.01, Math.min(0.5, m.smooth + delta));
+    }
+  }
+
+  _showOverlayMessage(msg) {
+    const el = document.getElementById('vj-message');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.opacity = '1';
+    clearTimeout(this._messageTimeout);
+    this._messageTimeout = setTimeout(() => {
+      el.style.opacity = '0';
+    }, 1200);
+  }
+
+  // --- Public getters for UI ---
+
+  getAudioData() {
+    return {
+      bands: { ...this.audioReactor.bands },
+      energy: this.audioReactor.energy,
+      beat: this.audioReactor.beat,
+      onset: this.audioReactor.onset
+    };
+  }
+
+  setPreset(name) {
+    this.currentPreset = name;
+    this.parameterBus.loadPreset(name);
+  }
+
+  setCameraMode(mode) {
+    const idx = this.cameraModeNames.indexOf(mode);
+    if (idx >= 0) this.currentCameraModeIndex = idx;
+    this.cameraModes.setMode(mode);
+  }
+
+  dispose() {
+    this.stop();
+    this.audioReactor.dispose();
+    this.meshReactor.dispose();
+    this.cameraModes.dispose();
+    this.parameterBus.dispose();
+    this.particleSpawner.dispose();
+    this.audioGenerative.dispose();
+  }
+}

@@ -14,6 +14,7 @@ export class Engine {
 
     this.clock = new THREE.Clock();
     this.onUpdate = null;
+    this.onVJUpdate = null; // VJ mode update hook
     this.customRender = null; // Optional custom render function (for post-processing)
 
     window.addEventListener('resize', () => this.onResize());
@@ -122,6 +123,10 @@ export class Engine {
 
     if (this.onUpdate) {
       this.onUpdate(delta);
+    }
+
+    if (this.onVJUpdate) {
+      this.onVJUpdate(delta);
     }
 
     // Use custom render function if set, otherwise default

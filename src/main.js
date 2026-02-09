@@ -27,6 +27,7 @@ import { BlockFlattener } from './tools/BlockFlattener.js';
 import { GenerativeScatter, SCATTER_ALGORITHMS } from './tools/GenerativeScatter.js';
 import { SCATTER_PRESETS } from './tools/ScatterPresets.js';
 import JSZip from 'jszip';
+import { VJController } from './vj/VJController.js';
 
 // Utility: Debounce function to delay execution
 function debounce(func, wait) {
@@ -121,6 +122,14 @@ class App {
     // Generative scatter tool for procedural structures
     this.scatterTool = new GenerativeScatter(this.blockManager);
 
+    // VJ controller (audio-reactive performance mode)
+    this.vjController = new VJController(
+      this.engine,
+      this.blockManager,
+      this.tattooRenderer,
+      this.cameraBookmarks
+    );
+
     // Notifications container
     this.notificationsEl = document.getElementById('notifications');
 
@@ -175,6 +184,7 @@ class App {
     this.setupCameraAnimation();
     this.setupTattooMode();
     this.setupScatterTool();
+    this.setupVJ();
     this.setupKeyboardShortcuts();
 
     // Start render loop
@@ -184,6 +194,16 @@ class App {
       // Only CPU renderer needs manual update() calls
       if (!this.useGPURenderer && this.tattooRenderer.update) {
         this.tattooRenderer.update();
+      }
+      // Update VJ audio meters
+      if (this.vjController && this.vjController.active) {
+        const energy = this.vjController.audioReactor.energy;
+        const pct = Math.min(100, energy * 100);
+        if (this._vjMeterBar) this._vjMeterBar.style.width = pct + '%';
+        if (this._vjOverlayMeterBar) this._vjOverlayMeterBar.style.width = pct + '%';
+        if (this._vjStyleNameEl) this._vjStyleNameEl.textContent = this.vjController.styles[this.vjController.currentStyleIndex];
+        if (this._vjCameraNameEl) this._vjCameraNameEl.textContent = this.vjController.cameraModeNames[this.vjController.currentCameraModeIndex];
+        if (this._vjPresetNameEl) this._vjPresetNameEl.textContent = this.vjController.currentPreset;
       }
     };
     this.engine.start();
@@ -201,6 +221,11 @@ class App {
       this.debouncedAutoSave();
     };
 
+    // Save camera position when orbiting/panning/zooming
+    this.engine.controls.addEventListener('change', () => {
+      this.debouncedAutoSave();
+    });
+
     // History state change
     this.history.onChange = ({ canUndo, canRedo }) => {
       document.getElementById('btn-undo').disabled = !canUndo;
@@ -211,6 +236,14 @@ class App {
     // Lower blocks that occupy bottom half of grid cell
     const LOWER_BLOCK_TYPES = ['slab', 'quarter', 'wedgeLow', 'wedgeFlat', 'wedgeCornerLow', 'wedgeCornerFlat', 'slabSlope', 'ledge', 'gutter', 'capital', 'base', 'channel', 'channelCorner', 'channelEnd'];
 
+    // Mapping from lower to upper variants for seamless stacking
+    const LOWER_TO_UPPER_MAP = {
+      'slab': 'slabTop',
+      'wedgeLow': 'wedgeLowTop',
+      'wedgeFlat': 'wedgeFlatTop',
+      'slabSlope': 'slabSlopeTop'
+    };
+
     // Adjust placement position based on block type and surface
     const getSmartPosition = (result, blockType) => {
       const pos = { x: result.placementPosition.x, y: result.placementPosition.y, z: result.placementPosition.z };
@@ -219,11 +252,20 @@ class App {
       // adjust Y so the new block sits ON TOP, not overlapping
       if (result.placementPosition.surfaceY !== undefined) {
         const surfaceY = result.placementPosition.surfaceY;
-        const isFractional = surfaceY % 1 !== 0;
+        const fractionalPart = surfaceY % 1;
+        const isFractional = fractionalPart !== 0;
 
         if (isFractional) {
-          // Always place on top of fractional surfaces
-          pos.y = Math.ceil(surfaceY);
+          // Check if we should use an "upper" variant instead of rounding up
+          const upperVariant = LOWER_TO_UPPER_MAP[blockType];
+          if (upperVariant && Math.abs(fractionalPart - 0.5) < 0.1) {
+            // Surface is at ~0.5 height - use upper variant at same Y
+            pos.y = Math.floor(surfaceY);
+            pos.useUpperVariant = upperVariant;
+          } else {
+            // Round up for other fractional heights
+            pos.y = Math.ceil(surfaceY);
+          }
         }
       }
       return pos;
@@ -244,20 +286,22 @@ class App {
     this.inputManager.onMouseMove = (result) => {
       if ((this.inputManager.currentTool === 'place') && result) {
         let pos = getSmartPosition(result, this.currentBlockType);
+        const effectiveBlockType = pos.useUpperVariant || this.currentBlockType;
         pos = snapForScale(pos, this.currentBlockScale);
 
         this.ghostBlock.show();
         this.ghostBlock.setPosition(pos);
-        this.ghostBlock.setBlockType(this.currentBlockType);
+        this.ghostBlock.setBlockType(effectiveBlockType);
         this.ghostBlock.setRotation(this.currentRotation);
 
         // Check actual bounding box overlap instead of just grid position
         const wouldOverlap = this.blockManager.wouldOverlapAt(
-          this.currentBlockType,
+          effectiveBlockType,
           pos,
           { w: 1, h: 1, d: 1 },
           null,
-          this.currentBlockScale
+          this.currentBlockScale,
+          { x: 0, y: this.currentRotation, z: 0 }
         );
         this.ghostBlock.setValid(!wouldOverlap);
 
@@ -328,6 +372,7 @@ class App {
       }
 
       let pos = getSmartPosition(result, this.currentBlockType);
+      const effectiveBlockType = pos.useUpperVariant || this.currentBlockType;
       pos = snapForScale(pos, this.currentBlockScale);
 
       // Shift-click: fill from last position to current (line or rectangle)
@@ -337,10 +382,10 @@ class App {
 
         for (const linePos of positions) {
           // Skip if block already exists or would overlap
-          if (this.blockManager.wouldOverlapAt(this.currentBlockType, linePos, { w: 1, h: 1, d: 1 }, null, this.currentBlockScale)) continue;
+          if (this.blockManager.wouldOverlapAt(effectiveBlockType, linePos, { w: 1, h: 1, d: 1 }, null, this.currentBlockScale, { x: 0, y: this.currentRotation, z: 0 })) continue;
 
           const blockData = {
-            type: this.currentBlockType,
+            type: effectiveBlockType,
             position: { ...linePos },
             color: this.currentColor,
             rotation: { x: 0, y: this.currentRotation, z: 0 },
@@ -368,10 +413,10 @@ class App {
       }
 
       // Normal single block placement
-      if (this.blockManager.wouldOverlapAt(this.currentBlockType, pos, { w: 1, h: 1, d: 1 }, null, this.currentBlockScale)) return;
+      if (this.blockManager.wouldOverlapAt(effectiveBlockType, pos, { w: 1, h: 1, d: 1 }, null, this.currentBlockScale, { x: 0, y: this.currentRotation, z: 0 })) return;
 
       const blockData = {
-        type: this.currentBlockType,
+        type: effectiveBlockType,
         position: pos,
         color: this.currentColor,
         rotation: { x: 0, y: this.currentRotation, z: 0 },
@@ -653,11 +698,13 @@ class App {
       this.rotateBlock();
     });
 
-    // Scale toggle buttons (1x / 2x / 4x block size)
+    // Scale toggle buttons (1x / 2x / 4x / 6x / 8x block size)
     const scale1xBtn = document.getElementById('btn-scale-1x');
     const scale2xBtn = document.getElementById('btn-scale-2x');
     const scale4xBtn = document.getElementById('btn-scale-4x');
-    const scaleBtns = [scale1xBtn, scale2xBtn, scale4xBtn];
+    const scale6xBtn = document.getElementById('btn-scale-6x');
+    const scale8xBtn = document.getElementById('btn-scale-8x');
+    const scaleBtns = [scale1xBtn, scale2xBtn, scale4xBtn, scale6xBtn, scale8xBtn];
 
     const setActiveScaleBtn = (activeBtn) => {
       scaleBtns.forEach(btn => btn.classList.remove('active'));
@@ -677,6 +724,16 @@ class App {
     scale4xBtn.addEventListener('click', () => {
       this.setBlockScale(4);
       setActiveScaleBtn(scale4xBtn);
+    });
+
+    scale6xBtn.addEventListener('click', () => {
+      this.setBlockScale(6);
+      setActiveScaleBtn(scale6xBtn);
+    });
+
+    scale8xBtn.addEventListener('click', () => {
+      this.setBlockScale(8);
+      setActiveScaleBtn(scale8xBtn);
     });
   }
 
@@ -992,14 +1049,15 @@ class App {
 
     // Place all blocks
     const placedBlocks = [];
+    const currentRot = { x: 0, y: this.currentRotation, z: 0 };
     positions.forEach(pos => {
       // Skip if position would overlap existing block
-      if (!this.blockManager.wouldOverlapAt(this.currentBlockType, pos, { w: 1, h: 1, d: 1 })) {
+      if (!this.blockManager.wouldOverlapAt(this.currentBlockType, pos, { w: 1, h: 1, d: 1 }, null, 1, currentRot)) {
         const blockData = {
           type: this.currentBlockType,
           position: { ...pos },
           color: this.currentColor,
-          rotation: { x: 0, y: this.currentRotation, z: 0 },
+          rotation: { ...currentRot },
           layerId: this.getActiveLayerId(),
           emissive: emissive
         };
@@ -1020,12 +1078,12 @@ class App {
         },
         redo: () => {
           positions.forEach(pos => {
-            if (!this.blockManager.wouldOverlapAt(this.currentBlockType, pos, { w: 1, h: 1, d: 1 })) {
+            if (!this.blockManager.wouldOverlapAt(this.currentBlockType, pos, { w: 1, h: 1, d: 1 }, null, 1, currentRot)) {
               this.blockManager.addBlock({
                 type: this.currentBlockType,
                 position: { ...pos },
                 color: this.currentColor,
-                rotation: { x: 0, y: this.currentRotation, z: 0 },
+                rotation: { ...currentRot },
                 emissive: emissive
               });
             }
@@ -1136,8 +1194,8 @@ class App {
     const placedData = [];
 
     generatedBlocks.forEach(blockDef => {
-      // Check overlap (respecting scale)
-      if (!this.blockManager.wouldOverlapAt(blockDef.type, blockDef.position, { w: 1, h: 1, d: 1 }, null, blockDef.scale)) {
+      // Check overlap (respecting scale and rotation)
+      if (!this.blockManager.wouldOverlapAt(blockDef.type, blockDef.position, { w: 1, h: 1, d: 1 }, null, blockDef.scale, blockDef.rotation)) {
         const blockData = {
           type: blockDef.type,
           position: { ...blockDef.position },
@@ -1163,7 +1221,7 @@ class App {
         },
         redo: () => {
           placedData.forEach(data => {
-            if (!this.blockManager.wouldOverlapAt(data.type, data.position, { w: 1, h: 1, d: 1 }, null, data.scale)) {
+            if (!this.blockManager.wouldOverlapAt(data.type, data.position, { w: 1, h: 1, d: 1 }, null, data.scale, data.rotation)) {
               this.blockManager.addBlock(data);
             }
           });
@@ -1194,7 +1252,9 @@ class App {
         block.type,
         newPos,
         block.dimensions,
-        selectedIds  // Pass the full set of selected IDs to exclude
+        selectedIds,  // Pass the full set of selected IDs to exclude
+        block.scale || 1,
+        block.rotation || { x: 0, y: 0, z: 0 }
       );
       if (wouldOverlap) return; // Abort if any block would overlap
     }
@@ -1728,6 +1788,11 @@ class App {
         this.showNotification('GPU not available, using CPU', 'warning', 3000);
       }
 
+      // Update VJController's renderer reference
+      if (this.vjController) {
+        this.vjController.gpuRenderer = this.tattooRenderer;
+      }
+
       // Restore enabled state and current settings
       if (wasEnabled) {
         this.tattooRenderer.setStyle(styleSelect.value);
@@ -2103,7 +2168,8 @@ class App {
       'toolbar',
       'right-panel',
       'timeline-panel',
-      'info'
+      'info',
+      'vj-panel'
     ];
 
     uiElements.forEach(id => {
@@ -2332,6 +2398,236 @@ class App {
     }
   }
 
+  setupVJ() {
+    const vjBtn = document.getElementById('btn-vj');
+    const vjPanel = document.getElementById('vj-panel');
+    const presetSelect = document.getElementById('vj-preset');
+    const cameraModeSelect = document.getElementById('vj-camera-mode');
+    const gainSlider = document.getElementById('vj-gain');
+    const sensitivitySlider = document.getElementById('vj-sensitivity');
+    const meterBar = document.getElementById('vj-meter-bar');
+    const overlayMeterBar = document.getElementById('vj-overlay-meter-bar');
+    const blockDistortSlider = document.getElementById('vj-block-distort');
+    const blockDistortVal = document.getElementById('vj-block-distort-val');
+    const vertexDistortSlider = document.getElementById('vj-vertex-distort');
+    const vertexDistortVal = document.getElementById('vj-vertex-distort-val');
+    const reactivitySlider = document.getElementById('vj-reactivity');
+    const reactivityVal = document.getElementById('vj-reactivity-val');
+    const fullscreenBtn = document.getElementById('vj-fullscreen');
+    const exitBtn = document.getElementById('vj-exit-fullscreen');
+    const styleNameEl = document.getElementById('vj-style-name');
+    const cameraNameEl = document.getElementById('vj-camera-name');
+    const presetNameEl = document.getElementById('vj-preset-name');
+
+    const toolbar = document.getElementById('toolbar');
+
+    // VJ button toggles VJ mode on/off
+    vjBtn.addEventListener('click', async () => {
+      if (this.vjController.active) {
+        this.vjController.stop();
+        vjBtn.classList.remove('active');
+        vjPanel.style.display = 'none';
+        toolbar.style.display = '';
+        this.grid.gridGroup.visible = true;
+        this.showNotification('VJ Mode stopped', 'info', 2000);
+      } else {
+        try {
+          // Ensure GPU renderer and stylized mode are enabled
+          if (!this.tattooRenderer.enabled) {
+            this.tattooRenderer.setEnabled(true);
+            const enabledCb = document.getElementById('tattoo-enabled');
+            if (enabledCb) enabledCb.checked = true;
+          }
+
+          await this.vjController.start();
+          vjBtn.classList.add('active');
+          vjPanel.style.display = '';
+          toolbar.style.display = 'none';
+          this.grid.gridGroup.visible = false;
+          this.showNotification('VJ Mode started — use mic audio', 'success', 3000);
+        } catch (e) {
+          console.error('VJ start failed:', e);
+          this.showNotification('VJ Mode failed: ' + e.message, 'error', 4000);
+        }
+      }
+    });
+
+    // Preset
+    presetSelect.addEventListener('change', (e) => {
+      this.vjController.setPreset(e.target.value);
+    });
+
+    // Camera mode
+    cameraModeSelect.addEventListener('change', (e) => {
+      this.vjController.setCameraMode(e.target.value);
+    });
+
+    // Gain
+    gainSlider.addEventListener('input', (e) => {
+      this.vjController.audioReactor.setGain(parseFloat(e.target.value));
+    });
+
+    // Sensitivity
+    sensitivitySlider.addEventListener('input', (e) => {
+      this.vjController.audioReactor.setSensitivity(parseFloat(e.target.value));
+    });
+
+    // Block distortion
+    blockDistortSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      this.vjController.meshReactor.setBlockDistortion(v);
+      blockDistortVal.textContent = v.toFixed(2);
+    });
+
+    // Vertex distortion
+    vertexDistortSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      this.vjController.meshReactor.setVertexDistortion(v);
+      vertexDistortVal.textContent = v.toFixed(2);
+    });
+
+    // Movement mode
+    const movementModeSelect = document.getElementById('vj-movement-mode');
+    movementModeSelect.addEventListener('change', (e) => {
+      this.vjController.meshReactor.setMovementMode(e.target.value);
+    });
+
+    // Color reactivity
+    const colorReactSlider = document.getElementById('vj-color-react');
+    const colorReactVal = document.getElementById('vj-color-react-val');
+    colorReactSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      this.vjController.meshReactor.setColorReactivity(v);
+      colorReactVal.textContent = v.toFixed(2);
+    });
+
+    // Scene bank
+    const sceneFolderInput = document.getElementById('vj-scene-folder');
+    const sceneLoadBtn = document.getElementById('vj-load-scenes');
+    const sceneLabel = document.getElementById('vj-scene-label');
+    const sceneIndex = document.getElementById('vj-scene-index');
+    const scenePrevBtn = document.getElementById('vj-scene-prev');
+    const sceneNextBtn = document.getElementById('vj-scene-next');
+
+    // Pass layer manager reference to VJController for scene switching
+    this.vjController._layerManager = this.layerManager;
+
+    sceneLoadBtn.addEventListener('click', () => sceneFolderInput.click());
+    sceneFolderInput.addEventListener('change', async (e) => {
+      const count = await this.vjController.sceneBank.loadFolder(e.target.files);
+      sceneLabel.textContent = `${count} scene${count !== 1 ? 's' : ''}`;
+      sceneIndex.textContent = count > 0 ? '-' : '-';
+      if (count > 0) {
+        this.showNotification(`Loaded ${count} scene${count !== 1 ? 's' : ''}`, 'success', 2000);
+      } else {
+        this.showNotification('No valid .blocks files found', 'warning', 3000);
+      }
+    });
+
+    this.vjController.sceneBank.onSceneChange = (index, name, total) => {
+      sceneIndex.textContent = `${index + 1}/${total}`;
+      sceneLabel.textContent = name;
+      // Re-capture mesh reactor state after scene change
+      if (this.vjController.meshReactor.enabled) {
+        this.vjController.meshReactor.setEnabled(true);
+      }
+      this.vjController.particleSpawner.updateSceneBounds(this.blockManager);
+      this.updateBlockCount();
+    };
+
+    scenePrevBtn.addEventListener('click', () => {
+      this.vjController.sceneBank.previous(this.blockManager, this.layerManager);
+    });
+    sceneNextBtn.addEventListener('click', () => {
+      this.vjController.sceneBank.next(this.blockManager, this.layerManager);
+    });
+
+    // Particle spawner
+    const particlesEnabled = document.getElementById('vj-particles-enabled');
+    const particlePoolSelect = document.getElementById('vj-particle-pool');
+
+    particlesEnabled.addEventListener('change', (e) => {
+      this.vjController.particleSpawner.setEnabled(e.target.checked);
+      if (e.target.checked) {
+        this.vjController.particleSpawner.updateSceneBounds(this.blockManager);
+      }
+    });
+    particlePoolSelect.addEventListener('change', (e) => {
+      this.vjController.particleSpawner.setPoolSize(parseInt(e.target.value));
+    });
+
+    // Generative mode
+    const genEnabled = document.getElementById('vj-generative-enabled');
+    const genClearBtn = document.getElementById('vj-generative-clear');
+    const genRateSlider = document.getElementById('vj-gen-rate');
+    const genRateVal = document.getElementById('vj-gen-rate-val');
+    const genTTLSlider = document.getElementById('vj-gen-ttl');
+    const genTTLVal = document.getElementById('vj-gen-ttl-val');
+
+    genEnabled.addEventListener('change', (e) => {
+      const gen = this.vjController.audioGenerative;
+      if (e.target.checked) {
+        gen.initFromScene(this.blockManager);
+        gen.setEnabled(true);
+      } else {
+        gen.setEnabled(false);
+      }
+    });
+    genClearBtn.addEventListener('click', () => {
+      this.vjController.audioGenerative.clear();
+    });
+    genRateSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.audioGenerative.setGrowthRate(v);
+      genRateVal.textContent = v;
+    });
+    genTTLSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.audioGenerative.setTTL(v);
+      genTTLVal.textContent = v + 's';
+    });
+
+    // Reactivity
+    reactivitySlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      this.vjController.reactivity = v;
+      reactivityVal.textContent = v.toFixed(1);
+    });
+
+    // Fullscreen / performance mode
+    fullscreenBtn.addEventListener('click', () => {
+      this.vjController.enterPerformanceMode();
+    });
+    exitBtn.addEventListener('click', () => {
+      this.vjController.exitPerformanceMode();
+    });
+
+    // Store meter elements for use in render loop
+    this._vjMeterBar = meterBar;
+    this._vjOverlayMeterBar = overlayMeterBar;
+    this._vjStyleNameEl = styleNameEl;
+    this._vjCameraNameEl = cameraNameEl;
+    this._vjPresetNameEl = presetNameEl;
+
+    // Sync VJ panel controls when VJController changes style via keyboard
+    this.vjController.onStateChange = (active) => {
+      vjBtn.classList.toggle('active', active);
+      vjPanel.style.display = active ? '' : 'none';
+      toolbar.style.display = active ? 'none' : '';
+      this.grid.gridGroup.visible = !active;
+    };
+
+    // Re-inject VJ passes when style changes from the tattoo panel
+    const styleSelect = document.getElementById('render-style');
+    if (styleSelect) {
+      styleSelect.addEventListener('change', () => {
+        if (this.vjController.active) {
+          setTimeout(() => this.vjController.onStyleChanged(), 50);
+        }
+      });
+    }
+  }
+
   setupKeyboardShortcuts() {
     window.addEventListener('keydown', (e) => {
       // Don't trigger shortcuts when typing in inputs
@@ -2504,6 +2800,8 @@ class App {
   // Auto-save project to localStorage
   autoSave() {
     try {
+      const cam = this.engine.camera;
+      const target = this.engine.controls.target;
       const data = {
         blocks: this.blockManager.toJSON(),
         animations: this.animator.toJSON(),
@@ -2511,7 +2809,11 @@ class App {
         cameraBookmarks: this.cameraBookmarks.toJSON(),
         currentColor: this.currentColor,
         currentBlockType: this.currentBlockType,
-        currentRotation: this.currentRotation
+        currentRotation: this.currentRotation,
+        camera: {
+          position: { x: cam.position.x, y: cam.position.y, z: cam.position.z },
+          target: { x: target.x, y: target.y, z: target.z }
+        }
       };
       localStorage.setItem('blocksProject', JSON.stringify(data));
     } catch (e) {
@@ -2562,6 +2864,15 @@ class App {
       }
       if (data.currentRotation !== undefined) {
         this.currentRotation = data.currentRotation;
+      }
+
+      // Restore camera position and target
+      if (data.camera) {
+        const pos = data.camera.position;
+        const tgt = data.camera.target;
+        if (pos) this.engine.camera.position.set(pos.x, pos.y, pos.z);
+        if (tgt) this.engine.controls.target.set(tgt.x, tgt.y, tgt.z);
+        this.engine.controls.update();
       }
 
       console.log('Project loaded from localStorage');
@@ -2732,7 +3043,7 @@ class App {
       };
 
       // Check for overlap before placing
-      if (!this.blockManager.wouldOverlapAt(blockData.type, blockData.position)) {
+      if (!this.blockManager.wouldOverlapAt(blockData.type, blockData.position, { w: 1, h: 1, d: 1 }, null, 1, blockData.rotation)) {
         const block = this.blockManager.addBlock(blockData);
         if (block) placedCount++;
       }

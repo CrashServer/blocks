@@ -27,6 +27,8 @@
       <button id="btn-redo" title="Redo (Ctrl+Y)">Redo</button>
       <span class="separator"></span>
       <button id="btn-toggle-timeline" title="Toggle Timeline">Timeline</button>
+      <span class="separator"></span>
+      <button id="btn-vj" title="VJ Mode (Audio Reactive)">VJ</button>
     </div>
 
     <!-- Left Toolbar -->
@@ -133,6 +135,8 @@
           <button id="btn-scale-1x" class="scale-btn active" title="Normal blocks (1x1)">1×</button>
           <button id="btn-scale-2x" class="scale-btn" title="Large blocks (2x2)">2×</button>
           <button id="btn-scale-4x" class="scale-btn" title="Extra large blocks (4x4)">4×</button>
+          <button id="btn-scale-6x" class="scale-btn" title="Huge blocks (6x6)">6×</button>
+          <button id="btn-scale-8x" class="scale-btn" title="Massive blocks (8x8)">8×</button>
         </div>
       </div>
 
@@ -405,6 +409,141 @@
 
     <!-- Hidden file input for loading -->
     <input type="file" id="file-input" accept=".blocks,.json" style="display: none;">
+
+    <!-- VJ Panel -->
+    <div id="vj-panel" style="display: none;">
+      <div class="panel-section">
+        <span class="section-label">VJ Mode</span>
+        <div class="vj-row">
+          <label>Preset:</label>
+          <select id="vj-preset">
+            <option value="chill">Chill</option>
+            <option value="hard" selected>Hard</option>
+            <option value="psychedelic">Psychedelic</option>
+          </select>
+        </div>
+        <div class="vj-row">
+          <label>Camera:</label>
+          <select id="vj-camera-mode">
+            <option value="orbit">Orbit</option>
+            <option value="drift">Drift</option>
+            <option value="lock">Lock</option>
+            <option value="rail">Rail</option>
+            <option value="chaos">Chaos</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Audio</span>
+        <div class="vj-row">
+          <label>Gain:</label>
+          <input type="range" id="vj-gain" min="0" max="3" step="0.1" value="1">
+        </div>
+        <div class="vj-row">
+          <label>Sensitivity:</label>
+          <input type="range" id="vj-sensitivity" min="0.1" max="3" step="0.1" value="1">
+        </div>
+        <div id="vj-meter">
+          <div id="vj-meter-bar"></div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Distortion</span>
+        <div class="vj-row">
+          <label>Block:</label>
+          <input type="range" id="vj-block-distort" min="0" max="1" step="0.05" value="0.5">
+          <span id="vj-block-distort-val">0.5</span>
+        </div>
+        <div class="vj-row">
+          <label>Vertex:</label>
+          <input type="range" id="vj-vertex-distort" min="0" max="1" step="0.05" value="0.5">
+          <span id="vj-vertex-distort-val">0.5</span>
+        </div>
+        <div class="vj-row">
+          <label>Move:</label>
+          <select id="vj-movement-mode">
+            <option value="bounce">Bounce</option>
+            <option value="jump">Jump</option>
+            <option value="wave">Wave</option>
+            <option value="scatter">Scatter</option>
+          </select>
+        </div>
+        <div class="vj-row">
+          <label>Color:</label>
+          <input type="range" id="vj-color-react" min="0" max="1" step="0.05" value="0.5">
+          <span id="vj-color-react-val">0.5</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Reactivity</span>
+        <div class="vj-row">
+          <label>Master:</label>
+          <input type="range" id="vj-reactivity" min="0.1" max="3" step="0.1" value="1">
+          <span id="vj-reactivity-val">1.0</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Scenes</span>
+        <div class="vj-row">
+          <label id="vj-scene-label">No scenes</label>
+          <input type="file" id="vj-scene-folder" webkitdirectory style="display:none">
+          <button id="vj-load-scenes" title="Load folder of .blocks files">Load</button>
+        </div>
+        <div class="vj-row">
+          <button id="vj-scene-prev" title="Previous scene (B)">&#9664;</button>
+          <span id="vj-scene-index" style="flex:1; text-align:center;">-</span>
+          <button id="vj-scene-next" title="Next scene (N)">&#9654;</button>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Particles</span>
+        <div class="vj-row">
+          <label>Spawn:</label>
+          <input type="checkbox" id="vj-particles-enabled">
+          <label style="margin-left:4px">Pool:</label>
+          <select id="vj-particle-pool">
+            <option value="32">32</option>
+            <option value="64" selected>64</option>
+            <option value="128">128</option>
+          </select>
+        </div>
+      </div>
+      <div class="panel-section">
+        <span class="section-label">Generative (X)</span>
+        <div class="vj-row">
+          <label>Grow:</label>
+          <input type="checkbox" id="vj-generative-enabled">
+          <button id="vj-generative-clear" title="Clear generated blocks">Clear</button>
+        </div>
+        <div class="vj-row">
+          <label>Rate:</label>
+          <input type="range" id="vj-gen-rate" min="1" max="8" step="1" value="3">
+          <span id="vj-gen-rate-val">3</span>
+        </div>
+        <div class="vj-row">
+          <label>TTL:</label>
+          <input type="range" id="vj-gen-ttl" min="5" max="60" step="5" value="20">
+          <span id="vj-gen-ttl-val">20s</span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <button id="vj-fullscreen" style="width: 100%; padding: 6px; cursor: pointer;">Fullscreen (F)</button>
+      </div>
+    </div>
+
+    <!-- VJ Performance Overlay (shown in fullscreen mode) -->
+    <div id="vj-overlay" style="display: none;">
+      <div id="vj-overlay-top">
+        <span id="vj-style-name">clean</span>
+        <span id="vj-camera-name">orbit</span>
+        <span id="vj-preset-name">hard</span>
+      </div>
+      <div id="vj-overlay-meter">
+        <div id="vj-overlay-meter-bar"></div>
+      </div>
+      <div id="vj-message"></div>
+      <button id="vj-exit-fullscreen">EXIT</button>
+    </div>
 
     <!-- Toast notifications container -->
     <div id="notifications"></div>

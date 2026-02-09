@@ -231,21 +231,18 @@ export class BlockManager {
    * @param {Object} dimensions - Dimensions {w, h, d}
    * @param {string|Set} excludeIds - Single ID or Set of IDs to exclude from check
    * @param {number} scale - Block scale (1 = normal, 2 = large)
+   * @param {Object} rotation - Rotation {x, y, z} in degrees
    */
-  wouldOverlapAt(type, position, dimensions = { w: 1, h: 1, d: 1 }, excludeIds = null, scale = 1) {
-    const localBounds = getBlockBounds(type, dimensions);
-    const newBounds = {
-      min: {
-        x: position.x + localBounds.min.x * scale,
-        y: position.y + localBounds.min.y * scale,
-        z: position.z + localBounds.min.z * scale
-      },
-      max: {
-        x: position.x + localBounds.max.x * scale,
-        y: position.y + localBounds.max.y * scale,
-        z: position.z + localBounds.max.z * scale
-      }
+  wouldOverlapAt(type, position, dimensions = { w: 1, h: 1, d: 1 }, excludeIds = null, scale = 1, rotation = { x: 0, y: 0, z: 0 }) {
+    // Create a temporary block-like object for getWorldBounds
+    const tempBlock = {
+      type,
+      gridPosition: position,
+      dimensions,
+      scale,
+      rotation
     };
+    const newBounds = getWorldBounds(tempBlock);
 
     // Normalize excludeIds to a Set for consistent checking
     const excludeSet = excludeIds instanceof Set ? excludeIds :

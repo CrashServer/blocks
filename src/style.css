@@ -289,15 +289,18 @@ button:disabled {
   gap: 6px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
+  min-width: 0;
 }
 
 .scatter-row label {
   color: rgba(255, 255, 255, 0.6);
-  min-width: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .scatter-row input[type="range"] {
   flex: 1;
+  min-width: 0;
   height: 4px;
   -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.2);
@@ -520,6 +523,7 @@ button:disabled {
   position: absolute;
   top: 48px;
   right: 12px;
+  bottom: 12px;
   width: 180px;
   display: flex;
   flex-direction: column;
@@ -529,6 +533,23 @@ button:disabled {
   border-radius: 8px;
   backdrop-filter: blur(8px);
   z-index: 50;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+#right-panel::-webkit-scrollbar {
+  width: 4px;
+}
+
+#right-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#right-panel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
 }
 
 .panel-section {
@@ -595,10 +616,13 @@ button:disabled {
   gap: 6px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
+  min-width: 0;
 }
 
 .view-row label {
   color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .view-row input[type="checkbox"] {
@@ -608,6 +632,7 @@ button:disabled {
 
 .view-row input[type="range"] {
   flex: 1;
+  min-width: 0;
   height: 4px;
   -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.2);
@@ -717,11 +742,13 @@ button:disabled {
   gap: 6px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
+  min-width: 0;
 }
 
 .emissive-row label {
   color: rgba(255, 255, 255, 0.6);
-  min-width: 50px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .emissive-row input[type="color"] {
@@ -735,6 +762,7 @@ button:disabled {
 
 .emissive-row input[type="range"] {
   flex: 1;
+  min-width: 0;
   height: 4px;
   -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.2);
@@ -768,10 +796,13 @@ button:disabled {
   gap: 6px;
   font-size: 11px;
   color: rgba(255, 255, 255, 0.8);
+  min-width: 0;
 }
 
 .tattoo-row label {
   color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tattoo-row input[type="checkbox"] {
@@ -781,6 +812,7 @@ button:disabled {
 
 .tattoo-row input[type="range"] {
   flex: 1;
+  min-width: 0;
   height: 4px;
   -webkit-appearance: none;
   background: rgba(255, 255, 255, 0.2);
@@ -1575,4 +1607,206 @@ button:disabled {
     opacity: 0;
     transform: translateX(100%);
   }
+}
+
+/* VJ Panel */
+#vj-panel {
+  position: absolute;
+  top: 48px;
+  left: 12px;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(0, 0, 0, 0.85);
+  padding: 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: calc(100vh - 120px);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  border: 1px solid rgba(106, 159, 213, 0.3);
+}
+
+.vj-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 0;
+}
+
+.vj-row label {
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.vj-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.vj-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  background: #4a9fd5;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.vj-row select {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  padding: 4px 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.vj-row select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.vj-row select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.vj-row span {
+  min-width: 24px;
+  text-align: right;
+  font-family: monospace;
+  font-size: 10px;
+}
+
+.vj-row button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  padding: 3px 8px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.vj-row button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.vj-row input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* VJ Audio Meter */
+#vj-meter {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+#vj-meter-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4a9fd5, #ff6ec7);
+  border-radius: 2px;
+  transition: width 0.05s linear;
+}
+
+/* VJ Button Active State */
+#btn-vj.active {
+  background: rgba(106, 159, 213, 0.4);
+  border-color: #4a9fd5;
+  color: #4a9fd5;
+}
+
+/* VJ Performance Overlay */
+#vj-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  font-family: monospace;
+}
+
+#vj-overlay-top {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#vj-overlay-meter {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 1px;
+}
+
+#vj-overlay-meter-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #4a9fd5, #ff6ec7, #00fff7);
+  border-radius: 1px;
+  transition: width 0.05s linear;
+}
+
+#vj-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  text-shadow: 0 0 20px rgba(74, 159, 213, 0.5);
+}
+
+#vj-exit-fullscreen {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.5);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  pointer-events: auto;
+  letter-spacing: 2px;
+}
+
+#vj-exit-fullscreen:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
 }

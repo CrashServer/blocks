@@ -167,7 +167,9 @@ const HalftoneShader = {
     bgColor: { value: new THREE.Color(0xffffff) },
     dotSize: { value: 4.0 },
     spacing: { value: 8.0 },
-    thickness: { value: 2.0 }
+    thickness: { value: 2.0 },
+    showFills: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -184,6 +186,8 @@ const HalftoneShader = {
     uniform float dotSize;
     uniform float spacing;
     uniform float thickness;
+    uniform float showFills;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -219,7 +223,15 @@ const HalftoneShader = {
       float radius = darkness * dotSize;
       float dt = 1.0 - smoothstep(radius - 0.5, radius + 0.5, dist);
 
-      vec3 finalColor = mix(bgColor, dotColor, dt);
+      // When fills are off, skip dots — just show bg + edges
+      float dotMask = dt * showFills;
+      vec3 finalColor = mix(bgColor, dotColor, dotMask);
+
+      // Grayscale conversion
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
 
       // Bold edge overlay (comic-style thick outlines)
       float edge = detectEdge(vUv);
@@ -902,7 +914,9 @@ const CleanEdgeShader = {
     lineColor: { value: new THREE.Color(0.0, 0.0, 0.0) },
     sceneBg: { value: new THREE.Color(0x1a1a2e) },
     threshold: { value: 0.1 },
-    thickness: { value: 1.0 }
+    thickness: { value: 1.0 },
+    showFills: { value: 1.0 },
+    grayscale: { value: 0.0 }
   },
   vertexShader: `
     varying vec2 vUv;
@@ -919,6 +933,8 @@ const CleanEdgeShader = {
     uniform vec3 sceneBg;
     uniform float threshold;
     uniform float thickness;
+    uniform float showFills;
+    uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 color) {
@@ -952,6 +968,15 @@ const CleanEdgeShader = {
 
       // Show block fills where geometry exists, style bgColor otherwise
       vec3 fills = mix(bgColor, texColor.rgb, isGeometry);
+
+      // When fills are off, just show bgColor everywhere (edges-only mode)
+      fills = mix(bgColor, fills, showFills);
+
+      // Grayscale conversion
+      if (grayscale > 0.5) {
+        float g = luma(fills);
+        fills = vec3(g);
+      }
 
       // Overlay edge lines
       vec3 finalColor = mix(fills, lineColor, edge);
@@ -1075,20 +1100,17 @@ export class GPUStyleRenderer {
 
   setThreshold(threshold) {
     this.threshold = threshold;
-    if (this.sobelPass) {
-      this.sobelPass.uniforms.threshold.value = threshold * 0.2;
-    }
+    this.updateStyleUniforms();
   }
 
   setLineWidth(width) {
     this.lineWidth = width;
-    if (this.sobelPass) {
-      this.sobelPass.uniforms.thickness.value = width;
-    }
+    this.updateStyleUniforms();
   }
 
   setShowFills(show) {
     this.showFills = show;
+    this.updateStyleUniforms();
   }
 
   setQuality(quality) {
@@ -1169,6 +1191,12 @@ export class GPUStyleRenderer {
     }
     if (uniforms.thickness) {
       uniforms.thickness.value = this.lineWidth;
+    }
+    if (uniforms.showFills) {
+      uniforms.showFills.value = this.showFills ? 1.0 : 0.0;
+    }
+    if (uniforms.grayscale) {
+      uniforms.grayscale.value = this.grayscale ? 1.0 : 0.0;
     }
 
     // Style-specific uniforms
