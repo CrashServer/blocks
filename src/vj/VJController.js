@@ -67,6 +67,9 @@ export class VJController {
     // Color reactivity for existing blocks
     this.colorReactivityEnabled = false;
     this.originalBlockColors = new Map(); // Store original colors to restore later
+    this.blockFrequencyMap = new Map(); // Map each block to a specific FFT bin
+    this.blockCurrentColors = new Map(); // Store current animated colors for damping
+    this.colorDampingFactor = 0.15; // Smoothing factor (0.1-0.3, lower = slower)
 
     // VJ shader passes
     this.vjPasses = {};
@@ -978,16 +981,18 @@ export class VJController {
     this.colorReactivityEnabled = enabled;
 
     if (enabled) {
-      // Store original colors
+      // Store original colors and initialize current colors
       const blocks = this.blockManager.getAllBlocks();
       for (const block of blocks) {
         if (!this.originalBlockColors.has(block.id)) {
           // Store the original color
           const color = block.mesh.material.color ? block.mesh.material.color.getHex() : 0xcccccc;
           this.originalBlockColors.set(block.id, color);
+          // Initialize current color for damping
+          this.blockCurrentColors.set(block.id, new THREE.Color(color));
         }
       }
-      console.log(`[VJController] Color reactivity ENABLED for ${blocks.length} blocks`);
+      console.log(`[VJController] Color reactivity ENABLED for ${blocks.length} blocks (damping: ${this.colorDampingFactor})`);
     } else {
       // Restore original colors
       const blocks = this.blockManager.getAllBlocks();
@@ -1003,30 +1008,26 @@ export class VJController {
           }
         }
       }
+      // Clear all tracking maps
       this.originalBlockColors.clear();
+      this.blockFrequencyMap.clear();
+      this.blockCurrentColors.clear();
       console.log('[VJController] Color reactivity DISABLED, colors restored');
     }
   }
 
   /**
-   * Update block colors based on audio FFT
+   * Update block colors based on audio FFT - each block reacts to different frequency
    */
   _updateBlockColorReactivity() {
     const blocks = this.blockManager.getAllBlocks();
     if (blocks.length === 0) return;
 
-    // Get audio frequency data
-    const bass = this.audioReactor.bands.bass;
-    const mid = this.audioReactor.bands.mid;
-    const high = this.audioReactor.bands.high;
-    const energy = this.audioReactor.energy;
+    // Get raw FFT data
+    const freqData = this.audioReactor.freqData;
+    if (!freqData) return;
 
-    // Determine color based on dominant frequency
-    const audioColor = this._getAudioReactiveColor(this.audioReactor);
-    const color = new THREE.Color(audioColor);
-
-    // Apply color to all blocks with intensity based on energy
-    const intensity = Math.min(1.0, energy * 1.5); // 0-1.5 mapped to 0-1
+    const binCount = freqData.length; // Usually 512 for fftSize 1024
 
     for (const block of blocks) {
       // Store original color if not already stored
@@ -1035,19 +1036,76 @@ export class VJController {
         this.originalBlockColors.set(block.id, origColor);
       }
 
-      // Lerp between original color and audio color based on intensity
+      // Assign this block to a specific frequency bin (based on block ID hash)
+      if (!this.blockFrequencyMap.has(block.id)) {
+        // Hash the block ID to get a deterministic frequency bin
+        const hash = this._hashString(block.id);
+        const binIndex = hash % binCount;
+        this.blockFrequencyMap.set(block.id, binIndex);
+      }
+
+      const binIndex = this.blockFrequencyMap.get(block.id);
+      const freqValue = freqData[binIndex] / 255.0; // Normalize 0-1
+
+      // Map bin index to frequency range and select color palette
+      const freqRatio = binIndex / binCount; // 0 (low freq) to 1 (high freq)
+      let palette;
+      if (freqRatio < 0.2) {
+        // Low frequencies (0-20%) → Bass colors
+        palette = this.colorPalettes.bass;
+      } else if (freqRatio < 0.5) {
+        // Mid-low frequencies (20-50%) → Mid colors
+        palette = this.colorPalettes.mid;
+      } else if (freqRatio < 0.8) {
+        // Mid-high frequencies (50-80%) → High colors
+        palette = this.colorPalettes.high;
+      } else {
+        // Very high frequencies (80-100%) → Rainbow
+        palette = this.colorPalettes.rainbow;
+      }
+
+      // Select color from palette based on frequency value
+      const colorIndex = Math.floor(freqValue * (palette.length - 1));
+      const audioColor = palette[colorIndex];
+
+      // Get original color
       const originalColor = new THREE.Color(this.originalBlockColors.get(block.id));
-      const targetColor = originalColor.clone().lerp(color, intensity);
+
+      // Calculate target color (lerp between original and audio based on frequency intensity)
+      const intensity = Math.pow(freqValue, 1.5); // Non-linear for more dynamic range
+      const targetColor = originalColor.clone().lerp(new THREE.Color(audioColor), intensity * 0.8);
+
+      // Get or initialize current color for this block
+      if (!this.blockCurrentColors.has(block.id)) {
+        this.blockCurrentColors.set(block.id, originalColor.clone());
+      }
+
+      // Apply damping - smooth transition to target color
+      const currentColor = this.blockCurrentColors.get(block.id);
+      currentColor.lerp(targetColor, this.colorDampingFactor);
 
       // Apply to material(s)
       if (Array.isArray(block.mesh.material)) {
         block.mesh.material.forEach(m => {
-          if (m.color) m.color.copy(targetColor);
+          if (m.color) m.color.copy(currentColor);
         });
       } else if (block.mesh.material.color) {
-        block.mesh.material.color.copy(targetColor);
+        block.mesh.material.color.copy(currentColor);
       }
     }
+  }
+
+  /**
+   * Simple string hash function for deterministic frequency assignment
+   */
+  _hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+    return Math.abs(hash);
   }
 
   /**
