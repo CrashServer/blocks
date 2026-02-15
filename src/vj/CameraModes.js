@@ -3,7 +3,9 @@ import * as THREE from 'three';
 /**
  * CameraModes - Dynamic camera behaviors driven by audio
  *
- * Modes: orbit, drift, lock, rail, chaos
+ * Modes: orbit, drift, lock, rail, chaos, fly, still, follow
+ * - still: Calm slow orbit, no audio reactivity
+ * - follow: Smoothly tracks generative paint spawn positions
  * Each mode has its own update logic plus shared effects:
  * zoom pulse, FOV breathing, shake
  */
@@ -61,6 +63,17 @@ export class CameraModes {
     this.flySpeed = 5;
     this.flyTurnTimer = 0;
     this.flyTurnDuration = 3;
+
+    // Still mode - calm, slow orbit
+    this.stillOrbitSpeed = 0.1; // Very slow rotation speed
+
+    // Follow mode - tracks generative paint spawn positions
+    this.followTarget = new THREE.Vector3(0, 5, 0);
+    this.followDistance = 20; // Distance from spawn point
+    this.followHeight = 10; // Height above spawn point
+    this.followOrbitAngle = 0; // Current orbit angle
+    this.followOrbitSpeed = 0.3; // Slow orbit speed
+    this.lastSpawnPosition = null; // Will be set by VJController
   }
 
   setMode(mode) {
@@ -76,12 +89,20 @@ export class CameraModes {
 
     if (mode === 'orbit') {
       this.controls.autoRotate = true;
+      this.controls.autoRotateSpeed = 2.0; // Normal speed
+    } else if (mode === 'still') {
+      this.controls.autoRotate = true;
+      this.controls.autoRotateSpeed = this.stillOrbitSpeed; // Very slow
     } else {
       this.controls.autoRotate = false;
     }
 
     if (mode === 'drift') {
       this._pickDriftTarget();
+    }
+
+    if (mode === 'follow') {
+      this.followOrbitAngle = 0;
     }
   }
 
@@ -99,13 +120,23 @@ export class CameraModes {
     if (!this.enabled) return;
     this.time += delta;
 
-    // Apply beat-reactive rotation FIRST (on every beat)
-    this._applyBeatRotation(audioData, delta);
+    // Still mode: skip ALL audio reactivity (pure calm orbit)
+    if (this.mode === 'still') {
+      this.controls.update();
+      return;
+    }
 
-    // Apply shared effects
-    this._applyShake(delta);
-    this._applyFOVBreathing(audioData, delta);
-    this._applyZoomPulse(audioData, delta);
+    // Apply beat-reactive rotation FIRST (on every beat) - EXCEPT for still and follow
+    if (this.mode !== 'follow') {
+      this._applyBeatRotation(audioData, delta);
+    }
+
+    // Apply shared effects (skip for follow mode - it has its own smooth movement)
+    if (this.mode !== 'follow') {
+      this._applyShake(delta);
+      this._applyFOVBreathing(audioData, delta);
+      this._applyZoomPulse(audioData, delta);
+    }
 
     // Mode-specific logic
     switch (this.mode) {
@@ -115,6 +146,8 @@ export class CameraModes {
       case 'rail': this._updateRail(audioData, delta); break;
       case 'chaos': this._updateChaos(audioData, delta); break;
       case 'fly': this._updateFly(audioData, delta); break;
+      case 'still': break; // handled above (pure autoRotate)
+      case 'follow': this._updateFollow(audioData, delta); break;
     }
   }
 
@@ -380,6 +413,55 @@ export class CameraModes {
       this.flyDirection.negate();
       this.flyTurnTimer = 0;
     }
+  }
+
+  // --- Mode: Follow (Tracks Generative Paint Spawns) ---
+
+  _updateFollow(audioData, delta) {
+    // Update target position if we have a recent spawn
+    if (this.lastSpawnPosition) {
+      // Smoothly interpolate followTarget toward lastSpawnPosition
+      this.followTarget.lerp(
+        new THREE.Vector3(
+          this.lastSpawnPosition.x,
+          this.lastSpawnPosition.y,
+          this.lastSpawnPosition.z
+        ),
+        delta * 0.5 // Smooth following
+      );
+    }
+
+    // Orbit around the target
+    this.followOrbitAngle += this.followOrbitSpeed * delta;
+
+    // Calculate camera position in orbit
+    const x = this.followTarget.x + Math.cos(this.followOrbitAngle) * this.followDistance;
+    const z = this.followTarget.z + Math.sin(this.followOrbitAngle) * this.followDistance;
+    const y = this.followTarget.y + this.followHeight;
+
+    // Smoothly move camera to orbit position
+    this.camera.position.lerp(
+      new THREE.Vector3(x, y, z),
+      delta * 2.0 // Smooth camera movement
+    );
+
+    // Look at the spawn target (slightly above for better view)
+    const lookAtPos = new THREE.Vector3(
+      this.followTarget.x,
+      this.followTarget.y + 2,
+      this.followTarget.z
+    );
+    this.controls.target.lerp(lookAtPos, delta * 2.0);
+
+    this.camera.lookAt(this.controls.target);
+    this.controls.update();
+  }
+
+  /**
+   * Called by VJController when a new spawn occurs
+   */
+  setFollowTarget(position) {
+    this.lastSpawnPosition = { x: position.x, y: position.y, z: position.z };
   }
 
   dispose() {

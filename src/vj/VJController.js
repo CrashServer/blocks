@@ -80,7 +80,7 @@ export class VJController {
     this.currentStyleIndex = 0;
 
     // Camera modes for cycling
-    this.cameraModeNames = ['orbit', 'drift', 'fly', 'lock', 'rail', 'chaos'];
+    this.cameraModeNames = ['orbit', 'drift', 'fly', 'lock', 'rail', 'chaos', 'still', 'follow'];
     this.currentCameraModeIndex = 0;
 
     // Fill toggle state for beat trigger
@@ -930,6 +930,11 @@ export class VJController {
         } catch (err) {
           console.error('[VJController] Failed to spawn ephemeral block:', err);
         }
+      }
+
+      // Update follow camera target if in follow mode
+      if (this.cameraModes.mode === 'follow') {
+        this.cameraModes.setFollowTarget(origin);
       }
 
       const triggerIcon = trigger === 'beat' ? '🎵' : '⏱️';
