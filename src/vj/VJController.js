@@ -61,6 +61,9 @@ export class VJController {
     this.timeSinceLastSpawn = 0; // Track time for BPM-based spawning
     this.spawnRandomRadius = 15; // Random spawn radius around camera/origin
 
+    // Audio-reactive color and block type pools
+    this._initAudioReactiveBlocks();
+
     // VJ shader passes
     this.vjPasses = {};
     this.vjPassesActive = false;
@@ -920,10 +923,28 @@ export class VJController {
         return;
       }
 
-      // Spawn each block as ephemeral (with lifetime and decay)
+      // Override block definitions with audio-reactive colors, types, and scales
       const energy = this.audioReactor.energy;
+      const audioReactiveBlockDefs = blockDefs.map(def => {
+        // Get audio-reactive properties
+        const audioColor = this._getAudioReactiveColor(this.audioReactor);
+        const audioType = this._getAudioReactiveBlockType(this.audioReactor);
+        const audioScale = this._getAudioReactiveScale(this.audioReactor);
+
+        // Randomly decide whether to use audio-reactive type or keep original (70% audio, 30% original)
+        const useAudioType = Math.random() < 0.7;
+
+        return {
+          ...def,
+          type: useAudioType ? audioType : def.type,
+          color: audioColor, // Always use audio-reactive color
+          scale: audioScale  // Always use audio-reactive scale
+        };
+      });
+
+      // Spawn each block as ephemeral (with lifetime and decay)
       let spawnedCount = 0;
-      for (const def of blockDefs) {
+      for (const def of audioReactiveBlockDefs) {
         try {
           this.ephemeralBlockManager.spawn(def, energy);
           spawnedCount++;
@@ -938,10 +959,147 @@ export class VJController {
       }
 
       const triggerIcon = trigger === 'beat' ? '🎵' : '⏱️';
-      console.log(`[VJController] ${triggerIcon} Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Active: ${this.ephemeralBlockManager.getCount()}`);
+      const avgScale = audioReactiveBlockDefs.reduce((sum, def) => sum + (def.scale || 1), 0) / audioReactiveBlockDefs.length;
+      console.log(`[VJController] ${triggerIcon} Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Scale: ${avgScale.toFixed(1)}x | Active: ${this.ephemeralBlockManager.getCount()}`);
     } catch (error) {
       console.error('[VJController] Error in _spawnGenerativePaint:', error);
     }
+  }
+
+  /**
+   * Initialize audio-reactive block types and colors
+   */
+  _initAudioReactiveBlocks() {
+    // Diverse block type pools for variety
+    this.blockTypePools = {
+      // Bass blocks - heavy, solid forms
+      bass: [
+        'cube', 'slab', 'slabTop', 'cylinder', 'pillar', 'pillar2', 'pillar4', 'platform',
+        'tank', 'boulder', 'rock', 'pyramid', 'dome', 'octagon', 'oilTank', 'barrel',
+        'crate', 'crateLarge', 'pallet', 'bollard', 'iBeam'
+      ],
+
+      // Mid blocks - medium complexity
+      mid: [
+        'wedge', 'wedgeTop', 'arch', 'archLow', 'stairs', 'beam2X', 'beam2Z', 'tube',
+        'capsule', 'torus', 'crossBeam', 'truss', 'sphere', 'hemisphere', 'egg',
+        'gate', 'wall', 'panel', 'frame', 'lShape', 'tShape', 'pentahedron'
+      ],
+
+      // High blocks - intricate, detailed
+      high: [
+        'crystal', 'gem', 'crystalCluster', 'crystalSpike', 'cone', 'tetrahedron',
+        'star', 'heart', 'diamond', 'finial', 'antenna', 'prism', 'bioTube',
+        'vertebra', 'spineSegment', 'organicPipe', 'xenoSpire', 'crystalFormation',
+        'gothicArch', 'keystone', 'capital', 'cornice'
+      ],
+
+      // All blocks - full spectrum for variety
+      all: [
+        'cube', 'slab', 'wedge', 'arch', 'pillar', 'sphere', 'cylinder', 'cone',
+        'pyramid', 'torus', 'crystal', 'gem', 'dome', 'capsule', 'tube', 'heart',
+        'star', 'diamond', 'rock', 'boulder', 'barrel', 'frame', 'gate', 'tetrahedron'
+      ]
+    };
+
+    // Audio-reactive color palettes
+    this.colorPalettes = {
+      // Bass colors - warm, deep, earthy
+      bass: [
+        '#8B0000', '#B22222', '#DC143C', '#FF4500', '#FF6347', // Reds
+        '#D2691E', '#CD853F', '#DEB887', '#F4A460', '#DAA520', // Browns/Golds
+        '#8B4513', '#A0522D', '#654321'  // Dark browns
+      ],
+
+      // Mid colors - cool, balanced
+      mid: [
+        '#00CED1', '#20B2AA', '#48D1CC', '#40E0D0', '#7FFFD4', // Cyans/Turquoise
+        '#00FA9A', '#98FB98', '#90EE90', '#32CD32', '#00FF00', // Greens
+        '#4169E1', '#4682B4', '#5F9EA0', '#6495ED', '#87CEEB'  // Blues
+      ],
+
+      // High colors - bright, vibrant
+      high: [
+        '#FF00FF', '#DA70D6', '#BA55D3', '#9370DB', '#8A2BE2', // Purples/Magentas
+        '#FF1493', '#FF69B4', '#FFB6C1', '#FFC0CB', '#FFD700', // Pinks/Gold
+        '#FFFF00', '#FFFFE0', '#F0E68C', '#EE82EE', '#DDA0DD'  // Yellows/Lavenders
+      ],
+
+      // Energy colors - full spectrum rainbow
+      rainbow: [
+        '#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#9400D3',
+        '#FF1493', '#00CED1', '#32CD32', '#FFD700', '#FF4500', '#8A2BE2'
+      ]
+    };
+  }
+
+  /**
+   * Get audio-reactive color based on frequency bands
+   */
+  _getAudioReactiveColor(audioData) {
+    const bass = audioData.bands.bass;
+    const mid = audioData.bands.mid;
+    const high = audioData.bands.high;
+    const energy = audioData.energy;
+
+    // Determine dominant frequency
+    const maxFreq = Math.max(bass, mid, high);
+
+    let palette;
+    if (maxFreq === bass && bass > 0.3) {
+      palette = this.colorPalettes.bass;
+    } else if (maxFreq === mid && mid > 0.3) {
+      palette = this.colorPalettes.mid;
+    } else if (maxFreq === high && high > 0.3) {
+      palette = this.colorPalettes.high;
+    } else {
+      // Low energy or balanced - use rainbow
+      palette = this.colorPalettes.rainbow;
+    }
+
+    // Select random color from palette
+    return palette[Math.floor(Math.random() * palette.length)];
+  }
+
+  /**
+   * Get audio-reactive block type based on frequency bands
+   */
+  _getAudioReactiveBlockType(audioData) {
+    const bass = audioData.bands.bass;
+    const mid = audioData.bands.mid;
+    const high = audioData.bands.high;
+
+    // Determine dominant frequency
+    const maxFreq = Math.max(bass, mid, high);
+
+    let pool;
+    if (maxFreq === bass && bass > 0.3) {
+      pool = this.blockTypePools.bass;
+    } else if (maxFreq === mid && mid > 0.3) {
+      pool = this.blockTypePools.mid;
+    } else if (maxFreq === high && high > 0.3) {
+      pool = this.blockTypePools.high;
+    } else {
+      // Use full spectrum
+      pool = this.blockTypePools.all;
+    }
+
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
+  /**
+   * Get audio-reactive scale based on energy and bass
+   */
+  _getAudioReactiveScale(audioData) {
+    const bass = audioData.bands.bass;
+    const energy = audioData.energy;
+
+    // Bass and energy influence size
+    // Range: 0.5 (quiet) to 3.0 (loud bass)
+    const baseScale = 0.5 + energy * 1.5; // 0.5 - 2.0
+    const bassBoost = bass * 1.0; // 0 - 1.0
+
+    return Math.min(3.0, baseScale + bassBoost);
   }
 
   dispose() {
