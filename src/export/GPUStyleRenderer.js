@@ -1340,12 +1340,13 @@ const OilPaintShader = {
   `
 };
 
-// Mosaic Shader (stained glass effect)
+// Mosaic Shader (detailed stained glass effect)
 const MosaicShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
-    blockSize: { value: 12.0 },
+    blockSize: { value: 8.0 },
+    thickness: { value: 1.0 },
     grayscale: { value: 0.0 }
   },
   vertexShader: `
@@ -1359,30 +1360,66 @@ const MosaicShader = {
     uniform sampler2D tDiffuse;
     uniform vec2 resolution;
     uniform float blockSize;
+    uniform float thickness;
     uniform float grayscale;
     varying vec2 vUv;
 
     float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness * 2.0) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float gx = abs(l - r);
+      float gy = abs(tl - tr);
+      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+    }
 
     void main() {
       vec2 pixel = vUv * resolution;
       vec2 block = floor(pixel / blockSize) * blockSize;
-      vec2 blockCenter = (block + blockSize * 0.5) / resolution;
 
-      vec3 color = texture2D(tDiffuse, blockCenter).rgb;
+      // Sample multiple points in block for detail
+      vec3 color = vec3(0.0);
+      for (float dx = 0.0; dx < blockSize; dx += blockSize * 0.25) {
+        for (float dy = 0.0; dy < blockSize; dy += blockSize * 0.25) {
+          vec2 sampleUv = (block + vec2(dx, dy) + blockSize * 0.5) / resolution;
+          color += texture2D(tDiffuse, sampleUv).rgb;
+        }
+      }
+      color /= 16.0;
 
       // Boost saturation for stained glass look
       float gray = luma(color);
-      color = mix(vec3(gray), color, 1.5);
-      color = clamp(color * 1.2, 0.0, 1.0);
+      color = mix(vec3(gray), color, 1.8);
+      color = clamp(color * 1.3, 0.0, 1.0);
 
-      // Dark borders between blocks
+      // Add slight color variation per block
+      vec2 blockId = floor(pixel / blockSize);
+      float noise = random(blockId);
+      color += (vec3(noise) - 0.5) * 0.1;
+
+      // Thick dark borders between blocks with light edge
       vec2 posInBlock = mod(pixel, blockSize);
-      float border = step(posInBlock.x, 1.0) + step(posInBlock.y, 1.0);
-      border += step(blockSize - 1.0, posInBlock.x) + step(blockSize - 1.0, posInBlock.y);
+      float borderThick = 2.0;
+      float border = step(posInBlock.x, borderThick) + step(posInBlock.y, borderThick);
+      border += step(blockSize - borderThick, posInBlock.x) + step(blockSize - borderThick, posInBlock.y);
       border = min(border, 1.0);
 
-      color = mix(color, color * 0.3, border);
+      // Light edge on one side of border
+      float lightEdge = step(posInBlock.x, borderThick + 1.0) * step(borderThick, posInBlock.x);
+      lightEdge += step(posInBlock.y, borderThick + 1.0) * step(borderThick, posInBlock.y);
+      lightEdge = min(lightEdge, 1.0) * (1.0 - border);
+
+      color = mix(color, color * 0.2, border);
+      color = mix(color, color * 1.4, lightEdge);
+
+      // Add edge lines from geometry
+      float edge = detectEdge(vUv);
+      color = mix(color, vec3(0.0), edge * 0.5);
 
       if (grayscale > 0.5) {
         float g = luma(color);
@@ -1658,7 +1695,7 @@ const HologramShader = {
   `
 };
 
-// Cyberpunk Shader (high contrast magenta/yellow glitchy)
+// Cyberpunk Shader (edgy neon glow on black)
 const CyberpunkShader = {
   uniforms: {
     tDiffuse: { value: null },
@@ -1686,44 +1723,66 @@ const CyberpunkShader = {
     float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
 
     float detectEdge(vec2 uv) {
-      vec2 texel = vec2(thickness) / resolution;
+      vec2 texel = vec2(thickness * 2.5) / resolution;
       float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
       float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
       float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
       float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
-      float gx = abs(l - r);
-      float gy = abs(tl - tr);
-      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float gx = -tl - 2.0*l + tr + 2.0*r;
+      float gy = -tl - 2.0*t + tr + 2.0*b;
+      return smoothstep(0.05, 0.2, sqrt(gx*gx + gy*gy));
     }
 
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
+      float depth = luma(texColor.rgb);
+
+      // Extreme contrast boost
+      depth = pow(depth, 0.6);
+      depth = smoothstep(0.25, 0.85, depth);
+
+      // Thick neon edges
       float edge = detectEdge(vUv);
 
-      // High contrast boost
-      vec3 boosted = (texColor.rgb - 0.5) * 1.5 + 0.5;
+      // Cyberpunk neon colors: hot pink and cyan
+      vec3 magenta = vec3(1.0, 0.0, 1.0);
+      vec3 cyan = vec3(0.0, 1.0, 1.0);
+      vec3 yellow = vec3(1.0, 1.0, 0.0);
 
-      // Cyberpunk color shift: magenta highlights, yellow shadows
-      float lum = luma(boosted);
-      vec3 cyberpunkColor;
-      if (lum > 0.5) {
-        cyberpunkColor = mix(boosted, vec3(1.0, 0.2, 1.0), 0.4); // Magenta
-      } else {
-        cyberpunkColor = mix(boosted, vec3(1.0, 1.0, 0.2), 0.3); // Yellow
+      // Color shift based on position and depth
+      float colorShift = sin(vUv.x * 3.14159) * 0.5 + 0.5;
+      vec3 neonColor = mix(magenta, cyan, colorShift);
+
+      // Apply depth for dark silhouette
+      vec3 finalColor = neonColor * depth * 0.3;
+
+      // Thick glowing edges with color variation
+      vec3 edgeColor = mix(magenta, cyan, vUv.y);
+      finalColor = mix(finalColor, edgeColor * 2.0, edge);
+
+      // Pure black background
+      finalColor = mix(vec3(0.0), finalColor, depth + edge);
+
+      // Glitch blocks
+      float block = floor(vUv.y * 50.0);
+      if (random(vec2(block, floor(time * 2.0))) > 0.97) {
+        float glitchShift = (random(vec2(block, time)) - 0.5) * 0.1;
+        vec3 glitchColor = texture2D(tDiffuse, vUv + vec2(glitchShift, 0.0)).rgb;
+        finalColor += glitchColor * vec3(1.0, 0.2, 1.0) * 0.5;
       }
 
-      // Dark background
-      vec3 bg = vec3(0.1, 0.05, 0.15);
-      vec3 finalColor = mix(bg, cyberpunkColor, 0.8);
-
-      // Random glitch blocks
-      float block = floor(vUv.y * 40.0);
-      if (random(vec2(block, floor(time * 2.0))) > 0.98) {
-        finalColor += vec3(random(vUv), random(vUv + 0.5), random(vUv + 1.0)) * 0.3;
+      // RGB split on edges
+      if (edge > 0.5) {
+        float r = texture2D(tDiffuse, vUv + vec2(0.002, 0.0)).r;
+        float b = texture2D(tDiffuse, vUv - vec2(0.002, 0.0)).b;
+        finalColor += vec3(r * 0.3, 0.0, b * 0.3);
       }
 
-      // Neon edges
-      finalColor = mix(finalColor, vec3(1.0, 0.0, 1.0), edge * 0.8);
+      // Scanlines
+      float scanline = sin(vUv.y * resolution.y * 2.0) * 0.1 + 0.9;
+      finalColor *= scanline;
 
       if (grayscale > 0.5) {
         float g = luma(finalColor);
@@ -1734,7 +1793,110 @@ const CyberpunkShader = {
   `
 };
 
-// Matrix Shader (green digital rain)
+// Datamosh Shader (compression artifacts and motion smearing)
+const DatamoshShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    intensity: { value: 0.5 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float intensity;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+    void main() {
+      vec2 uv = vUv;
+
+      // Compression block artifacts (8x8 or 16x16 blocks)
+      float blockSize = 16.0;
+      vec2 blockId = floor(uv * resolution / blockSize);
+      vec2 blockUv = floor(uv * resolution / blockSize) * blockSize / resolution;
+
+      // Random motion vectors per block
+      float timeSnap = floor(time * 8.0);
+      vec2 motionVector = vec2(
+        (random(blockId + vec2(timeSnap, 0.0)) - 0.5) * intensity * 0.15,
+        (random(blockId + vec2(0.0, timeSnap)) - 0.5) * intensity * 0.1
+      );
+
+      // Some blocks freeze (I-frame simulation)
+      float freezeChance = random(blockId + floor(time * 0.5));
+      if (freezeChance > 0.8) {
+        motionVector = vec2(0.0);
+      }
+
+      // Some blocks smear heavily (P-frame artifacts)
+      float smearChance = random(blockId + vec2(timeSnap * 0.3, 0.0));
+      if (smearChance > 0.85) {
+        motionVector *= 3.0;
+      }
+
+      // Motion blur / smearing
+      vec3 color = vec3(0.0);
+      int samples = 5;
+      for (int i = 0; i < 5; i++) {
+        float offset = float(i) / float(samples - 1);
+        vec2 sampleUv = uv + motionVector * offset;
+        color += texture2D(tDiffuse, sampleUv).rgb;
+      }
+      color /= float(samples);
+
+      // RGB channel displacement (compression artifact)
+      float chromaShift = intensity * 0.03;
+      float r = texture2D(tDiffuse, uv + motionVector + vec2(chromaShift, 0.0)).r;
+      float g = texture2D(tDiffuse, uv + motionVector).g;
+      float b = texture2D(tDiffuse, uv + motionVector - vec2(chromaShift, 0.0)).b;
+      vec3 displaced = vec3(r, g, b);
+
+      // Mix smeared and displaced
+      color = mix(color, displaced, 0.5);
+
+      // Block quantization (posterize within blocks for compression look)
+      float levels = 8.0;
+      color = floor(color * levels) / levels;
+
+      // DCT-like blocking artifacts (darker lines at block boundaries)
+      vec2 pixelPos = mod(uv * resolution, blockSize);
+      float blockBorder = step(pixelPos.x, 1.0) + step(pixelPos.y, 1.0);
+      blockBorder += step(blockSize - 1.0, pixelPos.x) + step(blockSize - 1.0, pixelPos.y);
+      blockBorder = min(blockBorder, 1.0);
+      color = mix(color, color * 0.7, blockBorder * 0.5);
+
+      // Random corruption blocks
+      if (random(blockId + floor(time * 4.0)) > 0.96) {
+        color = vec3(random(blockId), random(blockId + 0.5), random(blockId + 1.0));
+      }
+
+      // Interlacing artifacts
+      float line = mod(floor(uv.y * resolution.y), 2.0);
+      color *= 0.95 + line * 0.05;
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Matrix Shader (high contrast green digital rain)
 const MatrixShader = {
   uniforms: {
     tDiffuse: { value: null },
@@ -1762,40 +1924,49 @@ const MatrixShader = {
     float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
 
     float detectEdge(vec2 uv) {
-      vec2 texel = vec2(thickness) / resolution;
+      vec2 texel = vec2(thickness * 2.0) / resolution;
       float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
       float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
       float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
       float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
       float gx = abs(l - r);
       float gy = abs(tl - tr);
-      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+      return smoothstep(0.05, 0.2, sqrt(gx*gx + gy*gy));
     }
 
     void main() {
       vec4 texColor = texture2D(tDiffuse, vUv);
       float depth = luma(texColor.rgb);
 
-      // Digital rain effect
-      float col = floor(vUv.x * 50.0);
-      float rainSpeed = 2.0 + random(vec2(col, 0.0)) * 3.0;
-      float rainPos = mod(vUv.y + time * rainSpeed * 0.1, 1.0);
-      float rain = smoothstep(0.95, 1.0, rainPos) * smoothstep(0.0, 0.2, rainPos);
+      // High contrast boost
+      depth = pow(depth, 0.7);
+      depth = smoothstep(0.2, 0.9, depth);
 
-      // Green tint with varying brightness
-      vec3 green = vec3(0.0, 0.8, 0.2);
-      vec3 brightGreen = vec3(0.5, 1.0, 0.5);
-      vec3 matrixColor = mix(green, brightGreen, rain);
+      // Digital rain effect with multiple speeds
+      float col = floor(vUv.x * 60.0);
+      float rainSpeed = 1.5 + random(vec2(col, 0.0)) * 4.0;
+      float rainPos = mod(vUv.y + time * rainSpeed * 0.12, 1.0);
+      float rain = smoothstep(0.92, 1.0, rainPos) * smoothstep(0.0, 0.25, rainPos);
 
-      // Blend with depth
-      vec3 finalColor = matrixColor * depth;
+      // High contrast greens
+      vec3 darkGreen = vec3(0.0, 0.3, 0.0);
+      vec3 green = vec3(0.0, 1.0, 0.2);
+      vec3 brightGreen = vec3(0.7, 1.0, 0.7);
 
-      // Edge glow
+      // Color based on depth and rain
+      vec3 matrixColor = mix(darkGreen, green, depth);
+      matrixColor = mix(matrixColor, brightGreen, rain * 0.7);
+
+      // Strong edge glow
       float edge = detectEdge(vUv);
-      finalColor = mix(finalColor, brightGreen, edge * 0.6);
+      matrixColor = mix(matrixColor, brightGreen * 1.5, edge);
 
-      // Dark background
-      finalColor = mix(vec3(0.0, 0.05, 0.0), finalColor, depth * 0.8 + 0.2);
+      // Pure black background for high contrast
+      vec3 finalColor = mix(vec3(0.0), matrixColor, depth);
+
+      // Add scanlines
+      float scanline = sin(vUv.y * resolution.y * 1.5) * 0.08 + 0.92;
+      finalColor *= scanline;
 
       if (grayscale > 0.5) {
         float g = luma(finalColor);
@@ -2069,12 +2240,10 @@ export class GPUStyleRenderer {
       crt: CRTShader,
       oilpaint: OilPaintShader,
       mosaic: MosaicShader,
-      plasma: PlasmaShader,
       tron: TronShader,
-      posterize: PosterizeShader,
-      hologram: HologramShader,
       cyberpunk: CyberpunkShader,
-      matrix: MatrixShader
+      matrix: MatrixShader,
+      datamosh: DatamoshShader
     };
 
     const shader = shaderMap[this.style] || CleanEdgeShader;
@@ -2176,16 +2345,10 @@ export class GPUStyleRenderer {
         if (uniforms.levels) uniforms.levels.value = 8.0;
         break;
       case 'mosaic':
-        if (uniforms.blockSize) uniforms.blockSize.value = 8.0 + this.lineWidth * 2.0;
+        if (uniforms.blockSize) uniforms.blockSize.value = 6.0 + this.lineWidth;
         break;
-      case 'plasma':
-        if (uniforms.speed) uniforms.speed.value = 0.5;
-        break;
-      case 'posterize':
-        if (uniforms.levels) uniforms.levels.value = 4.0 + this.lineWidth;
-        break;
-      case 'hologram':
-        if (uniforms.glitchAmount) uniforms.glitchAmount.value = 0.02;
+      case 'datamosh':
+        if (uniforms.intensity) uniforms.intensity.value = 0.3 + this.lineWidth * 0.1;
         break;
     }
   }
@@ -2212,12 +2375,10 @@ export class GPUStyleRenderer {
       crt: { bg: '#0a0a0a', fg: '#33ff33', accent: '#44ff44' },
       oilpaint: { bg: '#f5f5dc', fg: '#2c2c2c', accent: '#8b4513' },
       mosaic: { bg: '#ffffff', fg: '#000000', accent: '#4169e1' },
-      plasma: { bg: '#000000', fg: '#ff00ff', accent: '#00ffff' },
       tron: { bg: '#000a14', fg: '#00ffff', accent: '#0080ff' },
-      posterize: { bg: '#ffffff', fg: '#000000', accent: '#ff0000' },
-      hologram: { bg: '#000a1a', fg: '#00ffff', accent: '#0099ff' },
-      cyberpunk: { bg: '#0f0520', fg: '#ff00ff', accent: '#ffff00' },
-      matrix: { bg: '#000500', fg: '#00ff00', accent: '#00aa00' }
+      cyberpunk: { bg: '#000000', fg: '#ff00ff', accent: '#00ffff' },
+      matrix: { bg: '#000000', fg: '#00ff00', accent: '#00aa00' },
+      datamosh: { bg: '#1a1a1a', fg: '#ff00ff', accent: '#00ffff' }
     };
 
     let colors = styles[this.style] || styles.clean;
