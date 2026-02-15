@@ -220,7 +220,8 @@ export class VJController {
       if (!this._beatDebugCount) this._beatDebugCount = 0;
       this._beatDebugCount++;
       if (this._beatDebugCount % 60 === 0) {
-        console.log(`[VJController] Paint active | Beat: ${beatNow} | Energy: ${this.audioReactor.energy.toFixed(2)} | Bass: ${this.audioReactor.bands.bass.toFixed(2)}`);
+        const energyAvg = this.audioReactor.energyAverage || 0;
+        console.log(`[VJController] Paint active | Beat: ${beatNow} | Energy: ${this.audioReactor.energy.toFixed(2)} (avg: ${energyAvg.toFixed(2)}) | Bass: ${this.audioReactor.bands.bass.toFixed(2)}`);
       }
 
       // Spawn on every beat

@@ -160,14 +160,23 @@ export class AudioReactor {
     this.smoothedEnergy = this.smoothedEnergy * this.smoothing + rawEnergy * (1 - this.smoothing);
     this.energy = this.smoothedEnergy;
 
-    // Beat detection: spectral flux in sub+bass
+    // Beat detection: dual method (bass flux + energy spikes)
     const lowEnergy = (this.bands.sub + this.bands.bass) * 0.5;
     this.beatAverage = this.beatAverage * this.beatDecay + lowEnergy * (1 - this.beatDecay);
+
+    // Method 1: Bass spectral flux (original)
+    const bassFluxDetected = lowEnergy > this.beatAverage * this.beatThreshold && lowEnergy > 0.15;
+
+    // Method 2: Energy spike detection (fallback when bass is saturated)
+    // Track energy average and detect spikes
+    if (!this.energyAverage) this.energyAverage = 0;
+    this.energyAverage = this.energyAverage * 0.95 + this.energy * 0.05;
+    const energySpikeDetected = this.energy > this.energyAverage * 1.5 && this.energy > 0.3;
 
     if (this.beatHoldFrames > 0) {
       this.beatHoldFrames--;
       this.beat = true;
-    } else if (lowEnergy > this.beatAverage * this.beatThreshold && lowEnergy > 0.15) {
+    } else if (bassFluxDetected || energySpikeDetected) {
       this.beat = true;
       this.beatHoldFrames = this.beatHoldMax;
     } else {
