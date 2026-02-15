@@ -2738,6 +2738,52 @@ class App {
       genTTLVal.textContent = v + 's';
     });
 
+    // Generative paint mode
+    const paintEnabled = document.getElementById('vj-paint-enabled');
+    const paintIntervalSlider = document.getElementById('vj-paint-interval');
+    const paintIntervalVal = document.getElementById('vj-paint-interval-val');
+    const paintPreset = document.getElementById('vj-paint-preset');
+    const paintAlgorithm = document.getElementById('vj-paint-algorithm');
+    const paintLifetimeSlider = document.getElementById('vj-paint-lifetime');
+    const paintLifetimeVal = document.getElementById('vj-paint-lifetime-val');
+    const paintDecay = document.getElementById('vj-paint-decay');
+
+    paintEnabled.addEventListener('change', (e) => {
+      const enabled = e.target.checked;
+      this.vjController.setGenerativePaintEnabled(enabled);
+
+      // Enable/disable controls
+      paintIntervalSlider.disabled = !enabled;
+      paintPreset.disabled = !enabled;
+      paintAlgorithm.disabled = !enabled;
+      paintLifetimeSlider.disabled = !enabled;
+      paintDecay.disabled = !enabled;
+    });
+
+    paintIntervalSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      this.vjController.generativeSpawnInterval = v;
+      paintIntervalVal.textContent = v + 's';
+    });
+
+    paintPreset.addEventListener('change', (e) => {
+      this.vjController.setGenerativePreset(e.target.value);
+    });
+
+    paintAlgorithm.addEventListener('change', (e) => {
+      this.vjController.setGenerativeAlgorithm(e.target.value);
+    });
+
+    paintLifetimeSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.setEphemeralLifetime(v);
+      paintLifetimeVal.textContent = v + 's';
+    });
+
+    paintDecay.addEventListener('change', (e) => {
+      this.vjController.setEphemeralDecayMode(e.target.value);
+    });
+
     // Reactivity
     reactivitySlider.addEventListener('input', (e) => {
       const v = parseFloat(e.target.value);

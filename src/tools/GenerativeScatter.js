@@ -49,6 +49,72 @@ export class GenerativeScatter {
 
     // Growth state
     this.placedPositions = new Set();
+
+    // Audio-reactive mode
+    this.audioReactive = false;
+    this.baseMaxBlocks = 50; // Store base values for audio modulation
+    this.baseBranchChance = 0.2;
+    this.baseTurnChance = 0.3;
+    this.baseVerticalBias = 0.1;
+    this.baseDecorativeChance = 0.05;
+    this.baseScaleRatio = 0.8;
+  }
+
+  /**
+   * Update generation parameters based on audio data (for VJ mode)
+   * @param {Object} audioData - Audio analysis data { bands: {bass, mid, high}, energy, beat }
+   * @returns {boolean} - Whether to trigger generation (on beat)
+   */
+  updateFromAudio(audioData) {
+    if (!this.audioReactive) return false;
+
+    const bass = audioData.bands.bass;
+    const mid = audioData.bands.mid;
+    const high = audioData.bands.high;
+    const energy = audioData.energy;
+
+    // Bass → density & scale (larger structures, more blocks)
+    // Map bass (0-1) to maxBlocks multiplier (0.5x - 2.5x)
+    const densityMultiplier = 0.5 + bass * 2.0;
+    this.maxBlocks = Math.round(this.baseMaxBlocks * densityMultiplier * (0.5 + energy * 1.5));
+
+    // Bass also affects scale ratio - more bass = bigger blocks
+    // Map bass to scaleRatio (0.3 = lots of big blocks, 0.9 = mostly small blocks)
+    this.scaleRatio = 0.9 - bass * 0.6;
+
+    // Mid → complexity & branching (more intricate patterns)
+    // Map mid (0-1) to branchChance (0.1 - 0.6)
+    this.branchChance = this.baseBranchChance + mid * 0.4;
+
+    // Map mid to turnChance (0.2 - 0.7) for more dynamic paths
+    this.turnChance = this.baseTurnChance + mid * 0.4;
+
+    // High → vertical movement & detail
+    // Map high (0-1) to verticalBias (0 - 0.5) - higher sounds go upward
+    this.verticalBias = high * 0.5;
+
+    // Map high to decorativeChance (0.02 - 0.2) - more high-freq details
+    this.decorativeChance = 0.02 + high * 0.18;
+
+    // Return true on beat to trigger generation bursts
+    return audioData.beat;
+  }
+
+  /**
+   * Enable/disable audio-reactive mode
+   */
+  setAudioReactive(enabled) {
+    this.audioReactive = enabled;
+
+    // Store current values as base when enabling
+    if (enabled) {
+      this.baseMaxBlocks = this.maxBlocks;
+      this.baseBranchChance = this.branchChance;
+      this.baseTurnChance = this.turnChance;
+      this.baseVerticalBias = this.verticalBias;
+      this.baseDecorativeChance = this.decorativeChance;
+      this.baseScaleRatio = this.scaleRatio;
+    }
   }
 
   /**

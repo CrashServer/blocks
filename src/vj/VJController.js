@@ -8,6 +8,8 @@ import { ParticleSpawner } from './ParticleSpawner.js';
 import { SceneBank } from './SceneBank.js';
 import { AudioGenerative } from './AudioGenerative.js';
 import { AudioBlockSpawner } from './AudioBlockSpawner.js';
+import { EphemeralBlockManager } from './EphemeralBlockManager.js';
+import { GenerativeScatter } from '../tools/GenerativeScatter.js';
 import {
   ChromaticAberrationShader,
   GlitchShader,
@@ -48,6 +50,13 @@ export class VJController {
     this.audioBlockSpawner = new AudioBlockSpawner(blockManager);
     this.sceneBank = new SceneBank();
     this.audioGenerative = new AudioGenerative(engine.scene);
+
+    // Generative paint mode - audio-reactive procedural generation with decay
+    this.ephemeralBlockManager = new EphemeralBlockManager(blockManager);
+    this.generativeScatter = new GenerativeScatter(blockManager);
+    this.generativePaintEnabled = false;
+    this.generativeSpawnCooldown = 0;
+    this.generativeSpawnInterval = 2.0; // Spawn every 2 seconds when in paint mode
 
     // VJ shader passes
     this.vjPasses = {};
@@ -137,6 +146,7 @@ export class VJController {
     this.meshReactor.setEnabled(false);
     this.particleSpawner.setEnabled(false);
     this.audioGenerative.setEnabled(false);
+    this.setGenerativePaintEnabled(false); // Disable generative paint and clear blocks
 
     // Remove VJ passes
     this._removeVJPasses();
@@ -194,6 +204,22 @@ export class VJController {
     // 8. Audio generative growth
     if (this.audioGenerative.enabled) {
       this.audioGenerative.update(this.audioReactor, delta);
+    }
+
+    // 9. Generative paint mode - audio-reactive procedural generation with decay
+    if (this.generativePaintEnabled) {
+      // Update ephemeral blocks (decay, removal)
+      this.ephemeralBlockManager.update(performance.now() / 1000);
+
+      // Update scatter parameters from audio
+      const shouldSpawn = this.generativeScatter.updateFromAudio(this.audioReactor);
+
+      // Spawn new structures on beat or cooldown expiry
+      this.generativeSpawnCooldown -= delta;
+      if ((shouldSpawn || this.generativeSpawnCooldown <= 0) && this.audioReactor.energy > 0.2) {
+        this._spawnGenerativePaint();
+        this.generativeSpawnCooldown = this.generativeSpawnInterval;
+      }
     }
   }
 
@@ -680,6 +706,12 @@ export class VJController {
         }
         break;
       }
+
+      case 'g': { // Toggle generative paint mode
+        this.setGenerativePaintEnabled(!this.generativePaintEnabled);
+        this._showOverlayMessage(this.generativePaintEnabled ? 'Generative Paint ON' : 'Generative Paint OFF');
+        break;
+      }
     }
   }
 
@@ -722,6 +754,90 @@ export class VJController {
     this.cameraModes.setMode(mode);
   }
 
+  // --- Generative Paint Mode ---
+
+  /**
+   * Enable/disable generative paint mode
+   */
+  setGenerativePaintEnabled(enabled) {
+    this.generativePaintEnabled = enabled;
+
+    if (enabled) {
+      // Enable audio-reactive mode for scatter
+      this.generativeScatter.setAudioReactive(true);
+      this.ephemeralBlockManager.setEnabled(true);
+      this.generativeSpawnCooldown = 0; // Spawn immediately
+      console.log('[VJController] Generative Paint enabled');
+    } else {
+      // Disable and clear ephemeral blocks
+      this.generativeScatter.setAudioReactive(false);
+      this.ephemeralBlockManager.setEnabled(false);
+      console.log('[VJController] Generative Paint disabled');
+    }
+  }
+
+  /**
+   * Set generative paint preset (pipes, cables, rocks, crystals, etc.)
+   */
+  setGenerativePreset(presetName) {
+    this.generativeScatter.setPreset(presetName);
+    console.log(`[VJController] Generative preset: ${presetName}`);
+  }
+
+  /**
+   * Set generative paint algorithm (walk, cluster, spiral, etc.)
+   */
+  setGenerativeAlgorithm(algorithm) {
+    this.generativeScatter.setAlgorithm(algorithm);
+    console.log(`[VJController] Generative algorithm: ${algorithm}`);
+  }
+
+  /**
+   * Set ephemeral block lifetime (TTL in seconds)
+   */
+  setEphemeralLifetime(seconds) {
+    this.ephemeralBlockManager.setBaseTTL(seconds);
+    console.log(`[VJController] Ephemeral lifetime: ${seconds}s`);
+  }
+
+  /**
+   * Set ephemeral decay mode (fadeAndShrink, floatUp, dissolve, etc.)
+   */
+  setEphemeralDecayMode(mode) {
+    this.ephemeralBlockManager.setDecayMode(mode);
+    console.log(`[VJController] Decay mode: ${mode}`);
+  }
+
+  /**
+   * Spawn a generative paint structure at camera target position
+   */
+  _spawnGenerativePaint() {
+    // Get spawn origin - use camera target or center of existing blocks
+    const origin = { x: 0, y: 0, z: 0 };
+
+    // Try to spawn near camera target
+    if (this.cameraModes.target) {
+      origin.x = Math.round(this.cameraModes.target.x);
+      origin.y = Math.round(this.cameraModes.target.y);
+      origin.z = Math.round(this.cameraModes.target.z);
+    }
+
+    // Generate blocks using audio-reactive scatter
+    const blockDefs = this.generativeScatter.generate(origin);
+
+    // Spawn each block as ephemeral (with lifetime and decay)
+    const energy = this.audioReactor.energy;
+    for (const def of blockDefs) {
+      try {
+        this.ephemeralBlockManager.spawn(def, energy);
+      } catch (err) {
+        console.warn('[VJController] Failed to spawn ephemeral block:', err.message);
+      }
+    }
+
+    console.log(`[VJController] Spawned ${blockDefs.length} ephemeral blocks (energy: ${energy.toFixed(2)})`);
+  }
+
   dispose() {
     this.stop();
     this.audioReactor.dispose();
@@ -731,5 +847,6 @@ export class VJController {
     this.particleSpawner.dispose();
     this.audioBlockSpawner.dispose();
     this.audioGenerative.dispose();
+    this.ephemeralBlockManager.dispose();
   }
 }
