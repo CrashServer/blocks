@@ -223,16 +223,15 @@ export class CameraModes {
   _updateDrift(audioData, delta) {
     this.driftTimer += delta;
 
-    // Change target on strong beat OR when timer expires (MUCH more frequent)
-    if ((audioData.beat && audioData.energy > 0.7) || this.driftTimer >= this.driftDuration) {
+    // Change target only when timer expires (smooth, chill mode - no beat triggers)
+    if (this.driftTimer >= this.driftDuration) {
       this._pickDriftTarget();
       this.driftTimer = 0;
     }
 
-    // VERY fast, jumpy interpolation for VJ feel
-    const baseSpeed = 2.5; // Much faster (was 1.5)
-    const energyBoost = audioData.energy * 3; // Energy makes it VERY fast
-    const t = delta * (baseSpeed + energyBoost);
+    // SMOOTH, slow interpolation for chill drift (no jitter)
+    const baseSpeed = 0.3; // Very slow, smooth movement
+    const t = delta * baseSpeed;
     this.camera.position.lerp(this.driftTarget, Math.min(t, 1));
     this.controls.target.lerp(this.driftLookAt, Math.min(t, 1));
     this.controls.update();
@@ -247,10 +246,10 @@ export class CameraModes {
       this.driftTarget.set(bm.position.x, bm.position.y, bm.position.z);
       this.driftLookAt.set(bm.target.x, bm.target.y, bm.target.z);
     } else {
-      // Much bigger random distances: 20-60 units
+      // Moderate random distances for chill drift
       const angle = Math.random() * Math.PI * 2;
-      const dist = 20 + Math.random() * 40; // 20-60 instead of 8-20
-      const height = 5 + Math.random() * 25; // 5-30 instead of 3-13
+      const dist = 15 + Math.random() * 20; // 15-35 (less extreme)
+      const height = 8 + Math.random() * 12; // 8-20 (more moderate)
       this.driftTarget.set(
         Math.cos(angle) * dist,
         height,
@@ -259,8 +258,8 @@ export class CameraModes {
       this.driftLookAt.set(0, 2, 0);
     }
 
-    // VERY short duration for jumpy VJ movement
-    this.driftDuration = 1 + Math.random() * 2; // 1-3s for rapid changes
+    // Long duration for smooth, chill movement
+    this.driftDuration = 8 + Math.random() * 8; // 8-16s for slow, relaxed changes
   }
 
   // --- Mode: Rail ---

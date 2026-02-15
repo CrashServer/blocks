@@ -57,6 +57,9 @@ export class VJController {
     this.generativePaintEnabled = false;
     this.generativePaintDensity = 10; // Blocks per beat (3-30)
     this.lastBeatState = false; // Track beat state to detect beat triggers
+    this.generativePaintBPM = 120; // Fallback BPM when no beats detected
+    this.timeSinceLastSpawn = 0; // Track time for BPM-based spawning
+    this.spawnRandomRadius = 15; // Random spawn radius around camera/origin
 
     // VJ shader passes
     this.vjPasses = {};
@@ -137,16 +140,36 @@ export class VJController {
   stop() {
     if (!this.active) return;
 
-    // Disconnect from render loop
-    this.engine.onVJUpdate = null;
-
     // Stop sub-systems
     this.audioReactor.stop();
     this.cameraModes.setEnabled(false);
     this.meshReactor.setEnabled(false);
     this.particleSpawner.setEnabled(false);
     this.audioGenerative.setEnabled(false);
-    this.setGenerativePaintEnabled(false); // Disable generative paint and clear blocks
+
+    // Disable generative paint spawning but keep ephemeral blocks
+    this.generativePaintEnabled = false;
+    this.generativeScatter.setAudioReactive(false);
+    // Note: ephemeralBlockManager stays enabled so blocks continue to decay
+
+    // Keep VJ update loop running ONLY if ephemeral blocks exist
+    // This allows blocks to continue decaying even after VJ mode stops
+    if (this.ephemeralBlockManager.getCount() > 0) {
+      console.log(`[VJController] VJ stopped but ${this.ephemeralBlockManager.getCount()} ephemeral blocks remain, continuing decay updates`);
+      this.engine.onVJUpdate = (delta) => {
+        // Only update ephemeral blocks, nothing else
+        this.ephemeralBlockManager.update(performance.now() / 1000);
+
+        // Stop updates when all blocks have decayed
+        if (this.ephemeralBlockManager.getCount() === 0) {
+          console.log('[VJController] All ephemeral blocks decayed, stopping updates');
+          this.engine.onVJUpdate = null;
+        }
+      };
+    } else {
+      // No ephemeral blocks, disconnect immediately
+      this.engine.onVJUpdate = null;
+    }
 
     // Remove VJ passes
     this._removeVJPasses();
@@ -206,7 +229,7 @@ export class VJController {
       this.audioGenerative.update(this.audioReactor, delta);
     }
 
-    // 9. Generative paint mode - spawn blocks on every beat with audio-reactive parameters
+    // 9. Generative paint mode - spawn blocks on beat OR BPM timer
     if (this.generativePaintEnabled) {
       // Update ephemeral blocks (decay, removal)
       this.ephemeralBlockManager.update(performance.now() / 1000);
@@ -216,19 +239,27 @@ export class VJController {
       const beatTriggered = beatNow && !this.lastBeatState;
       this.lastBeatState = beatNow;
 
+      // BPM-based timer fallback (spawn even without beat detection)
+      this.timeSinceLastSpawn += delta;
+      const bpmInterval = 60 / this.generativePaintBPM; // Convert BPM to seconds per beat
+      const timerTriggered = this.timeSinceLastSpawn >= bpmInterval;
+
       // Debug: log beat detection every 60 frames
       if (!this._beatDebugCount) this._beatDebugCount = 0;
       this._beatDebugCount++;
       if (this._beatDebugCount % 60 === 0) {
         const energyAvg = this.audioReactor.energyAverage || 0;
-        console.log(`[VJController] Paint active | Beat: ${beatNow} | Energy: ${this.audioReactor.energy.toFixed(2)} (avg: ${energyAvg.toFixed(2)}) | Bass: ${this.audioReactor.bands.bass.toFixed(2)}`);
+        console.log(`[VJController] Paint active | Beat: ${beatNow} | Timer: ${this.timeSinceLastSpawn.toFixed(2)}s/${bpmInterval.toFixed(2)}s | Energy: ${this.audioReactor.energy.toFixed(2)}`);
       }
 
-      // Spawn on every beat
-      if (beatTriggered) {
+      // Spawn on beat OR timer (whichever comes first)
+      if (beatTriggered || timerTriggered) {
         // Update scatter parameters from audio (modulates density, complexity, etc.)
         this.generativeScatter.updateFromAudio(this.audioReactor);
-        this._spawnGenerativePaint();
+        this._spawnGenerativePaint(beatTriggered ? 'beat' : 'timer');
+
+        // Reset timer when spawning
+        this.timeSinceLastSpawn = 0;
       }
     }
   }
@@ -787,16 +818,17 @@ export class VJController {
       this.generativeScatter.setAudioReactive(true);
       this.ephemeralBlockManager.setEnabled(true);
       this.lastBeatState = false; // Reset beat state
+      this.timeSinceLastSpawn = 0; // Reset timer
 
       // Set density
       this.generativeScatter.setMaxBlocks(this.generativePaintDensity);
 
-      console.log(`[VJController] Generative Paint ENABLED (density: ${this.generativePaintDensity} blocks/beat, preset: ${this.generativeScatter.preset}, algorithm: ${this.generativeScatter.algorithm})`);
+      console.log(`[VJController] Generative Paint ENABLED (density: ${this.generativePaintDensity} blocks/beat, BPM: ${this.generativePaintBPM}, preset: ${this.generativeScatter.preset}, algorithm: ${this.generativeScatter.algorithm})`);
     } else {
-      // Disable and clear ephemeral blocks
+      // Disable but DON'T clear - blocks persist after disabling
       this.generativeScatter.setAudioReactive(false);
-      this.ephemeralBlockManager.setEnabled(false);
-      console.log('[VJController] Generative Paint DISABLED');
+      // Note: ephemeralBlockManager stays enabled so blocks continue to decay naturally
+      console.log('[VJController] Generative Paint DISABLED (blocks will continue to decay)');
     }
   }
 
@@ -842,43 +874,46 @@ export class VJController {
   }
 
   /**
-   * Spawn a generative paint structure at camera target position
+   * Spawn a generative paint structure at random position
+   * @param {string} trigger - 'beat' or 'timer'
    */
-  _spawnGenerativePaint() {
-    console.log('[VJController] _spawnGenerativePaint() called');
-
+  _spawnGenerativePaint(trigger = 'beat') {
     try {
-      // Get spawn origin - use camera target or center of existing blocks
+      // Get spawn origin - randomize around camera target or scene center
       const origin = { x: 0, y: 0, z: 0 };
 
-      // Try to spawn near camera target
+      // Base position: camera target or scene center
       if (this.cameraModes.target) {
-        origin.x = Math.round(this.cameraModes.target.x);
-        origin.y = Math.round(this.cameraModes.target.y);
-        origin.z = Math.round(this.cameraModes.target.z);
-        console.log(`[VJController] Using camera target: (${origin.x},${origin.y},${origin.z})`);
+        origin.x = this.cameraModes.target.x;
+        origin.y = this.cameraModes.target.y;
+        origin.z = this.cameraModes.target.z;
       } else {
-        // Fallback: spawn near existing blocks or at origin
+        // Use center of existing blocks if available
         const blocks = this.blockManager.getAllBlocks();
-        console.log(`[VJController] No camera target, ${blocks.length} blocks in scene`);
         if (blocks.length > 0) {
-          // Pick a random existing block position
-          const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
-          origin.x = randomBlock.gridPosition.x;
-          origin.y = randomBlock.gridPosition.y;
-          origin.z = randomBlock.gridPosition.z;
-          console.log(`[VJController] Using random block position: (${origin.x},${origin.y},${origin.z})`);
-        } else {
-          console.log(`[VJController] Using default origin: (0,0,0)`);
+          let sumX = 0, sumY = 0, sumZ = 0;
+          for (const block of blocks) {
+            sumX += block.gridPosition.x;
+            sumY += block.gridPosition.y;
+            sumZ += block.gridPosition.z;
+          }
+          origin.x = sumX / blocks.length;
+          origin.y = sumY / blocks.length;
+          origin.z = sumZ / blocks.length;
         }
       }
 
-      console.log(`[VJController] Calling generate() with maxBlocks=${this.generativeScatter.maxBlocks}, preset=${this.generativeScatter.preset}, algorithm=${this.generativeScatter.algorithm}`);
+      // Add random offset in a sphere around the base position
+      const angle = Math.random() * Math.PI * 2;
+      const distance = Math.random() * this.spawnRandomRadius;
+      const heightOffset = (Math.random() - 0.5) * 10; // -5 to +5 vertical variation
+
+      origin.x = Math.round(origin.x + Math.cos(angle) * distance);
+      origin.z = Math.round(origin.z + Math.sin(angle) * distance);
+      origin.y = Math.max(0, Math.round(origin.y + heightOffset));
 
       // Generate blocks using audio-reactive scatter
       const blockDefs = this.generativeScatter.generate(origin);
-
-      console.log(`[VJController] generate() returned ${blockDefs.length} block definitions`);
 
       if (blockDefs.length === 0) {
         console.warn('[VJController] GenerativeScatter returned 0 blocks!');
@@ -897,7 +932,8 @@ export class VJController {
         }
       }
 
-      console.log(`[VJController] BEAT! Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Energy: ${energy.toFixed(2)} | Active: ${this.ephemeralBlockManager.getCount()}`);
+      const triggerIcon = trigger === 'beat' ? '🎵' : '⏱️';
+      console.log(`[VJController] ${triggerIcon} Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Active: ${this.ephemeralBlockManager.getCount()}`);
     } catch (error) {
       console.error('[VJController] Error in _spawnGenerativePaint:', error);
     }
