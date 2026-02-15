@@ -17,14 +17,19 @@ export class Engine {
     this.onVJUpdate = null; // VJ mode update hook
     this.customRender = null; // Optional custom render function (for post-processing)
 
-    window.addEventListener('resize', () => this.onResize());
+    this.animationFrameId = null;
+    this.isRunning = false;
+
+    this._resizeHandler = () => this.onResize();
+    window.addEventListener('resize', this._resizeHandler);
     this.onResize();
   }
 
   setupRenderer() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true
+      antialias: true,
+      preserveDrawingBuffer: true // Required for canvas.toBlob() to capture rendered content
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
@@ -111,11 +116,23 @@ export class Engine {
   }
 
   start() {
+    if (this.isRunning) return;
+    this.isRunning = true;
     this.animate();
   }
 
+  stop() {
+    if (!this.isRunning) return;
+    this.isRunning = false;
+    if (this.animationFrameId !== null) {
+      cancelAnimationFrame(this.animationFrameId);
+      this.animationFrameId = null;
+    }
+  }
+
   animate = () => {
-    requestAnimationFrame(this.animate);
+    if (!this.isRunning) return;
+    this.animationFrameId = requestAnimationFrame(this.animate);
 
     const delta = this.clock.getDelta();
 
@@ -135,5 +152,12 @@ export class Engine {
     } else {
       this.renderer.render(this.scene, this.camera);
     }
+  }
+
+  dispose() {
+    this.stop();
+    window.removeEventListener('resize', this._resizeHandler);
+    this.renderer.dispose();
+    this.controls.dispose();
   }
 }

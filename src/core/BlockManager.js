@@ -170,6 +170,9 @@ export class BlockManager {
     this.selectedBlocks = new Set(); // Multi-selection support
     this.onBlockCountChange = null;
     this.onSelectionChange = null; // Callback when selection changes
+
+    // Free Placement Mode - allows overlapping blocks
+    this.freePlacementMode = false;
   }
 
   // Backward compatibility getter for single selection
@@ -190,8 +193,8 @@ export class BlockManager {
   addBlock(options) {
     const block = new Block(options);
 
-    // Check if the new block would overlap with any existing block
-    if (this.wouldOverlap(block)) {
+    // Check if the new block would overlap with any existing block (unless free placement mode)
+    if (!this.freePlacementMode && this.wouldOverlap(block)) {
       block.dispose();
       return null;
     }
@@ -234,6 +237,9 @@ export class BlockManager {
    * @param {Object} rotation - Rotation {x, y, z} in degrees
    */
   wouldOverlapAt(type, position, dimensions = { w: 1, h: 1, d: 1 }, excludeIds = null, scale = 1, rotation = { x: 0, y: 0, z: 0 }) {
+    // Free placement mode bypasses all collision checks
+    if (this.freePlacementMode) return false;
+
     // Create a temporary block-like object for getWorldBounds
     const tempBlock = {
       type,
@@ -256,6 +262,13 @@ export class BlockManager {
         // Check if these block types can cross each other
         if (canBlocksCross(type, existing.type)) {
           continue; // Allow crossing
+        }
+        // Debug logging for collision detection
+        if (window.DEBUG_COLLISIONS) {
+          console.log('[Collision] Cannot place', type, 'at', position, '(scale:', scale + ')');
+          console.log('  New bounds:', newBounds);
+          console.log('  Conflicts with:', existing.type, 'at', existing.gridPosition, '(scale:', existing.scale + ')');
+          console.log('  Existing bounds:', existingBounds);
         }
         return true;
       }

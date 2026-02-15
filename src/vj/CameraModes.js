@@ -30,6 +30,17 @@ export class CameraModes {
     this.baseFov = 60;
     this.shakeOffset = new THREE.Vector3();
 
+    // Beat-reactive rotation
+    this.beatRotationH = 0; // Horizontal rotation (around Y axis)
+    this.beatRotationV = 0; // Vertical rotation (pitch)
+    this.beatRotationTargetH = 0;
+    this.beatRotationTargetV = 0;
+
+    // Orbit mode - direction changes
+    this.orbitDirection = 1; // 1 or -1
+    this.orbitChangeTimer = 0;
+    this.orbitChangeDuration = 3; // seconds between direction changes
+
     // Drift mode
     this.driftTarget = new THREE.Vector3(10, 10, 10);
     this.driftLookAt = new THREE.Vector3(0, 0, 0);
@@ -43,6 +54,13 @@ export class CameraModes {
     // Chaos mode
     this.chaosTimer = 0;
     this.chaosInterval = 2; // seconds between jumps
+
+    // Fly mode - traveling through 3D space
+    this.flyVelocity = new THREE.Vector3();
+    this.flyDirection = new THREE.Vector3(1, 0, 0.5).normalize();
+    this.flySpeed = 5;
+    this.flyTurnTimer = 0;
+    this.flyTurnDuration = 3;
   }
 
   setMode(mode) {
@@ -81,7 +99,10 @@ export class CameraModes {
     if (!this.enabled) return;
     this.time += delta;
 
-    // Apply shared effects first
+    // Apply beat-reactive rotation FIRST (on every beat)
+    this._applyBeatRotation(audioData, delta);
+
+    // Apply shared effects
     this._applyShake(delta);
     this._applyFOVBreathing(audioData, delta);
     this._applyZoomPulse(audioData, delta);
@@ -93,44 +114,107 @@ export class CameraModes {
       case 'lock': break; // no camera movement, only shared effects
       case 'rail': this._updateRail(audioData, delta); break;
       case 'chaos': this._updateChaos(audioData, delta); break;
+      case 'fly': this._updateFly(audioData, delta); break;
     }
   }
 
   // --- Shared effects ---
 
+  _applyBeatRotation(audioData, delta) {
+    // On beat: add 40-90° rotation impulse in BOTH axes for JUMPY VJ movement
+    if (audioData.beat) {
+      const energy = audioData.energy;
+      const rotationDegrees = 40 + Math.random() * 50 + energy * 40; // 40-130° based on energy
+      const directionH = Math.random() > 0.5 ? 1 : -1; // Horizontal direction
+      const directionV = Math.random() > 0.5 ? 1 : -1; // Vertical direction
+
+      // MORE vertical movement (was 0.5, now 0.8 for more dynamic angles)
+      this.beatRotationTargetH = rotationDegrees * directionH;
+      this.beatRotationTargetV = (rotationDegrees * 0.8) * directionV;
+    }
+
+    // FASTER transitions for snappier feel (was 8, now 12)
+    this.beatRotationH += (this.beatRotationTargetH - this.beatRotationH) * delta * 12;
+    this.beatRotationV += (this.beatRotationTargetV - this.beatRotationV) * delta * 12;
+    this.beatRotationTargetH *= Math.pow(0.03, delta); // Faster decay (was 0.05)
+    this.beatRotationTargetV *= Math.pow(0.03, delta);
+
+    // Apply 3D orbital rotation around target
+    if (Math.abs(this.beatRotationH) > 0.1 || Math.abs(this.beatRotationV) > 0.1) {
+      const target = this.controls.target;
+      const offset = new THREE.Vector3().subVectors(this.camera.position, target);
+      const radius = offset.length();
+
+      // Convert to spherical coordinates
+      const phi = Math.atan2(offset.z, offset.x); // Horizontal angle
+      const theta = Math.acos(Math.max(-1, Math.min(1, offset.y / radius))); // Vertical angle
+
+      // Apply beat rotations (in radians)
+      const newPhi = phi + (this.beatRotationH * Math.PI / 180) * delta * 2;
+      const newTheta = Math.max(0.1, Math.min(Math.PI - 0.1,
+        theta + (this.beatRotationV * Math.PI / 180) * delta * 2
+      )); // Clamp to avoid gimbal lock
+
+      // Convert back to Cartesian
+      this.camera.position.x = target.x + radius * Math.sin(newTheta) * Math.cos(newPhi);
+      this.camera.position.y = target.y + radius * Math.cos(newTheta);
+      this.camera.position.z = target.z + radius * Math.sin(newTheta) * Math.sin(newPhi);
+
+      this.camera.lookAt(target);
+    }
+  }
+
   _applyShake(delta) {
     if (this.shake < 0.001) return;
 
-    // Random offset that decays
+    // More intense shake (3x stronger)
     this.shakeOffset.set(
-      (Math.random() - 0.5) * this.shake,
-      (Math.random() - 0.5) * this.shake,
-      (Math.random() - 0.5) * this.shake
+      (Math.random() - 0.5) * this.shake * 3,
+      (Math.random() - 0.5) * this.shake * 3,
+      (Math.random() - 0.5) * this.shake * 3
     );
     this.camera.position.add(this.shakeOffset);
   }
 
   _applyFOVBreathing(audioData, delta) {
-    // Bass drives FOV between 50-70
-    const targetFov = 55 + audioData.bands.bass * 20;
-    this.camera.fov += (targetFov - this.camera.fov) * delta * 3;
+    // EXTREME dynamic FOV: 30-110 range based on bass + energy
+    // Bass provides base range, energy adds spikes
+    const bassRange = audioData.bands.bass * 50; // 0-50
+    const energySpike = audioData.energy * audioData.energy * 30; // 0-30 (squared for more impact)
+    const targetFov = 30 + bassRange + energySpike; // 30-110 range
+
+    // Very fast transitions for reactive feel
+    const speed = 8 + audioData.energy * 12; // 8-20 speed based on energy
+    this.camera.fov += (targetFov - this.camera.fov) * delta * speed;
     this.camera.updateProjectionMatrix();
   }
 
   _applyZoomPulse(audioData, delta) {
     if (!audioData.beat) return;
 
-    // On beat, push camera slightly closer to target
+    // On beat, bigger zoom pulse (3x stronger)
     const dir = new THREE.Vector3()
       .subVectors(this.controls.target, this.camera.position)
       .normalize();
-    this.camera.position.addScaledVector(dir, 0.3);
+    const pulseStrength = 0.8 + audioData.energy * 1.2; // 0.8-2.0
+    this.camera.position.addScaledVector(dir, pulseStrength);
   }
 
   // --- Mode: Orbit ---
 
   _updateOrbit(audioData, delta) {
-    this.controls.autoRotateSpeed = this.orbitSpeed * 2;
+    this.orbitChangeTimer += delta;
+
+    // Change direction on strong beats OR every 2-4 seconds
+    const changeDuration = 2 + Math.random() * 2; // 2-4s
+    if ((audioData.beat && audioData.energy > 0.6) || this.orbitChangeTimer >= changeDuration) {
+      this.orbitDirection *= -1; // Reverse direction
+      this.orbitChangeTimer = 0;
+    }
+
+    // MUCH faster rotation: 5-12x base speed depending on energy
+    const energyMultiplier = 5 + audioData.energy * 7;
+    this.controls.autoRotateSpeed = this.orbitSpeed * energyMultiplier * this.orbitDirection;
     this.controls.update();
   }
 
@@ -139,15 +223,18 @@ export class CameraModes {
   _updateDrift(audioData, delta) {
     this.driftTimer += delta;
 
-    if (this.driftTimer >= this.driftDuration) {
+    // Change target on strong beat OR when timer expires (MUCH more frequent)
+    if ((audioData.beat && audioData.energy > 0.7) || this.driftTimer >= this.driftDuration) {
       this._pickDriftTarget();
       this.driftTimer = 0;
     }
 
-    // Smooth interpolation toward drift target
-    const t = delta * 0.8;
-    this.camera.position.lerp(this.driftTarget, t);
-    this.controls.target.lerp(this.driftLookAt, t);
+    // VERY fast, jumpy interpolation for VJ feel
+    const baseSpeed = 2.5; // Much faster (was 1.5)
+    const energyBoost = audioData.energy * 3; // Energy makes it VERY fast
+    const t = delta * (baseSpeed + energyBoost);
+    this.camera.position.lerp(this.driftTarget, Math.min(t, 1));
+    this.controls.target.lerp(this.driftLookAt, Math.min(t, 1));
     this.controls.update();
   }
 
@@ -160,10 +247,10 @@ export class CameraModes {
       this.driftTarget.set(bm.position.x, bm.position.y, bm.position.z);
       this.driftLookAt.set(bm.target.x, bm.target.y, bm.target.z);
     } else {
-      // Random position around origin
+      // Much bigger random distances: 20-60 units
       const angle = Math.random() * Math.PI * 2;
-      const dist = 8 + Math.random() * 12;
-      const height = 3 + Math.random() * 10;
+      const dist = 20 + Math.random() * 40; // 20-60 instead of 8-20
+      const height = 5 + Math.random() * 25; // 5-30 instead of 3-13
       this.driftTarget.set(
         Math.cos(angle) * dist,
         height,
@@ -172,7 +259,8 @@ export class CameraModes {
       this.driftLookAt.set(0, 2, 0);
     }
 
-    this.driftDuration = 3 + Math.random() * 5;
+    // VERY short duration for jumpy VJ movement
+    this.driftDuration = 1 + Math.random() * 2; // 1-3s for rapid changes
   }
 
   // --- Mode: Rail ---
@@ -181,8 +269,13 @@ export class CameraModes {
     const bookmarkArray = this.bookmarks ? Array.from(this.bookmarks.bookmarks.values()) : [];
     if (bookmarkArray.length < 2) return;
 
-    // Advance along path, speed modulated by energy
-    this.railProgress += delta * this.railSpeed * (0.5 + audioData.energy);
+    // On strong beats, JUMP to next bookmark for VJ feel
+    if (audioData.beat && audioData.energy > 0.6) {
+      this.railProgress = Math.floor(this.railProgress) + 1;
+    }
+
+    // Advance along path FASTER, speed modulated by energy
+    this.railProgress += delta * this.railSpeed * (1.5 + audioData.energy * 2); // Much faster (was 0.5 + energy)
 
     if (this.railProgress >= bookmarkArray.length - 1) {
       this.railProgress = 0; // loop
@@ -193,8 +286,8 @@ export class CameraModes {
     const bm1 = bookmarkArray[idx];
     const bm2 = bookmarkArray[Math.min(idx + 1, bookmarkArray.length - 1)];
 
-    // Smooth easing
-    const et = t * t * (3 - 2 * t);
+    // More aggressive easing for snappier transitions
+    const et = t * t * t * (t * (t * 6 - 15) + 10); // Smoothstep5 for sharper acceleration
 
     this.camera.position.set(
       bm1.position.x + (bm2.position.x - bm1.position.x) * et,
@@ -214,22 +307,79 @@ export class CameraModes {
   _updateChaos(audioData, delta) {
     this.chaosTimer += delta;
 
-    // Jump on beat or on timer
-    if (audioData.beat || this.chaosTimer >= this.chaosInterval) {
+    // EXTREME chaos: jump on EVERY beat or very frequently (0.3-0.8s)
+    const chaosInterval = 0.3 + Math.random() * 0.5; // 0.3-0.8s for CONSTANT movement
+    if (audioData.beat || this.chaosTimer >= chaosInterval) {
       this.chaosTimer = 0;
 
+      // EXTREME random positions: 10-80 units for maximum chaos
       const angle = Math.random() * Math.PI * 2;
-      const dist = 5 + Math.random() * 15;
-      const height = 2 + Math.random() * 12;
+      const dist = 10 + Math.random() * 70; // 10-80 units
+      const height = -10 + Math.random() * 50; // -10 to 40 (can go below scene!)
+
+      // OFTEN look at random offsets for disorienting angles (60% of time)
+      const lookAtOffset = Math.random() > 0.4 ? {
+        x: (Math.random() - 0.5) * 20,
+        y: Math.random() * 15 - 5, // -5 to 10
+        z: (Math.random() - 0.5) * 20
+      } : { x: 0, y: 2, z: 0 };
 
       this.camera.position.set(
         Math.cos(angle) * dist,
         height,
         Math.sin(angle) * dist
       );
-      this.camera.lookAt(0, 2, 0);
-      this.controls.target.set(0, 2, 0);
+      this.camera.lookAt(lookAtOffset.x, lookAtOffset.y, lookAtOffset.z);
+      this.controls.target.set(lookAtOffset.x, lookAtOffset.y, lookAtOffset.z);
       this.controls.update();
+    }
+  }
+
+  // --- Mode: Fly (Traveling) ---
+
+  _updateFly(audioData, delta) {
+    this.flyTurnTimer += delta;
+
+    // Change direction FREQUENTLY on beats or short timer (MUCH more dynamic)
+    if (this.flyTurnTimer >= this.flyTurnDuration || (audioData.beat && audioData.energy > 0.5)) {
+      this.flyTurnTimer = 0;
+
+      // Pick new random direction in 3D space with MORE vertical variation
+      const theta = Math.random() * Math.PI * 2; // Horizontal angle
+      const phi = (Math.random() - 0.5) * Math.PI * 0.9; // Vertical angle (-81° to +81° for dramatic swoops)
+
+      this.flyDirection.set(
+        Math.cos(phi) * Math.cos(theta),
+        Math.sin(phi),
+        Math.cos(phi) * Math.sin(theta)
+      ).normalize();
+
+      // SHORTER turn duration for more erratic flight
+      this.flyTurnDuration = 1 + Math.random() * 2; // 1-3 seconds (was 2-6)
+    }
+
+    // MUCH faster speed, more energy-reactive
+    const speed = this.flySpeed * (1.5 + audioData.energy * 2.5); // 1.5x to 4x base speed
+
+    // Move camera in fly direction
+    this.flyVelocity.copy(this.flyDirection).multiplyScalar(speed * delta);
+    this.camera.position.add(this.flyVelocity);
+
+    // Look ahead in the direction of travel
+    const lookAhead = new THREE.Vector3()
+      .copy(this.camera.position)
+      .add(this.flyDirection.clone().multiplyScalar(10));
+
+    this.camera.lookAt(lookAhead);
+    this.controls.target.copy(lookAhead);
+    this.controls.update();
+
+    // Keep camera from going too far from origin (wrap around)
+    const distFromOrigin = this.camera.position.length();
+    if (distFromOrigin > 100) {
+      // Reverse direction to fly back toward origin
+      this.flyDirection.negate();
+      this.flyTurnTimer = 0;
     }
   }
 

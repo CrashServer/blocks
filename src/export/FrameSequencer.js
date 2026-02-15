@@ -17,24 +17,40 @@ export class FrameSequencer {
    * @param {number} quality - Quality for JPEG (0-1)
    */
   async captureFrame(frameNumber, format = 'image/jpeg', quality = 0.92) {
-    // Make sure scene is rendered
-    this.engine.renderer.render(this.engine.scene, this.engine.camera);
+    const tattooRenderer = window.appInstance?.tattooRenderer;
+    const isGPURenderer = tattooRenderer && tattooRenderer.constructor.name === 'GPUStyleRenderer';
+    const isCPURenderer = tattooRenderer && tattooRenderer.constructor.name === 'TattooRenderer';
 
-    // Check if tattoo/stylized overlay is enabled
-    const tattooOverlay = document.getElementById('tattoo-overlay');
-    const hasTattooOverlay = tattooOverlay && tattooOverlay.style.display !== 'none';
+    // Render the scene with appropriate renderer
+    if (isGPURenderer && tattooRenderer.enabled) {
+      // GPU rendering - renders directly to main canvas via compositor
+      console.log(`[FrameSequencer] Capturing frame ${frameNumber} with GPU style: ${tattooRenderer.style}`);
+      tattooRenderer.render(true);
 
-    // If tattoo overlay is enabled, update it for current camera position
-    if (hasTattooOverlay) {
-      const tattooRenderer = window.appInstance?.tattooRenderer;
-      if (tattooRenderer && tattooRenderer.enabled) {
-        tattooRenderer.render();
-      }
+      // CRITICAL: Wait for GPU to finish rendering before capturing
+      // gl.finish() ensures all GPU commands complete synchronously
+      const gl = this.engine.renderer.getContext();
+      gl.finish();
+      console.log(`[FrameSequencer] GPU render complete for frame ${frameNumber}`);
+    } else if (isCPURenderer && tattooRenderer.enabled) {
+      // CPU rendering with overlay - render both layers
+      this.engine.renderer.render(this.engine.scene, this.engine.camera);
+      tattooRenderer.render(true);
+    } else {
+      // No stylized rendering - standard Three.js render
+      this.engine.renderer.render(this.engine.scene, this.engine.camera);
+
+      // Also wait for GPU on standard renders
+      const gl = this.engine.renderer.getContext();
+      gl.finish();
     }
 
     let canvasToCapture = this.engine.canvas;
 
-    // If tattoo overlay is enabled, composite both canvases
+    // If CPU tattoo overlay is enabled, composite both canvases
+    const tattooOverlay = document.getElementById('tattoo-overlay');
+    const hasTattooOverlay = isCPURenderer && tattooOverlay && tattooOverlay.style.display !== 'none';
+
     if (hasTattooOverlay) {
       const compositeCanvas = document.createElement('canvas');
       compositeCanvas.width = this.engine.canvas.width;
@@ -192,10 +208,13 @@ export class FrameSequencer {
    * Frame-by-frame video export for smooth results
    */
   async exportAsMP4FrameByFrame(animator, bookmarks, totalFrames, fps, filename = 'camera_path.webm', onProgress = null) {
-    // Check if tattoo/stylized mode is enabled
-    const tattooOverlay = document.getElementById('tattoo-overlay');
-    const hasTattooOverlay = tattooOverlay && tattooOverlay.style.display !== 'none';
     const tattooRenderer = window.appInstance?.tattooRenderer;
+    const isGPURenderer = tattooRenderer && tattooRenderer.constructor.name === 'GPUStyleRenderer';
+    const isCPURenderer = tattooRenderer && tattooRenderer.constructor.name === 'TattooRenderer';
+
+    // Check if CPU tattoo/stylized overlay is enabled
+    const tattooOverlay = document.getElementById('tattoo-overlay');
+    const hasCPUOverlay = isCPURenderer && tattooOverlay && tattooOverlay.style.display !== 'none';
 
     // Create a canvas to composite frames
     const canvas = document.createElement('canvas');
@@ -269,12 +288,28 @@ export class FrameSequencer {
         const cameraState = animator.getCameraAtFrame(currentFrame, totalFrames, bookmarks);
         animator.setCameraState(cameraState);
 
-        // Render the 3D scene
-        this.engine.renderer.render(this.engine.scene, this.engine.camera);
+        // Render with appropriate renderer
+        if (isGPURenderer && tattooRenderer && tattooRenderer.enabled) {
+          // GPU rendering - renders directly to main canvas with effects
+          if (currentFrame % 30 === 0) {
+            console.log(`[FrameSequencer] Video frame ${currentFrame} using GPU style: ${tattooRenderer.style}`);
+          }
+          tattooRenderer.render(true);
 
-        // If stylized rendering is enabled, render it too
-        if (hasTattooOverlay && tattooRenderer && tattooRenderer.enabled) {
+          // CRITICAL: Wait for GPU to finish before copying to recording canvas
+          const gl = this.engine.renderer.getContext();
+          gl.finish();
+        } else if (isCPURenderer && tattooRenderer && tattooRenderer.enabled) {
+          // CPU rendering - render both 3D scene and stylized overlay
+          this.engine.renderer.render(this.engine.scene, this.engine.camera);
           tattooRenderer.render(true); // Force render, bypass throttling
+        } else {
+          // No stylized rendering
+          this.engine.renderer.render(this.engine.scene, this.engine.camera);
+
+          // Wait for GPU to finish
+          const gl = this.engine.renderer.getContext();
+          gl.finish();
         }
 
         // Composite to our recording canvas
@@ -285,7 +320,8 @@ export class FrameSequencer {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(this.engine.canvas, 0, 0);
 
-        if (hasTattooOverlay && tattooOverlay) {
+        // If CPU overlay is active, composite it on top
+        if (hasCPUOverlay && tattooOverlay) {
           ctx.drawImage(tattooOverlay, 0, 0);
         }
 

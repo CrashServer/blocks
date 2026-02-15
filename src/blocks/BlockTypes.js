@@ -371,6 +371,33 @@ export const BLOCK_HEIGHT_MULTIPLIERS = {
   pipelineX: 0.5,
   pipelineZ: 0.5,
   oilBarrel: 1,
+
+  // Alien / Biomechanical
+  bioTube: 1,
+  vertebra: 0.5,
+  ribCage: 1,
+  spineSegment: 1,
+  organicPipe: 1,
+  biomechPanel: 1,
+  alienVent: 0.5,
+  membrane: 0.25,
+  tendril: 1,
+  bioSphere: 1,
+  exoPlate: 0.25,
+  twistedColumn: 1,
+  organicArch: 1,
+  bioConduit: 1,
+  chitinPlate: 0.25,
+  boneArch: 1,
+  skullFragment: 0.75,
+  alienCorridor: 1,
+  biomassCluster: 0.75,
+  nervousSystem: 1,
+  carapace: 0.5,
+  pulsatingOrb: 1,
+  xenoSpire: 1,
+  organicGrowth: 0.75,
+  bioReactor: 1,
 };
 
 // Y offset for positioning (for blocks that don't start at their gridPosition.y)
@@ -933,6 +960,33 @@ export const GEOMETRY_CREATORS = {
   pipelineX: (d) => new THREE.CylinderGeometry(d.h * 0.3, d.h * 0.3, d.w, 12).rotateZ(Math.PI / 2),
   pipelineZ: (d) => new THREE.CylinderGeometry(d.h * 0.3, d.h * 0.3, d.d, 12).rotateX(Math.PI / 2),
   oilBarrel: (d) => createOilBarrel(d.w, d.h, d.d),
+
+  // === ALIEN / BIOMECHANICAL (Giger-inspired) ===
+  bioTube: (d) => createBioTube(d.w, d.h, d.d),
+  vertebra: (d) => createVertebra(d.w, d.h, d.d),
+  ribCage: (d) => createRibCage(d.w, d.h, d.d),
+  spineSegment: (d) => createSpineSegment(d.w, d.h, d.d),
+  organicPipe: (d) => createOrganicPipe(d.w, d.h, d.d),
+  biomechPanel: (d) => createBiomechPanel(d.w, d.h, d.d),
+  alienVent: (d) => createAlienVent(d.w, d.h, d.d),
+  membrane: (d) => createMembrane(d.w, d.h, d.d),
+  tendril: (d) => createTendril(d.w, d.h, d.d),
+  bioSphere: (d) => createBioSphere(d.w, d.h, d.d),
+  exoPlate: (d) => createExoPlate(d.w, d.h, d.d),
+  twistedColumn: (d) => createTwistedColumn(d.w, d.h, d.d),
+  organicArch: (d) => createOrganicArch(d.w, d.h, d.d),
+  bioConduit: (d) => createBioConduit(d.w, d.h, d.d),
+  chitinPlate: (d) => createChitinPlate(d.w, d.h, d.d),
+  boneArch: (d) => createBoneArch(d.w, d.h, d.d),
+  skullFragment: (d) => createSkullFragment(d.w, d.h, d.d),
+  alienCorridor: (d) => createAlienCorridor(d.w, d.h, d.d),
+  biomassCluster: (d) => createBiomassCluster(d.w, d.h, d.d),
+  nervousSystem: (d) => createNervousSystem(d.w, d.h, d.d),
+  carapace: (d) => createCarapace(d.w, d.h, d.d),
+  pulsatingOrb: (d) => createPulsatingOrb(d.w, d.h, d.d),
+  xenoSpire: (d) => createXenoSpire(d.w, d.h, d.d),
+  organicGrowth: (d) => createOrganicGrowth(d.w, d.h, d.d),
+  bioReactor: (d) => createBioReactor(d.w, d.h, d.d),
 };
 
 // Helper: Create wedge/ramp geometry with material groups for per-face painting
@@ -6132,6 +6186,482 @@ function createCoral(w, h, d) {
       Math.cos(angle) * length * 0.3
     );
     parts.push(tip);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+// === ALIEN / BIOMECHANICAL GEOMETRY CREATORS ===
+
+function createBioTube(w, h, d) {
+  // Organic tube with irregular bulges
+  const parts = [];
+  const segments = 6;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const radius = w * 0.3 * (0.8 + Math.sin(t * Math.PI * 3) * 0.3);
+    const segHeight = h / segments;
+    const seg = new THREE.CylinderGeometry(radius, radius, segHeight, 8, 1);
+    seg.translate(0, i * segHeight - h * 0.5 + segHeight * 0.5, 0);
+    parts.push(seg);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createVertebra(w, h, d) {
+  // Spinal vertebra shape
+  const parts = [];
+  // Central disc
+  const disc = new THREE.CylinderGeometry(w * 0.35, w * 0.35, h * 0.4, 8);
+  parts.push(disc);
+  // Spinal process (rear protrusion)
+  const process = new THREE.ConeGeometry(w * 0.15, d * 0.4, 6);
+  process.rotateX(Math.PI / 2);
+  process.translate(0, h * 0.1, -d * 0.2);
+  parts.push(process);
+  // Transverse processes (side protrusions)
+  const leftProc = new THREE.ConeGeometry(w * 0.1, w * 0.3, 6);
+  leftProc.rotateZ(-Math.PI / 2);
+  leftProc.translate(-w * 0.3, h * 0.1, 0);
+  parts.push(leftProc);
+  const rightProc = new THREE.ConeGeometry(w * 0.1, w * 0.3, 6);
+  rightProc.rotateZ(Math.PI / 2);
+  rightProc.translate(w * 0.3, h * 0.1, 0);
+  parts.push(rightProc);
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createRibCage(w, h, d) {
+  // Curved ribs structure
+  const parts = [];
+  const ribCount = 4;
+  for (let i = 0; i < ribCount; i++) {
+    const t = i / (ribCount - 1);
+    const yPos = -h * 0.4 + t * h * 0.8;
+    // Left rib
+    const leftRib = new THREE.TorusGeometry(w * 0.3, w * 0.04, 6, 8, Math.PI);
+    leftRib.rotateY(Math.PI / 2);
+    leftRib.rotateZ(Math.PI * 0.3);
+    leftRib.translate(-w * 0.2, yPos, 0);
+    parts.push(leftRib);
+    // Right rib
+    const rightRib = new THREE.TorusGeometry(w * 0.3, w * 0.04, 6, 8, Math.PI);
+    rightRib.rotateY(-Math.PI / 2);
+    rightRib.rotateZ(-Math.PI * 0.3);
+    rightRib.translate(w * 0.2, yPos, 0);
+    parts.push(rightRib);
+  }
+  // Central spine
+  const spine = new THREE.CylinderGeometry(w * 0.05, w * 0.05, h * 0.9, 6);
+  parts.push(spine);
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createSpineSegment(w, h, d) {
+  // Interconnected vertebrae segment
+  const parts = [];
+  // Main body
+  const body = new THREE.CylinderGeometry(w * 0.3, w * 0.28, h * 0.6, 8);
+  parts.push(body);
+  // Connecting ridges
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const ridge = new THREE.BoxGeometry(w * 0.08, h * 0.8, d * 0.08);
+    ridge.translate(
+      Math.sin(angle) * w * 0.28,
+      0,
+      Math.cos(angle) * d * 0.28
+    );
+    parts.push(ridge);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createOrganicPipe(w, h, d) {
+  // Twisted pipe with organic bulges
+  const parts = [];
+  const segments = 8;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const angle = t * Math.PI * 0.5; // 90-degree twist
+    const radius = w * 0.25 * (1 + Math.sin(t * Math.PI * 4) * 0.2);
+    const seg = new THREE.CylinderGeometry(radius, radius, h / segments, 8);
+    seg.rotateY(angle);
+    seg.translate(0, i * h / segments - h * 0.5 + h / segments * 0.5, 0);
+    parts.push(seg);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBiomechPanel(w, h, d) {
+  // Panel with biomechanical ribbing
+  const parts = [];
+  // Base panel
+  const base = new THREE.BoxGeometry(w, h, d * 0.2);
+  parts.push(base);
+  // Ribs
+  const ribCount = 5;
+  for (let i = 0; i < ribCount; i++) {
+    const x = -w * 0.4 + (i / (ribCount - 1)) * w * 0.8;
+    const rib = new THREE.BoxGeometry(w * 0.08, h * 0.9, d * 0.3);
+    rib.translate(x, 0, d * 0.05);
+    parts.push(rib);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createAlienVent(w, h, d) {
+  // Organic vent with gill-like slits
+  const parts = [];
+  // Base
+  const base = new THREE.BoxGeometry(w, h, d * 0.3);
+  parts.push(base);
+  // Slits
+  const slitCount = 4;
+  for (let i = 0; i < slitCount; i++) {
+    const y = -h * 0.3 + (i / (slitCount - 1)) * h * 0.6;
+    const slit = new THREE.BoxGeometry(w * 0.8, h * 0.08, d * 0.4);
+    slit.translate(0, y, d * 0.05);
+    parts.push(slit);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createMembrane(w, h, d) {
+  // Thin membrane with veins
+  const parts = [];
+  // Main membrane (thin plane)
+  const membrane = new THREE.BoxGeometry(w, h * 0.05, d);
+  parts.push(membrane);
+  // Vein structure
+  const veinCount = 5;
+  for (let i = 0; i < veinCount; i++) {
+    const x = -w * 0.4 + (i / (veinCount - 1)) * w * 0.8;
+    const vein = new THREE.CylinderGeometry(w * 0.015, w * 0.015, d * 0.9, 6);
+    vein.rotateX(Math.PI / 2);
+    vein.translate(x, h * 0.05, 0);
+    parts.push(vein);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createTendril(w, h, d) {
+  // Writhing tendril
+  const parts = [];
+  const segments = 8;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const angle = Math.sin(t * Math.PI * 3) * 0.5;
+    const radius = w * 0.15 * (1 - t * 0.5); // Taper
+    const seg = new THREE.CylinderGeometry(radius, radius, h / segments, 6);
+    seg.rotateZ(angle);
+    seg.translate(
+      Math.sin(t * Math.PI * 2) * w * 0.2,
+      i * h / segments - h * 0.5,
+      Math.cos(t * Math.PI * 2) * d * 0.2
+    );
+    parts.push(seg);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBioSphere(w, h, d) {
+  // Organic sphere with surface detail
+  const parts = [];
+  // Main sphere
+  const sphere = new THREE.SphereGeometry(Math.min(w, h, d) * 0.4, 10, 8);
+  parts.push(sphere);
+  // Surface nodules
+  const noduleCount = 8;
+  for (let i = 0; i < noduleCount; i++) {
+    const phi = Math.acos(-1 + (2 * i) / noduleCount);
+    const theta = Math.sqrt(noduleCount * Math.PI) * phi;
+    const r = Math.min(w, h, d) * 0.4;
+    const nodule = new THREE.SphereGeometry(w * 0.08, 6, 4);
+    nodule.translate(
+      r * Math.sin(phi) * Math.cos(theta),
+      r * Math.sin(phi) * Math.sin(theta),
+      r * Math.cos(phi)
+    );
+    parts.push(nodule);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createExoPlate(w, h, d) {
+  // Chitinous armor plate
+  const parts = [];
+  // Main plate with beveled edges
+  const plate = new THREE.BoxGeometry(w * 0.9, h, d * 0.9);
+  parts.push(plate);
+  // Overlapping edge plates
+  const edge1 = new THREE.BoxGeometry(w, h * 0.3, d * 0.1);
+  edge1.translate(0, 0, d * 0.45);
+  parts.push(edge1);
+  const edge2 = new THREE.BoxGeometry(w * 0.1, h * 0.3, d);
+  edge2.translate(w * 0.45, 0, 0);
+  parts.push(edge2);
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createTwistedColumn(w, h, d) {
+  // Column that twists as it rises
+  const parts = [];
+  const segments = 12;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const angle = t * Math.PI * 2; // Full 360° twist
+    const seg = new THREE.BoxGeometry(w * 0.6, h / segments, d * 0.6);
+    seg.rotateY(angle);
+    seg.translate(0, i * h / segments - h * 0.5, 0);
+    parts.push(seg);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createOrganicArch(w, h, d) {
+  // Flowing arch shape
+  const parts = [];
+  // Curve made from spheres
+  const segments = 10;
+  for (let i = 0; i < segments; i++) {
+    const t = i / (segments - 1);
+    const angle = t * Math.PI;
+    const radius = w * 0.4;
+    const x = Math.sin(angle) * radius - radius;
+    const y = -Math.cos(angle) * radius;
+    const sphere = new THREE.SphereGeometry(w * 0.15, 6, 6);
+    sphere.scale(1, 1.2, 0.8); // Elongate
+    sphere.translate(x, y + h * 0.5, 0);
+    parts.push(sphere);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBioConduit(w, h, d) {
+  // Pulsating conduit
+  const parts = [];
+  const segments = 6;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const radius = w * 0.3 * (1 + Math.sin(t * Math.PI * 6) * 0.4);
+    const seg = new THREE.CylinderGeometry(radius, radius, h / segments, 8);
+    seg.translate(0, i * h / segments - h * 0.5, 0);
+    parts.push(seg);
+    // Connecting rings
+    if (i < segments - 1) {
+      const ring = new THREE.TorusGeometry(w * 0.32, w * 0.03, 6, 8);
+      ring.rotateX(Math.PI / 2);
+      ring.translate(0, (i + 0.5) * h / segments - h * 0.5, 0);
+      parts.push(ring);
+    }
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createChitinPlate(w, h, d) {
+  // Segmented armor plate
+  const parts = [];
+  const segments = 4;
+  for (let i = 0; i < segments; i++) {
+    const x = -w * 0.4 + (i / (segments - 1)) * w * 0.8;
+    const plate = new THREE.BoxGeometry(w * 0.22, h, d * 0.9);
+    plate.translate(x, 0, 0);
+    parts.push(plate);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBoneArch(w, h, d) {
+  // Skeletal arch
+  const parts = [];
+  // Left bone
+  const leftBone = new THREE.CylinderGeometry(w * 0.08, w * 0.1, h * 0.8, 6);
+  leftBone.rotateZ(Math.PI * 0.15);
+  leftBone.translate(-w * 0.3, h * 0.1, 0);
+  parts.push(leftBone);
+  // Right bone
+  const rightBone = new THREE.CylinderGeometry(w * 0.08, w * 0.1, h * 0.8, 6);
+  rightBone.rotateZ(-Math.PI * 0.15);
+  rightBone.translate(w * 0.3, h * 0.1, 0);
+  parts.push(rightBone);
+  // Top bone
+  const topBone = new THREE.CylinderGeometry(w * 0.08, w * 0.08, w * 0.7, 6);
+  topBone.rotateZ(Math.PI / 2);
+  topBone.translate(0, h * 0.4, 0);
+  parts.push(topBone);
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createSkullFragment(w, h, d) {
+  // Partial skull/cranium piece
+  const parts = [];
+  // Dome
+  const dome = new THREE.SphereGeometry(Math.min(w, d) * 0.4, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.6);
+  dome.translate(0, h * 0.2, 0);
+  parts.push(dome);
+  // Eye socket
+  const socket = new THREE.SphereGeometry(w * 0.15, 6, 4);
+  socket.translate(-w * 0.2, h * 0.1, d * 0.3);
+  parts.push(socket);
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createAlienCorridor(w, h, d) {
+  // Biomechanical corridor section
+  const parts = [];
+  // Base tunnel
+  const tunnel = new THREE.CylinderGeometry(Math.min(w, h) * 0.4, Math.min(w, h) * 0.4, d, 8);
+  tunnel.rotateX(Math.PI / 2);
+  parts.push(tunnel);
+  // Ribbing
+  const ribCount = 6;
+  for (let i = 0; i < ribCount; i++) {
+    const z = -d * 0.4 + (i / (ribCount - 1)) * d * 0.8;
+    const rib = new THREE.TorusGeometry(Math.min(w, h) * 0.42, Math.min(w, h) * 0.04, 6, 8);
+    rib.rotateY(Math.PI / 2);
+    rib.translate(0, 0, z);
+    parts.push(rib);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBiomassCluster(w, h, d) {
+  // Clustered organic growths
+  const parts = [];
+  const count = 6 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.8;
+    const radius = Math.random() * w * 0.3;
+    const size = w * (0.1 + Math.random() * 0.15);
+    const blob = new THREE.SphereGeometry(size, 6, 5);
+    blob.scale(1, 1 + Math.random() * 0.5, 1);
+    blob.translate(
+      Math.sin(angle) * radius,
+      (Math.random() - 0.5) * h * 0.5,
+      Math.cos(angle) * radius
+    );
+    parts.push(blob);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createNervousSystem(w, h, d) {
+  // Neural network structure
+  const parts = [];
+  // Central node
+  const node = new THREE.SphereGeometry(w * 0.15, 8, 6);
+  parts.push(node);
+  // Nerve branches
+  const branchCount = 8;
+  for (let i = 0; i < branchCount; i++) {
+    const angle = (i / branchCount) * Math.PI * 2;
+    const length = h * (0.3 + Math.random() * 0.2);
+    const branch = new THREE.CylinderGeometry(w * 0.02, w * 0.01, length, 4);
+    branch.rotateZ((Math.random() - 0.5) * 0.8);
+    branch.rotateY(angle);
+    branch.translate(
+      Math.sin(angle) * w * 0.15,
+      -length * 0.3,
+      Math.cos(angle) * d * 0.15
+    );
+    parts.push(branch);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createCarapace(w, h, d) {
+  // Shell-like armor piece
+  const parts = [];
+  // Main shell (dome)
+  const shell = new THREE.SphereGeometry(Math.min(w, d) * 0.45, 8, 6, 0, Math.PI * 2, 0, Math.PI * 0.5);
+  shell.scale(1, h / Math.min(w, d), 1);
+  parts.push(shell);
+  // Segments
+  const segCount = 5;
+  for (let i = 0; i < segCount; i++) {
+    const t = i / segCount;
+    const ring = new THREE.TorusGeometry(Math.min(w, d) * 0.45 * (1 - t * 0.2), w * 0.02, 4, 8);
+    ring.rotateX(Math.PI / 2);
+    ring.translate(0, -h * 0.3 + t * h * 0.4, 0);
+    parts.push(ring);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createPulsatingOrb(w, h, d) {
+  // Organic energy sphere
+  const parts = [];
+  // Core
+  const core = new THREE.SphereGeometry(Math.min(w, h, d) * 0.3, 10, 8);
+  parts.push(core);
+  // Energy rings
+  for (let i = 0; i < 3; i++) {
+    const scale = 1 + i * 0.15;
+    const ring = new THREE.TorusGeometry(Math.min(w, h, d) * 0.3 * scale, w * 0.02, 6, 12);
+    ring.rotateX(Math.PI / 3 * i);
+    ring.rotateY(Math.PI / 4 * i);
+    parts.push(ring);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createXenoSpire(w, h, d) {
+  // Alien spire/tooth
+  const parts = [];
+  const segments = 8;
+  for (let i = 0; i < segments; i++) {
+    const t = i / segments;
+    const radius = w * 0.3 * (1 - t * 0.8) * (1 + Math.sin(t * Math.PI * 8) * 0.15);
+    const seg = new THREE.CylinderGeometry(radius, radius, h / segments, 6);
+    seg.translate(0, i * h / segments - h * 0.5, 0);
+    parts.push(seg);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createOrganicGrowth(w, h, d) {
+  // Tumor-like growth
+  const parts = [];
+  // Main mass
+  const mass = new THREE.SphereGeometry(Math.min(w, h, d) * 0.35, 8, 6);
+  mass.scale(1.2, 1, 0.9);
+  parts.push(mass);
+  // Bulges
+  const bulgeCount = 5;
+  for (let i = 0; i < bulgeCount; i++) {
+    const angle = (i / bulgeCount) * Math.PI * 2;
+    const bulge = new THREE.SphereGeometry(w * 0.12, 6, 4);
+    bulge.translate(
+      Math.sin(angle) * w * 0.25,
+      (Math.random() - 0.5) * h * 0.3,
+      Math.cos(angle) * d * 0.25
+    );
+    parts.push(bulge);
+  }
+  return mergeGeometries(parts, false) || parts[0];
+}
+
+function createBioReactor(w, h, d) {
+  // Organic power core
+  const parts = [];
+  // Container
+  const container = new THREE.CylinderGeometry(w * 0.35, w * 0.35, h * 0.8, 8);
+  parts.push(container);
+  // Internal core (visible through translucent container)
+  const core = new THREE.SphereGeometry(w * 0.25, 8, 6);
+  parts.push(core);
+  // Tendrils extending from top
+  for (let i = 0; i < 4; i++) {
+    const angle = (i / 4) * Math.PI * 2;
+    const tendril = new THREE.CylinderGeometry(w * 0.03, w * 0.02, h * 0.3, 6);
+    tendril.rotateZ(Math.PI * 0.3);
+    tendril.rotateY(angle);
+    tendril.translate(
+      Math.sin(angle) * w * 0.2,
+      h * 0.4,
+      Math.cos(angle) * d * 0.2
+    );
+    parts.push(tendril);
   }
   return mergeGeometries(parts, false) || parts[0];
 }

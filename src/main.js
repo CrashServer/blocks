@@ -176,6 +176,7 @@ class App {
     this.setupColorPalette();
     this.setupEmissiveControls();
     this.setupEdgeControls();
+    this.setupPlacementControls();
     this.setupMenuBar();
     this.setupTimeline();
     this.setupLayerPanel();
@@ -1385,6 +1386,21 @@ class App {
     });
   }
 
+  setupPlacementControls() {
+    const freePlacementCheckbox = document.getElementById('free-placement');
+    const gridSnapSelect = document.getElementById('grid-snap-increment');
+
+    freePlacementCheckbox.addEventListener('change', (e) => {
+      this.blockManager.freePlacementMode = e.target.checked;
+      console.log('[Placement] Free placement mode:', e.target.checked);
+    });
+
+    gridSnapSelect.addEventListener('change', (e) => {
+      this.grid.snapIncrement = parseFloat(e.target.value);
+      console.log('[Placement] Grid snap increment:', this.grid.snapIncrement);
+    });
+  }
+
   updateAllBlockEdges() {
     for (const block of this.blockManager.getAllBlocks()) {
       block.setEdgesVisible(this.showEdges);
@@ -2190,8 +2206,61 @@ class App {
       localStorage.setItem('rightPanelHidden', !isHidden);
     });
 
+    // About button
+    document.getElementById('btn-about').addEventListener('click', () => {
+      this.showAboutModal();
+    });
+
+    // Setup splash screen
+    this.setupSplashScreen();
+
+    // Setup about modal
+    this.setupAboutModal();
+
     // Setup collapsible panel sections
     this.setupCollapsibleSections();
+  }
+
+  setupSplashScreen() {
+    const splashScreen = document.getElementById('splash-screen');
+    const continueBtn = document.getElementById('splash-continue');
+
+    // Check if user has seen splash before
+    const hasSeenSplash = localStorage.getItem('hasSeenSplash');
+
+    if (hasSeenSplash) {
+      // Hide splash immediately if already seen
+      splashScreen.style.display = 'none';
+    }
+
+    continueBtn.addEventListener('click', () => {
+      splashScreen.classList.add('fade-out');
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+        localStorage.setItem('hasSeenSplash', 'true');
+      }, 500);
+    });
+  }
+
+  setupAboutModal() {
+    const modal = document.getElementById('about-modal');
+    const closeBtn = document.getElementById('about-modal-close');
+
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+
+    // Close on outside click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+
+  showAboutModal() {
+    const modal = document.getElementById('about-modal');
+    modal.style.display = 'flex';
   }
 
   setupCollapsibleSections() {
@@ -2612,18 +2681,30 @@ class App {
       this.vjController.sceneBank.next(this.blockManager, this.layerManager);
     });
 
-    // Particle spawner
-    const particlesEnabled = document.getElementById('vj-particles-enabled');
-    const particlePoolSelect = document.getElementById('vj-particle-pool');
+    // Audio Block Spawner
+    const blockSpawnEnabled = document.getElementById('vj-block-spawn-enabled');
+    const blockSpawnRateSlider = document.getElementById('vj-block-spawn-rate');
+    const blockSpawnRateVal = document.getElementById('vj-block-spawn-rate-val');
+    const blockSpawnRadiusSlider = document.getElementById('vj-block-spawn-radius');
+    const blockSpawnRadiusVal = document.getElementById('vj-block-spawn-radius-val');
 
-    particlesEnabled.addEventListener('change', (e) => {
-      this.vjController.particleSpawner.setEnabled(e.target.checked);
+    blockSpawnEnabled.addEventListener('change', (e) => {
+      this.vjController.audioBlockSpawner.setEnabled(e.target.checked);
+      blockSpawnRateSlider.disabled = !e.target.checked;
+      blockSpawnRadiusSlider.disabled = !e.target.checked;
       if (e.target.checked) {
-        this.vjController.particleSpawner.updateSceneBounds(this.blockManager);
+        this.vjController.audioBlockSpawner.updateSpawnCenter();
       }
     });
-    particlePoolSelect.addEventListener('change', (e) => {
-      this.vjController.particleSpawner.setPoolSize(parseInt(e.target.value));
+    blockSpawnRateSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.audioBlockSpawner.setSpawnRate(v);
+      blockSpawnRateVal.textContent = v;
+    });
+    blockSpawnRadiusSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.audioBlockSpawner.setSpawnRadius(v);
+      blockSpawnRadiusVal.textContent = v;
     });
 
     // Generative mode
@@ -2662,6 +2743,196 @@ class App {
       const v = parseFloat(e.target.value);
       this.vjController.reactivity = v;
       reactivityVal.textContent = v.toFixed(1);
+    });
+
+    // Post-processing effects
+    const effectCheckboxes = {
+      bloom: document.getElementById('vj-effect-bloom'),
+      feedback: document.getElementById('vj-effect-feedback'),
+      chromatic: document.getElementById('vj-effect-chromatic'),
+      glitch: document.getElementById('vj-effect-glitch'),
+      hueshift: document.getElementById('vj-effect-hueshift'),
+      vignette: document.getElementById('vj-effect-vignette'),
+      kaleidoscope: document.getElementById('vj-effect-kaleidoscope'),
+      mirror: document.getElementById('vj-effect-mirror'),
+      pixelate: document.getElementById('vj-effect-pixelate'),
+      rgbsplit: document.getElementById('vj-effect-rgbsplit'),
+      invert: document.getElementById('vj-effect-invert')
+    };
+
+    const bloomSlider = document.getElementById('vj-bloom-strength');
+    const bloomVal = document.getElementById('vj-bloom-val');
+    const feedbackSlider = document.getElementById('vj-feedback-amount');
+    const feedbackVal = document.getElementById('vj-feedback-val');
+    const kaleidoscopeSlider = document.getElementById('vj-kaleidoscope-segments');
+    const kaleidoscopeVal = document.getElementById('vj-kaleidoscope-val');
+    const pixelateSlider = document.getElementById('vj-pixelate-size');
+    const pixelateVal = document.getElementById('vj-pixelate-val');
+
+    // Toggle effect passes
+    const toggleEffect = (name, enabled) => {
+      const vj = this.vjController;
+      if (!vj.vjPasses || !vj.vjPassesActive) return;
+
+      const passMap = {
+        bloom: 'bloom',
+        feedback: 'feedback',
+        chromatic: 'chromatic',
+        glitch: 'glitch',
+        hueshift: 'hueShift',
+        vignette: 'vignette',
+        kaleidoscope: 'kaleidoscope',
+        mirror: 'mirror',
+        pixelate: 'pixelate',
+        rgbsplit: 'rgbSplit',
+        invert: 'invert'
+      };
+
+      const pass = vj.vjPasses[passMap[name]];
+      if (pass) {
+        pass.enabled = enabled;
+      }
+    };
+
+    // Bloom
+    effectCheckboxes.bloom.addEventListener('change', (e) => {
+      toggleEffect('bloom', e.target.checked);
+      bloomSlider.disabled = !e.target.checked;
+      if (e.target.checked && this.vjController.vjPasses.bloom) {
+        // Set to slider value, or default if slider is at 0
+        const sliderVal = parseFloat(bloomSlider.value);
+        this.vjController.vjPasses.bloom.strength = sliderVal > 0 ? sliderVal : 1.0;
+        if (sliderVal === 0) {
+          bloomSlider.value = 1.0;
+          bloomVal.textContent = '1.0';
+        }
+      } else if (this.vjController.vjPasses.bloom) {
+        this.vjController.vjPasses.bloom.strength = 0;
+      }
+    });
+    bloomSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      if (this.vjController.vjPasses.bloom) {
+        this.vjController.vjPasses.bloom.strength = v;
+      }
+      bloomVal.textContent = v.toFixed(1);
+    });
+
+    // Feedback
+    effectCheckboxes.feedback.addEventListener('change', (e) => {
+      toggleEffect('feedback', e.target.checked);
+      feedbackSlider.disabled = !e.target.checked;
+      if (e.target.checked && this.vjController.vjPasses.feedback) {
+        // Set to slider value, or default if slider is at 0
+        const sliderVal = parseFloat(feedbackSlider.value);
+        this.vjController.vjPasses.feedback.uniforms.uFeedback.value = sliderVal > 0 ? sliderVal : 0.5;
+        if (sliderVal === 0) {
+          feedbackSlider.value = 0.5;
+          feedbackVal.textContent = '0.50';
+        }
+      } else if (this.vjController.vjPasses.feedback) {
+        this.vjController.vjPasses.feedback.uniforms.uFeedback.value = 0;
+      }
+    });
+    feedbackSlider.addEventListener('input', (e) => {
+      const v = parseFloat(e.target.value);
+      if (this.vjController.vjPasses.feedback) {
+        this.vjController.vjPasses.feedback.uniforms.uFeedback.value = v;
+      }
+      feedbackVal.textContent = v.toFixed(2);
+    });
+
+    // Kaleidoscope
+    effectCheckboxes.kaleidoscope.addEventListener('change', (e) => {
+      toggleEffect('kaleidoscope', e.target.checked);
+      kaleidoscopeSlider.disabled = !e.target.checked;
+    });
+    kaleidoscopeSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      if (this.vjController.vjPasses.kaleidoscope) {
+        this.vjController.vjPasses.kaleidoscope.uniforms.uSegments.value = v;
+      }
+      kaleidoscopeVal.textContent = v;
+    });
+
+    // Pixelate
+    effectCheckboxes.pixelate.addEventListener('change', (e) => {
+      toggleEffect('pixelate', e.target.checked);
+      pixelateSlider.disabled = !e.target.checked;
+      if (!e.target.checked && this.vjController.vjPasses.pixelate) {
+        this.vjController.vjPasses.pixelate.uniforms.uPixelSize.value = 1;
+      }
+    });
+    pixelateSlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      if (this.vjController.vjPasses.pixelate) {
+        this.vjController.vjPasses.pixelate.uniforms.uPixelSize.value = v;
+      }
+      pixelateVal.textContent = v;
+    });
+
+    // Simple toggle-only effects (with default values)
+    effectCheckboxes.chromatic.addEventListener('change', (e) => {
+      toggleEffect('chromatic', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.chromatic) {
+        this.vjController.vjPasses.chromatic.uniforms.uAmount.value = 0.005; // Moderate chromatic aberration
+      } else if (this.vjController.vjPasses.chromatic) {
+        this.vjController.vjPasses.chromatic.uniforms.uAmount.value = 0;
+      }
+    });
+
+    effectCheckboxes.glitch.addEventListener('change', (e) => {
+      toggleEffect('glitch', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.glitch) {
+        this.vjController.vjPasses.glitch.uniforms.uGlitch.value = 0.3; // Moderate glitch intensity
+      } else if (this.vjController.vjPasses.glitch) {
+        this.vjController.vjPasses.glitch.uniforms.uGlitch.value = 0;
+      }
+    });
+
+    effectCheckboxes.hueshift.addEventListener('change', (e) => {
+      toggleEffect('hueshift', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.hueShift) {
+        this.vjController.vjPasses.hueShift.uniforms.uShift.value = 0.5; // 50% hue rotation
+      } else if (this.vjController.vjPasses.hueShift) {
+        this.vjController.vjPasses.hueShift.uniforms.uShift.value = 0;
+      }
+    });
+
+    effectCheckboxes.vignette.addEventListener('change', (e) => {
+      toggleEffect('vignette', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.vignette) {
+        this.vjController.vjPasses.vignette.uniforms.uIntensity.value = 0.6; // Moderate vignette
+      } else if (this.vjController.vjPasses.vignette) {
+        this.vjController.vjPasses.vignette.uniforms.uIntensity.value = 0;
+      }
+    });
+
+    effectCheckboxes.mirror.addEventListener('change', (e) => {
+      toggleEffect('mirror', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.mirror) {
+        this.vjController.vjPasses.mirror.uniforms.uMode.value = 3; // Quad mirror mode
+      } else if (this.vjController.vjPasses.mirror) {
+        this.vjController.vjPasses.mirror.uniforms.uMode.value = 0;
+      }
+    });
+
+    effectCheckboxes.rgbsplit.addEventListener('change', (e) => {
+      toggleEffect('rgbsplit', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.rgbSplit) {
+        this.vjController.vjPasses.rgbSplit.uniforms.uAmount.value = 0.01; // Moderate RGB split
+      } else if (this.vjController.vjPasses.rgbSplit) {
+        this.vjController.vjPasses.rgbSplit.uniforms.uAmount.value = 0;
+      }
+    });
+
+    effectCheckboxes.invert.addEventListener('change', (e) => {
+      toggleEffect('invert', e.target.checked);
+      if (e.target.checked && this.vjController.vjPasses.invert) {
+        this.vjController.vjPasses.invert.uniforms.uAmount.value = 1.0; // Full inversion
+      } else if (this.vjController.vjPasses.invert) {
+        this.vjController.vjPasses.invert.uniforms.uAmount.value = 0;
+      }
     });
 
     // Fullscreen / performance mode

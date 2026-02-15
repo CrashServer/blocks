@@ -73,7 +73,14 @@ export class ParticleSpawner {
   }
 
   spawn(energy, color) {
-    if (!this.enabled || this.pool.length === 0) return;
+    if (!this.enabled) {
+      console.warn('[ParticleSpawner] spawn() called but spawner is disabled');
+      return;
+    }
+    if (this.pool.length === 0) {
+      console.warn('[ParticleSpawner] spawn() called but pool is empty (all particles active)');
+      return;
+    }
 
     const mesh = this.pool.pop();
     mesh.visible = true;
@@ -86,6 +93,8 @@ export class ParticleSpawner {
       this.sceneCenter.y + Math.random() * 3,
       this.sceneCenter.z + Math.sin(angle) * dist
     );
+
+    console.log(`[ParticleSpawner] Spawned particle at (${mesh.position.x.toFixed(1)}, ${mesh.position.y.toFixed(1)}, ${mesh.position.z.toFixed(1)}), pool: ${this.pool.length}, active: ${this.active.length + 1}`);
 
     // Initial scale based on energy
     const baseScale = 0.3 + energy * 0.7;
@@ -149,14 +158,17 @@ export class ParticleSpawner {
         roughness: 0.6,
         metalness: 0.2,
         transparent: true,
-        opacity: 0
+        opacity: 0.9
       });
       const mesh = new THREE.Mesh(this.geometry, material);
       mesh.visible = false;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
       this.scene.add(mesh);
       this.pool.push(mesh);
     }
     this._built = true;
+    console.log(`ParticleSpawner: Built pool of ${this.poolSize} particles`);
   }
 
   _returnAll() {

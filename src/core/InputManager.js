@@ -285,18 +285,26 @@ export class InputManager {
       };
 
       if (normal.y > 0) {
-        // Top face - calculate surface height, let main.js decide final Y based on block type
+        // Top face - use actual hit point for X/Z to support placing anywhere on larger blocks
+        placementPos.x = Math.floor(hit.point.x);
+        placementPos.z = Math.floor(hit.point.z);
         const topSurface = hitPos.y + yOffset + actualHeight;
-        placementPos.y = Math.floor(topSurface);
+        placementPos.y = Math.round(topSurface); // Use round() to handle floating-point precision
         placementPos.surfaceY = topSurface; // Pass actual surface for smart placement
       } else if (normal.y < 0) {
-        // Bottom face - place below (assuming new block is 1 unit, adjust in main.js if needed)
+        // Bottom face - use actual hit point for X/Z to support placing anywhere under larger blocks
+        placementPos.x = Math.floor(hit.point.x);
+        placementPos.z = Math.floor(hit.point.z);
         placementPos.y = hitPos.y - 1;
       } else if (normal.x !== 0) {
-        // Side face X - move by the hit block's scaled width
+        // Side face X - use actual hit point for Y/Z to place anywhere on the side
         placementPos.x = hitPos.x + normal.x * hitDims.w * hitScale;
+        placementPos.y = Math.round(hit.point.y); // Use round() for better vertical snapping
+        placementPos.z = Math.floor(hit.point.z);
       } else if (normal.z !== 0) {
-        // Side face Z - move by the hit block's scaled depth
+        // Side face Z - use actual hit point for X/Y to place anywhere on the side
+        placementPos.x = Math.floor(hit.point.x);
+        placementPos.y = Math.round(hit.point.y); // Use round() for better vertical snapping
         placementPos.z = hitPos.z + normal.z * hitDims.d * hitScale;
       }
 

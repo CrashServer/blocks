@@ -566,6 +566,8 @@ const WatercolorShader = {
   uniforms: {
     tDiffuse: { value: null },
     resolution: { value: new THREE.Vector2(1920, 1080) },
+    bgColor: { value: new THREE.Color(0xfaf8f5) },
+    lineColor: { value: new THREE.Color(0x2c4a52) },
     thickness: { value: 1.0 },
     time: { value: 0 },
     grayscale: { value: 0.0 }
@@ -580,6 +582,8 @@ const WatercolorShader = {
   fragmentShader: `
     uniform sampler2D tDiffuse;
     uniform vec2 resolution;
+    uniform vec3 bgColor;
+    uniform vec3 lineColor;
     uniform float thickness;
     uniform float time;
     uniform float grayscale;
@@ -620,6 +624,7 @@ const WatercolorShader = {
     }
 
     void main() {
+      // Wobble/distortion for watercolor effect
       vec2 wobble = vec2(
         noise(vUv * 50.0) * 0.003,
         noise(vUv * 50.0 + 100.0) * 0.003
@@ -628,16 +633,20 @@ const WatercolorShader = {
       vec4 texColor = texture2D(tDiffuse, vUv + wobble);
       float edge = detectEdge(vUv);
 
-      float gray = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
+      // Soften colors with desaturation
+      float gray = luma(texColor.rgb);
       vec3 softened = mix(texColor.rgb, vec3(gray), 0.3);
-      softened = softened * 0.7 + 0.2;
+      softened = softened * 0.7 + 0.25; // Lighten
 
+      // Paper texture
       float paper = noise(vUv * resolution * 0.5) * 0.05;
       softened += paper;
 
-      vec3 edgeColor = vec3(0.17, 0.29, 0.32);
-      vec3 finalColor = mix(softened, edgeColor, edge * 0.6);
-      finalColor = mix(finalColor, vec3(0.98, 0.97, 0.96), 0.1);
+      // Mix with background color
+      vec3 withBg = mix(softened, bgColor, 0.15);
+
+      // Apply edge color
+      vec3 finalColor = mix(withBg, lineColor, edge * 0.5);
 
       if (grayscale > 0.5) {
         float g = luma(finalColor);
@@ -1063,6 +1072,7 @@ const CleanEdgeShader = {
 
 export class GPUStyleRenderer {
   constructor(engine, blockManager) {
+    console.log('[GPUStyleRenderer] Constructor called - initializing GPU-accelerated renderer');
     this.engine = engine;
     this.blockManager = blockManager;
     this.renderer = engine.renderer;
@@ -1090,6 +1100,9 @@ export class GPUStyleRenderer {
 
     // Time for animated effects
     this.time = 0;
+
+    // Debug logging throttle
+    this.lastLogTime = 0;
 
     window.addEventListener('resize', () => this.onResize());
   }
@@ -1141,14 +1154,17 @@ export class GPUStyleRenderer {
   }
 
   setEnabled(enabled) {
+    console.log(`[GPUStyleRenderer] setEnabled(${enabled}), style: ${this.style}`);
     this.enabled = enabled;
     if (enabled) {
       this.updateStyle();
       // Take over rendering from Engine
       this.engine.customRender = () => this.render();
+      console.log('[GPUStyleRenderer] GPU rendering enabled, customRender hook set');
     } else {
       // Return rendering to Engine
       this.engine.customRender = null;
+      console.log('[GPUStyleRenderer] GPU rendering disabled, customRender hook cleared');
     }
   }
 
@@ -1192,6 +1208,14 @@ export class GPUStyleRenderer {
   }
 
   updateStyle() {
+    console.log(`[GPUStyleRenderer] updateStyle() called for style: ${this.style}`);
+
+    // Dispose old composer to prevent memory leak
+    if (this.composer) {
+      this.composer.dispose();
+      this.composer = null;
+    }
+
     // Create a completely fresh composer and passes each time
     // Reusing pass instances across composers causes black screen
     // (passes bind internal framebuffer state to the composer they're added to)
@@ -1220,6 +1244,7 @@ export class GPUStyleRenderer {
     };
 
     const shader = shaderMap[this.style] || CleanEdgeShader;
+    console.log(`[GPUStyleRenderer] Using shader for style: ${this.style}`, shader ? 'found' : 'NOT FOUND');
 
     // Style-specific shader pass (each style has inline edge detection)
     this.stylePass = new ShaderPass(shader);
@@ -1232,13 +1257,18 @@ export class GPUStyleRenderer {
         0.5, 0.4, 0.85
       );
       this.composer.addPass(bloom);
+      console.log(`[GPUStyleRenderer] Added bloom pass for ${this.style}`);
     }
 
     // Fresh output pass for color space conversion
-    this.composer.addPass(new OutputPass());
+    const outputPass = new OutputPass();
+    outputPass.renderToScreen = true; // CRITICAL: Ensure final pass renders to canvas, not internal buffer
+    this.composer.addPass(outputPass);
 
     // Apply current uniform values
     this.updateStyleUniforms();
+
+    console.log(`[GPUStyleRenderer] Composer setup complete. Passes: RenderPass -> StylePass -> ${['neon', 'synthwave', 'scifi'].includes(this.style) ? 'BloomPass -> ' : ''}OutputPass`);
   }
 
   updateStyleUniforms() {
@@ -1353,11 +1383,21 @@ export class GPUStyleRenderer {
       return;
     }
 
+    // Debug logging (throttled to once per second)
+    const now = Date.now();
+    if (!this.lastLogTime || now - this.lastLogTime > 1000) {
+      console.log(`[GPUStyleRenderer] render() called (style: ${this.style}, composer: ${!!this.composer}, stylePass: ${!!this.stylePass})`);
+      this.lastLogTime = now;
+    }
+
     // Update time uniform for animated styles
     this.time += 0.016;
     if (this.stylePass && this.stylePass.uniforms.time) {
       this.stylePass.uniforms.time.value = this.time;
     }
+
+    // CRITICAL: Ensure renderer outputs to canvas (default framebuffer), not internal buffer
+    this.renderer.setRenderTarget(null);
 
     this.composer.render();
   }
@@ -1392,6 +1432,10 @@ export class GPUStyleRenderer {
   }
 
   dispose() {
+    if (this.composer) {
+      this.composer.dispose();
+      this.composer = null;
+    }
     this.sceneTarget.dispose();
     this.edgeTarget.dispose();
     if (this.charTexture) this.charTexture.dispose();

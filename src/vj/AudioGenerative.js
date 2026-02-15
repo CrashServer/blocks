@@ -354,25 +354,29 @@ export class AudioGenerative {
     const material = new THREE.MeshStandardMaterial({
       roughness: 0.5,
       metalness: 0.3,
+      vertexColors: true, // Enable per-instance colors
     });
 
     this.mesh = new THREE.InstancedMesh(geometry, material, MAX_INSTANCES);
     this.mesh.count = 0;
-    this.mesh.instanceColor = new THREE.InstancedBufferAttribute(
-      new Float32Array(MAX_INSTANCES * 3), 3
-    );
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); // Optimize for frequent updates
     this.mesh.frustumCulled = false;
     this.mesh.visible = false;
 
     // Initialize all matrices to zero scale off-screen
+    _color.set(0.5, 0.5, 0.5); // Default gray
     for (let i = 0; i < MAX_INSTANCES; i++) {
       _position.set(0, -100, 0);
       _scale.set(0, 0, 0);
       _quaternion.identity();
       _matrix.compose(_position, _quaternion, _scale);
       this.mesh.setMatrixAt(i, _matrix);
-      _color.set(0, 0, 0);
       this.mesh.setColorAt(i, _color);
+    }
+
+    this.mesh.instanceMatrix.needsUpdate = true;
+    if (this.mesh.instanceColor) {
+      this.mesh.instanceColor.needsUpdate = true;
     }
 
     this.scene.add(this.mesh);

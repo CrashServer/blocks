@@ -166,10 +166,31 @@ export class ParameterBus {
         { source: 'mid', target: 'shader.chromatic', range: [0, 0.012], smooth: 0.12 },
         { source: 'beat', target: 'shader.fills', range: [0, 1], trigger: true },
         { source: 'high', target: 'shader.vignette', range: [0, 1.2], smooth: 0.15 },
-        { source: 'energy', target: 'bloom.strength', range: [0.5, 2.0], smooth: 0.15 },
+        { source: 'energy', target: 'shader.bloom', range: [0.5, 2.0], smooth: 0.15 },
         { source: 'mid', target: 'shader.hueShift', range: [0, 1.0], smooth: 0.05 },
         { source: 'onset', target: 'shader.glitch', range: [0, 0.5], smooth: 0.03 },
-        { source: 'energy', target: 'shader.feedback', range: [0, 0.7], smooth: 0.1 },
+        { source: 'energy', target: 'shader.feedback', range: [0, 0.5], smooth: 0.1 },
+        // Kaleidoscope removed - manual control only
+      ],
+      trippy: [
+        { source: 'bass', target: 'shader.thickness', range: [2, 10], smooth: 0.3, curve: 'exponential' },
+        { source: 'energy', target: 'emissive.intensity', range: [2.0, 8.0], smooth: 0.3 },
+        { source: 'onset', target: 'camera.shake', range: [0, 0.8], smooth: 0.03 },
+        { source: 'energy', target: 'camera.orbitSpeed', range: [2.0, 8.0], smooth: 0.2 },
+        { source: 'bass', target: 'mesh.vertexDistort', range: [0, 0.4], smooth: 0.2 },
+        { source: 'bass', target: 'mesh.blockBounce', range: [0, 0.8], smooth: 0.15 },
+        { source: 'mid', target: 'shader.chromatic', range: [0, 0.02], smooth: 0.1 },
+        { source: 'high', target: 'shader.rgbSplit', range: [0, 1.0], smooth: 0.1 },
+        { source: 'beat', target: 'shader.fills', range: [0, 1], trigger: true },
+        { source: 'beat', target: 'shader.mirror', range: [0, 1], trigger: true },
+        { source: 'beat', target: 'shader.invert', range: [0, 1], trigger: true },
+        { source: 'high', target: 'shader.vignette', range: [0, 1.5], smooth: 0.15 },
+        { source: 'energy', target: 'shader.bloom', range: [1.0, 3.0], smooth: 0.2 },
+        { source: 'mid', target: 'shader.hueShift', range: [0, 2.0], smooth: 0.03 },
+        { source: 'onset', target: 'shader.glitch', range: [0, 0.8], smooth: 0.02 },
+        { source: 'energy', target: 'shader.feedback', range: [0, 0.85], smooth: 0.12 },
+        // Kaleidoscope removed - manual control only
+        { source: 'bass', target: 'shader.pixelate', range: [0, 0.5], smooth: 0.1 },
       ]
     };
   }

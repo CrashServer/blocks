@@ -6,6 +6,9 @@ export class Grid {
     this.cellSize = options.cellSize || 1;
     this.gridSize = options.gridSize || 20;
 
+    // Snap increment: 1.0 (default), 0.5, 0.25, or 0 (free placement)
+    this.snapIncrement = 1.0;
+
     this.gridGroup = new THREE.Group();
     this.gridGroup.name = 'grid';
     this.scene.add(this.gridGroup);
@@ -113,19 +116,28 @@ export class Grid {
 
   // Snap a world position to grid coordinates
   snapToGrid(position) {
+    // Free placement: no snapping
+    if (this.snapIncrement === 0) {
+      return position.clone();
+    }
+
+    // Snap to the specified increment
+    const snap = this.snapIncrement;
     return new THREE.Vector3(
-      Math.round(position.x / this.cellSize) * this.cellSize,
-      Math.round(position.y / this.cellSize) * this.cellSize,
-      Math.round(position.z / this.cellSize) * this.cellSize
+      Math.round(position.x / snap) * snap,
+      Math.round(position.y / snap) * snap,
+      Math.round(position.z / snap) * snap
     );
   }
 
   // Get grid coordinates from world position
   worldToGrid(position) {
+    // Use snap increment instead of cellSize for grid calculations
+    const snap = this.snapIncrement === 0 ? 0.01 : this.snapIncrement;
     return {
-      x: Math.round(position.x / this.cellSize),
-      y: Math.round(position.y / this.cellSize),
-      z: Math.round(position.z / this.cellSize)
+      x: Math.round(position.x / snap) * snap,
+      y: Math.round(position.y / snap) * snap,
+      z: Math.round(position.z / snap) * snap
     };
   }
 

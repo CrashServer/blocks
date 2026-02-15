@@ -40,6 +40,10 @@ export const TEMPLATE_CATEGORIES = {
   oil: {
     label: 'Oil & Gas',
     templates: ['oilDerrick', 'pumpJackStation', 'oilStorageFacility', 'oilFieldSite', 'offshorePlatform', 'oilRefinery', 'tankerLoadingStation']
+  },
+  alien: {
+    label: 'Alien Structures',
+    templates: ['nexusSpire', 'hiveNode', 'energyPylon', 'growthChamber', 'scoutWisp', 'sentinel', 'construct']
   }
 };
 
@@ -5574,6 +5578,372 @@ export const TEMPLATES = {
       { type: 'oilBarrel', position: { x: 1, y: 0, z: 6 }, color: '#1a1a1a' },
       { type: 'oilBarrel', position: { x: 2, y: 0, z: 6 }, color: '#B22222' },
       { type: 'oilBarrel', position: { x: 1, y: 0, z: 7 }, color: '#2F4F4F' },
+    ]
+  },
+
+  // =====================
+  // ALIEN STRUCTURES - Escher/Giger Biomechanical Architecture
+  // =====================
+
+  // Spine Cathedral - Massive vertebrae tower (Giger-inspired)
+  nexusSpire: {
+    name: 'Spine Cathedral',
+    category: 'alien',
+    description: 'Towering biomechanical spine with ribcage arches and pulsing core',
+    blocks: [
+      // === FOUNDATION BASE (Organic ground anchors) ===
+      ...makeFloor(-3, 0, -3, 7, 7, '#1a1a1a'),
+      { type: 'sphere', position: { x: -2, y: 0, z: -2 }, color: '#0D4D4D' },
+      { type: 'sphere', position: { x: 2, y: 0, z: -2 }, color: '#0D4D4D' },
+      { type: 'sphere', position: { x: -2, y: 0, z: 2 }, color: '#0D4D4D' },
+      { type: 'sphere', position: { x: 2, y: 0, z: 2 }, color: '#0D4D4D' },
+
+      // === VERTEBRAE COLUMN (Central spine) ===
+      { type: 'cylinder', position: { x: 0, y: 1, z: 0 }, color: '#2a2a2a' },
+      { type: 'torus', position: { x: 0, y: 1, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 2, z: 0 }, color: '#2a2a2a' },
+      { type: 'torus', position: { x: 0, y: 2, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 3, z: 0 }, color: '#2a2a2a' },
+      { type: 'torus', position: { x: 0, y: 3, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 4, z: 0 }, color: '#2a2a2a' },
+      { type: 'torus', position: { x: 0, y: 4, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 5, z: 0 }, color: '#2a2a2a' },
+      { type: 'torus', position: { x: 0, y: 5, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 6, z: 0 }, color: '#2a2a2a' },
+
+      // === RIBCAGE LEVEL 1 (Arching ribs) ===
+      { type: 'arch', position: { x: -2, y: 2, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 2, y: 2, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 2, z: -2 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 2, z: 2 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: -1, y: 2, z: -1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 1, y: 2, z: -1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: -1, y: 2, z: 1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 1, y: 2, z: 1 }, color: '#0D4D4D' },
+
+      // === RIBCAGE LEVEL 2 ===
+      { type: 'arch', position: { x: -2, y: 4, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 2, y: 4, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 4, z: -2 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 4, z: 2 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: -1, y: 4, z: -1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 1, y: 4, z: -1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: -1, y: 4, z: 1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 1, y: 4, z: 1 }, color: '#0D4D4D' },
+
+      // === GLOWING CORE (Pulsing energy channels) ===
+      { type: 'cylinder', position: { x: 0, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 5 } },
+      { type: 'cylinder', position: { x: 0, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 5 } },
+      { type: 'cylinder', position: { x: 0, y: 5, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 5 } },
+
+      // === SKULL CROWN (Top structure) ===
+      { type: 'sphere', position: { x: 0, y: 7, z: 0 }, color: '#0D4D4D' },
+      { type: 'pyramid', position: { x: -1, y: 7, z: 0 }, color: '#1A5C5C' },
+      { type: 'pyramid', position: { x: 1, y: 7, z: 0 }, color: '#1A5C5C' },
+      { type: 'pyramid', position: { x: 0, y: 7, z: -1 }, color: '#1A5C5C' },
+      { type: 'pyramid', position: { x: 0, y: 7, z: 1 }, color: '#1A5C5C' },
+      { type: 'crystal', position: { x: 0, y: 8, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 3.0, radius: 8 } },
+
+      // === TENDRILS (Reaching outward) ===
+      { type: 'pipe', position: { x: -3, y: 3, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 3, y: 3, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 3, z: -3 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 3, z: 3 }, color: '#1A5C5C' },
+      { type: 'crystal', position: { x: -3, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+      { type: 'crystal', position: { x: 3, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+      { type: 'crystal', position: { x: 0, y: 3, z: -3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+      { type: 'crystal', position: { x: 0, y: 3, z: 3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+    ]
+  },
+
+  // Penrose Lattice - Impossible staircase structure (Escher-inspired)
+  hiveNode: {
+    name: 'Penrose Lattice',
+    category: 'alien',
+    description: 'Impossible geometry with interlocking stairs and recursive arches',
+    blocks: [
+      // === BASE PLATFORM (Tessellated floor) ===
+      ...makeFloor(-4, 0, -4, 9, 9, '#2a2a2a'),
+      { type: 'slab', position: { x: -3, y: 0, z: -3 }, color: '#0D4D4D' },
+      { type: 'slab', position: { x: 3, y: 0, z: -3 }, color: '#0D4D4D' },
+      { type: 'slab', position: { x: -3, y: 0, z: 3 }, color: '#0D4D4D' },
+      { type: 'slab', position: { x: 3, y: 0, z: 3 }, color: '#0D4D4D' },
+
+      // === ASCENDING STAIRCASE (Impossible loop) ===
+      // North stairs
+      { type: 'stairsNorth', position: { x: 0, y: 1, z: -3 }, color: '#1A5C5C' },
+      { type: 'stairsNorth', position: { x: 0, y: 2, z: -2 }, color: '#1A5C5C' },
+      { type: 'stairsNorth', position: { x: 0, y: 3, z: -1 }, color: '#1A5C5C' },
+
+      // East stairs
+      { type: 'stairsEast', position: { x: 1, y: 4, z: 0 }, color: '#1A5C5C' },
+      { type: 'stairsEast', position: { x: 2, y: 3, z: 0 }, color: '#1A5C5C' },
+      { type: 'stairsEast', position: { x: 3, y: 2, z: 0 }, color: '#1A5C5C' },
+
+      // South stairs (descending)
+      { type: 'stairsSouth', position: { x: 0, y: 1, z: 3 }, color: '#1A5C5C' },
+      { type: 'stairsSouth', position: { x: 0, y: 2, z: 2 }, color: '#1A5C5C' },
+      { type: 'stairsSouth', position: { x: 0, y: 3, z: 1 }, color: '#1A5C5C' },
+
+      // West stairs
+      { type: 'stairsWest', position: { x: -1, y: 4, z: 0 }, color: '#1A5C5C' },
+      { type: 'stairsWest', position: { x: -2, y: 3, z: 0 }, color: '#1A5C5C' },
+      { type: 'stairsWest', position: { x: -3, y: 2, z: 0 }, color: '#1A5C5C' },
+
+      // === INTERLOCKING ARCHES (Recursive pattern) ===
+      { type: 'arch', position: { x: -2, y: 2, z: 0 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 2, y: 2, z: 0 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 0, y: 2, z: -2 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 0, y: 2, z: 2 }, color: '#2F4F4F' },
+
+      { type: 'arch', position: { x: -1, y: 4, z: -1 }, color: '#0D4D4D' },
+      { type: 'arch', position: { x: 1, y: 4, z: -1 }, color: '#0D4D4D' },
+      { type: 'arch', position: { x: -1, y: 4, z: 1 }, color: '#0D4D4D' },
+      { type: 'arch', position: { x: 1, y: 4, z: 1 }, color: '#0D4D4D' },
+
+      // === CENTER VOID (Glowing portal) ===
+      { type: 'torus', position: { x: 0, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 2.0, radius: 6 } },
+      { type: 'sphere', position: { x: 0, y: 3, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 3.0, radius: 5 } },
+
+      // === TESSELLATED PILLARS (Corner supports) ===
+      { type: 'cylinder', position: { x: -3, y: 1, z: -3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: -3, y: 2, z: -3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: 3, y: 1, z: -3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: 3, y: 2, z: -3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: -3, y: 1, z: 3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: -3, y: 2, z: 3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: 3, y: 1, z: 3 }, color: '#2a2a2a' },
+      { type: 'cylinder', position: { x: 3, y: 2, z: 3 }, color: '#2a2a2a' },
+
+      // === CAPSTONES (Crowned pillars with emissive crystals) ===
+      { type: 'pyramid', position: { x: -3, y: 3, z: -3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: -3, y: 4, z: -3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 3 } },
+      { type: 'pyramid', position: { x: 3, y: 3, z: -3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: 3, y: 4, z: -3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 3 } },
+      { type: 'pyramid', position: { x: -3, y: 3, z: 3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: -3, y: 4, z: 3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 3 } },
+      { type: 'pyramid', position: { x: 3, y: 3, z: 3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: 3, y: 4, z: 3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 3 } },
+
+      // === CONNECTING BEAMS (Structural webbing) ===
+      { type: 'pipe', position: { x: -2, y: 3, z: -2 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 2, y: 3, z: -2 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: -2, y: 3, z: 2 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 2, y: 3, z: 2 }, color: '#1A5C5C' },
+    ]
+  },
+
+  // Bio-Cathedral Generator - Towering energy harvester
+  energyPylon: {
+    name: 'Bio-Cathedral Generator',
+    category: 'alien',
+    description: 'Towering biomechanical energy cathedral with nested arches and pulsing conduits',
+    blocks: [
+      // === FOUNDATION (9x9 base) ===
+      ...makeFloor(-4, 0, -4, 9, 9, '#1a1a1a'),
+
+      // === CORNER PYLONS (4 support towers) ===
+      // NW corner
+      { type: 'cylinder', position: { x: -3, y: 1, z: -3 }, color: '#2F4F4F' },
+      { type: 'cylinder', position: { x: -3, y: 2, z: -3 }, color: '#2F4F4F' },
+      { type: 'torus', position: { x: -3, y: 3, z: -3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: -3, y: 4, z: -3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+
+      // NE corner
+      { type: 'cylinder', position: { x: 3, y: 1, z: -3 }, color: '#2F4F4F' },
+      { type: 'cylinder', position: { x: 3, y: 2, z: -3 }, color: '#2F4F4F' },
+      { type: 'torus', position: { x: 3, y: 3, z: -3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: 3, y: 4, z: -3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+
+      // SW corner
+      { type: 'cylinder', position: { x: -3, y: 1, z: 3 }, color: '#2F4F4F' },
+      { type: 'cylinder', position: { x: -3, y: 2, z: 3 }, color: '#2F4F4F' },
+      { type: 'torus', position: { x: -3, y: 3, z: 3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: -3, y: 4, z: 3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+
+      // SE corner
+      { type: 'cylinder', position: { x: 3, y: 1, z: 3 }, color: '#2F4F4F' },
+      { type: 'cylinder', position: { x: 3, y: 2, z: 3 }, color: '#2F4F4F' },
+      { type: 'torus', position: { x: 3, y: 3, z: 3 }, color: '#0D4D4D' },
+      { type: 'crystal', position: { x: 3, y: 4, z: 3 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 3 } },
+
+      // === CENTRAL ENERGY SHAFT (towering column) ===
+      { type: 'cylinder', position: { x: 0, y: 1, z: 0 }, color: '#0D4D4D' },
+      { type: 'torus', position: { x: 0, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 4 } },
+      { type: 'cylinder', position: { x: 0, y: 2, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 3, z: 0 }, color: '#0D4D4D' },
+      { type: 'torus', position: { x: 0, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 4 } },
+      { type: 'cylinder', position: { x: 0, y: 4, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 5, z: 0 }, color: '#0D4D4D' },
+      { type: 'torus', position: { x: 0, y: 5, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 4 } },
+      { type: 'cylinder', position: { x: 0, y: 6, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 7, z: 0 }, color: '#0D4D4D' },
+      { type: 'torus', position: { x: 0, y: 7, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 2.0, radius: 5 } },
+      { type: 'cylinder', position: { x: 0, y: 8, z: 0 }, color: '#0D4D4D' },
+      { type: 'cylinder', position: { x: 0, y: 9, z: 0 }, color: '#0D4D4D' },
+      { type: 'torus', position: { x: 0, y: 9, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 2.0, radius: 5 } },
+      { type: 'cylinder', position: { x: 0, y: 10, z: 0 }, color: '#0D4D4D' },
+
+      // === NESTED ARCHES (cathedral structure) - Level 2 ===
+      { type: 'arch', position: { x: -2, y: 2, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 2, y: 2, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 2, z: -2 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 2, z: 2 }, color: '#1A5C5C' },
+
+      // === NESTED ARCHES - Level 5 ===
+      { type: 'arch', position: { x: -2, y: 5, z: 0 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 2, y: 5, z: 0 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 0, y: 5, z: -2 }, color: '#2F4F4F' },
+      { type: 'arch', position: { x: 0, y: 5, z: 2 }, color: '#2F4F4F' },
+
+      // === NESTED ARCHES - Level 8 ===
+      { type: 'arch', position: { x: -1, y: 8, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 1, y: 8, z: 0 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 8, z: -1 }, color: '#1A5C5C' },
+      { type: 'arch', position: { x: 0, y: 8, z: 1 }, color: '#1A5C5C' },
+
+      // === PIPE NETWORK (biomechanical conduits) ===
+      // Horizontal connections at level 3
+      { type: 'pipe', position: { x: -1, y: 3, z: 0 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 1, y: 3, z: 0 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 0, y: 3, z: -1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 0, y: 3, z: 1 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: -2, y: 3, z: -2 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 2, y: 3, z: -2 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: -2, y: 3, z: 2 }, color: '#0D4D4D' },
+      { type: 'pipe', position: { x: 2, y: 3, z: 2 }, color: '#0D4D4D' },
+
+      // Horizontal connections at level 6
+      { type: 'pipe', position: { x: -1, y: 6, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 1, y: 6, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 6, z: -1 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 6, z: 1 }, color: '#1A5C5C' },
+
+      // === APEX EMITTER (crackling crown) ===
+      { type: 'sphere', position: { x: 0, y: 11, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 2.5, radius: 8 } },
+      { type: 'crystal', position: { x: 0, y: 12, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 3.0, radius: 10 } },
+      { type: 'crystal', position: { x: -1, y: 11, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 4 } },
+      { type: 'crystal', position: { x: 1, y: 11, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 4 } },
+      { type: 'crystal', position: { x: 0, y: 11, z: -1 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 4 } },
+      { type: 'crystal', position: { x: 0, y: 11, z: 1 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 4 } },
+    ]
+  },
+
+  // Growth Chamber - Horizontal bio-structure
+  growthChamber: {
+    name: 'Growth Chamber',
+    category: 'alien',
+    description: 'Organic growth pod with membrane-like surfaces',
+    blocks: [
+      // === MAIN POD (Horizontal elongated) ===
+      { type: 'capsule', position: { x: 0, y: 1, z: 0 }, color: '#1A5C5C' },
+      { type: 'capsule', position: { x: 1, y: 1, z: 0 }, color: '#1A5C5C' },
+      { type: 'capsule', position: { x: 2, y: 1, z: 0 }, color: '#1A5C5C' },
+
+      // === GLOWING INTERIOR ===
+      { type: 'sphere', position: { x: 1, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 4 } },
+
+      // === MEMBRANE SUPPORTS ===
+      { type: 'pipe', position: { x: 0, y: 0, z: 0 }, color: '#2F4F4F' },
+      { type: 'pipe', position: { x: 2, y: 0, z: 0 }, color: '#2F4F4F' },
+      { type: 'pipe', position: { x: 0, y: 1, z: 0 }, color: '#2F4F4F' },
+      { type: 'pipe', position: { x: 2, y: 1, z: 0 }, color: '#2F4F4F' },
+
+      // === NUTRIENT TENDRILS ===
+      { type: 'pipeY', position: { x: 0, y: 0, z: 0 }, color: '#0D4D4D' },
+      { type: 'pipeY', position: { x: 2, y: 0, z: 0 }, color: '#0D4D4D' },
+
+      // === GROWTH NODES ===
+      { type: 'crystal', position: { x: 0, y: 2, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 0.8, radius: 2 } },
+      { type: 'crystal', position: { x: 1, y: 2, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 0.8, radius: 2 } },
+      { type: 'crystal', position: { x: 2, y: 2, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 0.8, radius: 2 } },
+    ]
+  },
+
+  // Scout Wisp - Small alien unit
+  scoutWisp: {
+    name: 'Scout Wisp',
+    category: 'alien',
+    description: 'Tiny floating bio-mechanical scout with energy trail',
+    blocks: [
+      // === CORE BODY ===
+      { type: 'sphere', position: { x: 0, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 2.0, radius: 3 } },
+
+      // === SENSOR ARRAY ===
+      { type: 'crystal', position: { x: 0, y: 2, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 2 } },
+
+      // === PROPULSION TENDRILS ===
+      { type: 'pipe', position: { x: 1, y: 1, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: -1, y: 1, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 1, z: 1 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 1, z: -1 }, color: '#1A5C5C' },
+
+      // === BASE ANCHOR ===
+      { type: 'prism', position: { x: 0, y: 0, z: 0 }, color: '#0D4D4D' },
+    ]
+  },
+
+  // Sentinel - Defensive unit
+  sentinel: {
+    name: 'Sentinel',
+    category: 'alien',
+    description: 'Bio-mechanical guardian with armored plating and weapon nodes',
+    blocks: [
+      // === ARMORED BASE ===
+      { type: 'cube', position: { x: 0, y: 0, z: 0 }, color: '#2F4F4F' },
+      { type: 'cube', position: { x: 1, y: 0, z: 0 }, color: '#2F4F4F' },
+      { type: 'cube', position: { x: 0, y: 0, z: 1 }, color: '#2F4F4F' },
+      { type: 'cube', position: { x: 1, y: 0, z: 1 }, color: '#2F4F4F' },
+
+      // === ORGANIC CORE ===
+      { type: 'sphere', position: { x: 0, y: 1, z: 0 }, color: '#1A5C5C' },
+      { type: 'sphere', position: { x: 1, y: 1, z: 0 }, color: '#1A5C5C' },
+
+      // === SENSOR EYE ===
+      { type: 'sphere', position: { x: 0, y: 2, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.8, radius: 4 } },
+
+      // === WEAPON EMITTERS ===
+      { type: 'crystal', position: { x: -1, y: 1, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 2 } },
+      { type: 'crystal', position: { x: 2, y: 1, z: 0 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 1.2, radius: 2 } },
+
+      // === ARMOR PLATING ===
+      { type: 'wedge', position: { x: 0, y: 1, z: -1 }, color: '#0D4D4D' },
+      { type: 'wedge', position: { x: 1, y: 1, z: 2 }, color: '#0D4D4D' },
+
+      // === SUPPORT LEGS ===
+      { type: 'pipe', position: { x: -1, y: 0, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 2, y: 0, z: 0 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 0, y: 0, z: -1 }, color: '#1A5C5C' },
+      { type: 'pipe', position: { x: 1, y: 0, z: 2 }, color: '#1A5C5C' },
+    ]
+  },
+
+  // Construct - Worker/builder unit
+  construct: {
+    name: 'Construct',
+    category: 'alien',
+    description: 'Bio-mechanical worker with manipulator appendages',
+    blocks: [
+      // === CENTRAL BODY ===
+      { type: 'cylinder', position: { x: 0, y: 1, z: 0 }, color: '#1A5C5C' },
+
+      // === PROCESSOR NODE ===
+      { type: 'cube', position: { x: 0, y: 2, z: 0 }, color: '#2F4F4F' },
+      { type: 'crystal', position: { x: 0, y: 3, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 1.0, radius: 2 } },
+
+      // === MANIPULATOR ARMS ===
+      { type: 'pipe', position: { x: 1, y: 1, z: 0 }, color: '#0D4D4D' },
+      { type: 'prism', position: { x: 2, y: 1, z: 0 }, color: '#2F4F4F' },
+      { type: 'pipe', position: { x: -1, y: 1, z: 0 }, color: '#0D4D4D' },
+      { type: 'prism', position: { x: -2, y: 1, z: 0 }, color: '#2F4F4F' },
+
+      // === TOOL NODES (Glowing) ===
+      { type: 'sphere', position: { x: 2, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 0.8, radius: 1 } },
+      { type: 'sphere', position: { x: -2, y: 1, z: 0 }, color: '#00CED1', emissive: { enabled: true, color: '#00FFFF', intensity: 0.8, radius: 1 } },
+
+      // === MOBILITY BASE ===
+      { type: 'torus', position: { x: 0, y: 0, z: 0 }, color: '#0D4D4D' },
+      { type: 'sphere', position: { x: 0, y: 0, z: 0 }, color: '#1A5C5C' },
     ]
   }
 };

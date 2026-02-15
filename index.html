@@ -31,6 +31,8 @@
       <button id="btn-vj" title="VJ Mode (Audio Reactive)">VJ</button>
       <span class="separator"></span>
       <button id="btn-toggle-panel" title="Toggle Right Panel (P)" class="panel-toggle active">Panel</button>
+      <span class="separator"></span>
+      <button id="btn-about" title="About">About</button>
     </div>
 
     <!-- Left Toolbar -->
@@ -167,6 +169,29 @@
         <div class="view-row">
           <label>Edge Opacity:</label>
           <input type="range" id="edge-opacity" min="0.1" max="1" step="0.1" value="0.3">
+        </div>
+        </div>
+      </div>
+
+      <!-- Placement Options -->
+      <div class="panel-section collapsible" data-section="placement">
+        <div class="section-header collapsible-header">
+          <span class="section-label">Placement</span>
+          <span class="collapse-icon">▼</span>
+        </div>
+        <div class="section-content">
+        <div class="view-row">
+          <input type="checkbox" id="free-placement">
+          <label for="free-placement">Free Placement (Allow Overlap)</label>
+        </div>
+        <div class="view-row">
+          <label>Grid Snap:</label>
+          <select id="grid-snap-increment">
+            <option value="1.0" selected>1.0 (Standard)</option>
+            <option value="0.5">0.5 (Half Grid)</option>
+            <option value="0.25">0.25 (Quarter Grid)</option>
+            <option value="0">Off (Free)</option>
+          </select>
         </div>
         </div>
       </div>
@@ -460,6 +485,7 @@
             <option value="chill">Chill</option>
             <option value="hard" selected>Hard</option>
             <option value="psychedelic">Psychedelic</option>
+            <option value="trippy">Trippy</option>
           </select>
         </div>
         <div class="vj-row">
@@ -523,6 +549,76 @@
         </div>
       </div>
       <div class="panel-section">
+        <span class="section-label">Post Effects</span>
+        <div class="vj-row" style="flex-wrap: wrap; gap: 4px;">
+          <label style="flex: 0 0 100%; margin-bottom: 4px; font-weight: bold;">Enable:</label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-bloom">
+            <span>Bloom</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-feedback">
+            <span>Feedback</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-chromatic">
+            <span>Chromatic</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-glitch">
+            <span>Glitch</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-hueshift">
+            <span>Hue Shift</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-vignette">
+            <span>Vignette</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-kaleidoscope">
+            <span>Kaleidoscope</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-mirror">
+            <span>Mirror</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-pixelate">
+            <span>Pixelate</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-rgbsplit">
+            <span>RGB Split</span>
+          </label>
+          <label style="flex: 0 0 48%; display: flex; align-items: center; gap: 4px;">
+            <input type="checkbox" id="vj-effect-invert">
+            <span>Invert</span>
+          </label>
+        </div>
+        <div class="vj-row">
+          <label>Bloom:</label>
+          <input type="range" id="vj-bloom-strength" min="0" max="3" step="0.1" value="0" disabled>
+          <span id="vj-bloom-val">0.0</span>
+        </div>
+        <div class="vj-row">
+          <label>Feedback:</label>
+          <input type="range" id="vj-feedback-amount" min="0" max="1" step="0.05" value="0" disabled>
+          <span id="vj-feedback-val">0.0</span>
+        </div>
+        <div class="vj-row">
+          <label>Kaleidoscope:</label>
+          <input type="range" id="vj-kaleidoscope-segments" min="3" max="12" step="1" value="6" disabled>
+          <span id="vj-kaleidoscope-val">6</span>
+        </div>
+        <div class="vj-row">
+          <label>Pixelate:</label>
+          <input type="range" id="vj-pixelate-size" min="1" max="20" step="1" value="1" disabled>
+          <span id="vj-pixelate-val">1</span>
+        </div>
+      </div>
+      <div class="panel-section">
         <span class="section-label">Scenes</span>
         <div class="vj-row">
           <label id="vj-scene-label">No scenes</label>
@@ -536,16 +632,18 @@
         </div>
       </div>
       <div class="panel-section">
-        <span class="section-label">Particles</span>
+        <span class="section-label">Audio Spawn Blocks</span>
         <div class="vj-row">
           <label>Spawn:</label>
-          <input type="checkbox" id="vj-particles-enabled">
-          <label style="margin-left:4px">Pool:</label>
-          <select id="vj-particle-pool">
-            <option value="32">32</option>
-            <option value="64" selected>64</option>
-            <option value="128">128</option>
-          </select>
+          <input type="checkbox" id="vj-block-spawn-enabled">
+          <label style="margin-left:4px">Rate:</label>
+          <input type="range" id="vj-block-spawn-rate" min="1" max="10" step="1" value="3" disabled>
+          <span id="vj-block-spawn-rate-val">3</span>
+        </div>
+        <div class="vj-row">
+          <label>Radius:</label>
+          <input type="range" id="vj-block-spawn-radius" min="5" max="30" step="1" value="8" disabled>
+          <span id="vj-block-spawn-radius-val">8</span>
         </div>
       </div>
       <div class="panel-section">
@@ -587,6 +685,63 @@
 
     <!-- Toast notifications container -->
     <div id="notifications"></div>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+      <div class="splash-content">
+        <div class="splash-logo">BLOCKS</div>
+        <div class="splash-subtitle">3D Block Editor & VJ Tool</div>
+        <div class="splash-version">PRE-ALPHA</div>
+        <div class="splash-credits">
+          <p>Developed by <strong>svdk / CrashServer</strong></p>
+          <p><a href="https://crashserver.fr" target="_blank" rel="noopener">crashserver.fr</a></p>
+        </div>
+        <button class="splash-button" id="splash-continue">Click to Start</button>
+        <div class="splash-footer">
+          Press <kbd>H</kbd> to toggle UI · Press <kbd>U</kbd> to hide UI
+        </div>
+      </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal" style="display: none;">
+      <div class="modal-content about-modal-content">
+        <div class="modal-header">
+          <h3>About Blocks</h3>
+          <button class="modal-close" id="about-modal-close">&times;</button>
+        </div>
+        <div class="modal-body about-modal-body">
+          <div class="about-logo">BLOCKS</div>
+          <div class="about-version">Version PRE-ALPHA</div>
+
+          <div class="about-section">
+            <h4>Developer</h4>
+            <p><strong>svdk / CrashServer</strong></p>
+            <p><a href="https://crashserver.fr" target="_blank" rel="noopener">crashserver.fr</a></p>
+          </div>
+
+          <div class="about-section">
+            <h4>Description</h4>
+            <p>A 3D block editor with GPU-accelerated stylized rendering, animation system, and audio-reactive VJ mode.</p>
+          </div>
+
+          <div class="about-section">
+            <h4>Tech Stack</h4>
+            <ul>
+              <li>Three.js v0.170 - 3D rendering</li>
+              <li>Vite v6 - Build system</li>
+              <li>WebGL shaders - GPU effects</li>
+              <li>Web Audio API - VJ audio reactivity</li>
+            </ul>
+          </div>
+
+          <div class="about-section">
+            <h4>Status</h4>
+            <p>This software is in <strong>pre-alpha</strong> development. Features are experimental and subject to change.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Templates Modal -->
     <div id="templates-modal" class="modal" style="display: none;">

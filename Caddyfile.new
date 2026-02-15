@@ -1,0 +1,489 @@
+# Caddyfile with DuckDNS DNS-01 Challenge
+# This bypasses the need for ports 80/443 to be accessible from internet
+
+{
+	http_port 80
+	https_port 443
+	admin "unix//run/caddy/admin.socket"
+}
+
+# Local network access (no SSL)
+http://192.168.1.186 {
+	# More specific routes first (Caddy matches in order)
+
+	# Socket.IO WebSocket - MUST come before catch-all
+	handle /mud/socket.io/* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			flush_interval -1
+		}
+	}
+
+	# Admin routes - need explicit handling before catch-all
+	handle /mud/admin* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Auth routes
+	handle /mud/auth* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# API routes
+	handle /mud/api* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Mud app - catch-all for everything else under /mud
+	handle /mud* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Chess app - static files
+	handle /chess* {
+		uri strip_prefix /chess
+		root * /home/svdk/chesschess
+		file_server
+	}
+
+	# Todo app - FIXED with proper headers
+	handle /todo* {
+		uri strip_prefix /todo
+		reverse_proxy localhost:4000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			flush_interval -1
+		}
+	}
+
+	# Cadavre app
+	handle /cadavre* {
+		uri strip_prefix /cadavre
+		reverse_proxy localhost:6000
+	}
+
+	# Blocks app - 3D block editor (STATIC FILES)
+	handle /blocks* {
+		uri strip_prefix /blocks
+		root * /home/svdk/blocks/LASTBLOCKS/blocks/dist
+		try_files {path} /index.html
+		file_server
+	}
+
+	# FileBrowser - web file manager
+	handle /files* {
+		reverse_proxy localhost:8085
+	}
+
+	# Terminal access (double authentication)
+  	handle_path /terminal* {
+  		basic_auth {
+  			svdk $2a$14$n5LZ.zuHyh4Nv3ibSQkveuk1iJswZEmzRIESt8I4kPSUIsUxnDAXm
+  		}
+  		reverse_proxy localhost:7000
+  	}
+
+
+	# Radio - WebSocket for live code
+	handle /radio/ws {
+		reverse_proxy localhost:1234
+	}
+
+	# Direct stream access (must come before /radio/stream*)
+	handle /stream {
+		rewrite * /radio
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+			header_down Content-Type "audio/ogg"
+			flush_interval -1
+		}
+	}
+
+        # Gokapi - file uploads
+        handle /upload* {
+                uri strip_prefix /upload
+                reverse_proxy localhost:53842
+        }
+
+
+	# Radio - Icecast stream
+	handle /radio/stream* {
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+			flush_interval -1
+		}
+	}
+
+	# Radio - Icecast status page
+	handle /radio/status.xsl {
+		rewrite * /status.xsl
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+		}
+	}
+
+	# Radio - Static web interface
+	handle /radio* {
+		uri strip_prefix /radio
+		root * /var/www/radio
+		try_files {path} /index.html
+		file_server
+	}
+
+	# WebDAV file share (PUBLIC - no WireGuard needed)
+	log /share* {
+		output file /var/log/caddy/webdav-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /share* {
+		uri strip_prefix /share
+		basic_auth {
+			share $2a$14$8cVHafGRE1TJbcNAeLE/yu4LOTX7XvJubP4rJ/c433zBInlrB07oq
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/share
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/share
+			prefix /
+		}
+	}
+
+	# CrashServer share
+	log /crashServer* {
+		output file /var/log/caddy/crashserver-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /crashServer* {
+		uri strip_prefix /crashServer
+		basic_auth {
+			crashServer $2a$14$V8TjKXyrtBIndw3zfBTtSeOzDG/RzXnPVopQyB8l9dRAnEZmNWwtS
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/crashServer
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/crashServer
+			prefix /
+		}
+	}
+
+	# Network share (read-write WebDAV)
+	log /network* {
+		output file /var/log/caddy/network-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /network* {
+		uri strip_prefix /network
+		basic_auth {
+			network $2a$14$EKLt1Ceq0Qo0Hp9lKVNbxe4qaUrY4yW4LKpbcczlvAZUya0oHwPtC
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/network
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/network
+			prefix /
+		}
+	}
+
+	# Redirect root to mud
+	handle / {
+		redir /mud/ permanent
+	}
+}
+
+# Import additional caddy config files
+import /etc/caddy/conf.d/*
+
+# External access via DuckDNS with DNS-01 challenge
+crash01.duckdns.org {
+	# Use DNS challenge instead of HTTP challenge
+	tls {
+		dns duckdns {env.DUCKDNS_TOKEN}
+	}
+
+	# More specific routes first
+
+	# Socket.IO WebSocket - MUST come FIRST for proper WebSocket handling
+	handle /mud/socket.io/* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			flush_interval -1
+		}
+	}
+
+	# Admin routes
+	handle /mud/admin* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Auth routes
+	handle /mud/auth* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# API routes
+	handle /mud/api* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Mud app - catch-all
+	handle /mud* {
+		uri strip_prefix /mud
+		reverse_proxy localhost:3000
+	}
+
+	# Chess app - static files
+	handle /chess* {
+		uri strip_prefix /chess
+		root * /var/www/chess
+		file_server
+	}
+
+	# Todo app - FIXED with proper headers
+	handle /todo* {
+		uri strip_prefix /todo
+		reverse_proxy localhost:4000 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+			flush_interval -1
+		}
+	}
+
+	# Cadavre app
+	handle /cadavre* {
+		uri strip_prefix /cadavre
+		reverse_proxy localhost:6000
+	}
+
+	# Blocks app - 3D block editor (STATIC FILES)
+	handle /blocks* {
+		uri strip_prefix /blocks
+		root * /home/svdk/blocks/LASTBLOCKS/blocks/dist
+		try_files {path} /index.html
+		file_server
+	}
+
+	# FileBrowser - web file manager
+	handle /files* {
+		reverse_proxy localhost:8085
+	}
+
+	# Terminal access (double authentication)
+	handle_path /terminal* {
+		basic_auth {
+			svdk $2a$14$n5LZ.zuHyh4Nv3ibSQkveuk1iJswZEmzRIESt8I4kPSUIsUxnDAXm
+		}
+		reverse_proxy localhost:7000
+	}
+
+	# Radio - WebSocket for live code
+	handle /radio/ws {
+		reverse_proxy localhost:1234
+	}
+
+	# Gokapi - file uploads
+	handle /upload* {
+		uri strip_prefix /upload
+		reverse_proxy localhost:53842 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
+		}
+	}
+
+	# Direct stream access (must come before /radio/stream*)
+	handle /stream {
+		rewrite * /radio
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+			header_down Content-Type "audio/ogg"
+			flush_interval -1
+		}
+	}
+
+	# Radio - Icecast stream
+	handle /radio/stream* {
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+			flush_interval -1
+		}
+	}
+
+	# Radio - Icecast status page
+	handle /radio/status.xsl {
+		rewrite * /status.xsl
+		reverse_proxy localhost:8000 {
+			header_up Host {upstream_hostport}
+		}
+	}
+
+	# Radio - Static web interface
+	handle /radio* {
+		uri strip_prefix /radio
+		root * /var/www/radio
+		try_files {path} /index.html
+		file_server
+	}
+
+	# WebDAV file share (PUBLIC - no WireGuard needed)
+	log /share* {
+		output file /var/log/caddy/webdav-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /share* {
+		uri strip_prefix /share
+		basic_auth {
+			share $2a$14$8cVHafGRE1TJbcNAeLE/yu4LOTX7XvJubP4rJ/c433zBInlrB07oq
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/share
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/share
+			prefix /
+		}
+	}
+
+	# CrashServer share
+	log /crashServer* {
+		output file /var/log/caddy/crashserver-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /crashServer* {
+		uri strip_prefix /crashServer
+		basic_auth {
+			crashServer $2a$14$V8TjKXyrtBIndw3zfBTtSeOzDG/RzXnPVopQyB8l9dRAnEZmNWwtS
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/crashServer
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/crashServer
+			prefix /
+		}
+	}
+
+	# Network share (read-write WebDAV)
+	log /network* {
+		output file /var/log/caddy/network-access.log {
+			roll_size 10mb
+			roll_keep 5
+		}
+		format json
+	}
+
+	route /network* {
+		uri strip_prefix /network
+		basic_auth {
+			network $2a$14$EKLt1Ceq0Qo0Hp9lKVNbxe4qaUrY4yW4LKpbcczlvAZUya0oHwPtC
+		}
+
+		# Serve HTML directory browser for web browsers
+		@browser {
+			header Accept *text/html*
+		}
+		handle @browser {
+			file_server browse {
+				root /mnt/storage1tb/network
+			}
+		}
+
+		# Serve WebDAV for all other clients (network drives, etc)
+		webdav {
+			root /mnt/storage1tb/network
+			prefix /
+		}
+	}
+
+	# Redirect root to mud
+	handle / {
+		redir /mud/ permanent
+	}
+}

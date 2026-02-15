@@ -127,6 +127,10 @@ export const BLOCK_CATEGORIES = {
     label: 'Oil & Gas',
     types: ['derrickLeg', 'derrickCross', 'derrickPlatform', 'pumpJack', 'pumpBase', 'oilTank', 'oilTankSmall', 'wellHead', 'pipelineX', 'pipelineZ', 'oilBarrel']
   },
+  alien: {
+    label: 'Alien / Biomechanical',
+    types: ['bioTube', 'vertebra', 'ribCage', 'spineSegment', 'organicPipe', 'biomechPanel', 'alienVent', 'membrane', 'tendril', 'bioSphere', 'exoPlate', 'twistedColumn', 'organicArch', 'bioConduit', 'chitinPlate', 'boneArch', 'skullFragment', 'alienCorridor', 'biomassCluster', 'nervousSystem', 'carapace', 'pulsatingOrb', 'xenoSpire', 'organicGrowth', 'bioReactor']
+  },
 };
 
 // Helper to get all block types as flat array
