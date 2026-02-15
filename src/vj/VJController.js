@@ -10,6 +10,7 @@ import { AudioGenerative } from './AudioGenerative.js';
 import { AudioBlockSpawner } from './AudioBlockSpawner.js';
 import { EphemeralBlockManager } from './EphemeralBlockManager.js';
 import { GenerativeScatter } from '../tools/GenerativeScatter.js';
+import { SCATTER_PRESETS } from '../tools/ScatterPresets.js';
 import {
   ChromaticAberrationShader,
   GlitchShader,
@@ -865,6 +866,7 @@ export class VJController {
    */
   setGenerativePreset(presetName) {
     this.generativeScatter.setPreset(presetName);
+    this._updatePresetBlockPools(); // Update block pools to match new preset
     console.log(`[VJController] Generative preset: ${presetName}`);
   }
 
@@ -1148,37 +1150,31 @@ export class VJController {
    * Initialize audio-reactive block types and colors
    */
   _initAudioReactiveBlocks() {
-    // Diverse block type pools for variety
-    this.blockTypePools = {
-      // Bass blocks - heavy, solid forms
+    // Default fallback pools (used if preset has no blocks)
+    this.defaultBlockTypePools = {
       bass: [
-        'cube', 'slab', 'slabTop', 'cylinder', 'pillar', 'pillar2', 'pillar4', 'platform',
-        'tank', 'boulder', 'rock', 'pyramid', 'dome', 'octagon', 'oilTank', 'barrel',
-        'crate', 'crateLarge', 'pallet', 'bollard', 'iBeam'
+        'cube', 'slab', 'slabTop', 'cylinder', 'pillar', 'platform',
+        'tank', 'boulder', 'rock', 'pyramid', 'dome', 'barrel'
       ],
-
-      // Mid blocks - medium complexity
       mid: [
-        'wedge', 'wedgeTop', 'arch', 'archLow', 'stairs', 'beam2X', 'beam2Z', 'tube',
-        'capsule', 'torus', 'crossBeam', 'truss', 'sphere', 'hemisphere', 'egg',
-        'gate', 'wall', 'panel', 'frame', 'lShape', 'tShape', 'pentahedron'
+        'wedge', 'arch', 'stairs', 'tube', 'torus', 'sphere',
+        'gate', 'wall', 'panel', 'frame'
       ],
-
-      // High blocks - intricate, detailed
       high: [
-        'crystal', 'gem', 'crystalCluster', 'crystalSpike', 'cone', 'tetrahedron',
-        'star', 'heart', 'diamond', 'finial', 'antenna', 'prism', 'bioTube',
-        'vertebra', 'spineSegment', 'organicPipe', 'xenoSpire', 'crystalFormation',
-        'gothicArch', 'keystone', 'capital', 'cornice'
+        'crystal', 'gem', 'crystalSpike', 'cone', 'star', 'antenna',
+        'prism', 'crystalFormation'
       ],
-
-      // All blocks - full spectrum for variety
       all: [
-        'cube', 'slab', 'wedge', 'arch', 'pillar', 'sphere', 'cylinder', 'cone',
-        'pyramid', 'torus', 'crystal', 'gem', 'dome', 'capsule', 'tube', 'heart',
-        'star', 'diamond', 'rock', 'boulder', 'barrel', 'frame', 'gate', 'tetrahedron'
+        'cube', 'slab', 'wedge', 'arch', 'pillar', 'sphere', 'cylinder',
+        'pyramid', 'crystal', 'gem', 'rock', 'boulder'
       ]
     };
+
+    // Start with default pools
+    this.blockTypePools = { ...this.defaultBlockTypePools };
+
+    // Update pools based on current preset
+    this._updatePresetBlockPools();
 
     // Audio-reactive color palettes
     this.colorPalettes = {
@@ -1209,6 +1205,118 @@ export class VJController {
         '#FF1493', '#00CED1', '#32CD32', '#FFD700', '#FF4500', '#8A2BE2'
       ]
     };
+  }
+
+  /**
+   * Update block type pools based on current GenerativeScatter preset
+   * Categorizes preset blocks into bass/mid/high for audio reactivity
+   */
+  _updatePresetBlockPools() {
+    const presetName = this.generativeScatter.preset;
+    const preset = SCATTER_PRESETS[presetName];
+
+    if (!preset) {
+      // No preset found, use defaults
+      this.blockTypePools = { ...this.defaultBlockTypePools };
+      return;
+    }
+
+    // Extract all unique block types from preset
+    const allBlocks = new Set();
+
+    // Add blocks from cluster-based presets (have a 'blocks' array)
+    if (preset.blocks && preset.blocks.length > 0) {
+      preset.blocks.forEach(b => allBlocks.add(b));
+    }
+
+    // Add blocks from directional presets (pipes, cables, etc.)
+    if (preset.straight) {
+      Object.values(preset.straight).forEach(b => allBlocks.add(b));
+    }
+    if (preset.elbows) {
+      Object.values(preset.elbows).forEach(elbow => allBlocks.add(elbow.type));
+    }
+    if (preset.junctions) {
+      Object.values(preset.junctions).forEach(b => allBlocks.add(b));
+    }
+    if (preset.decorative && preset.decorative.length > 0) {
+      preset.decorative.forEach(b => allBlocks.add(b));
+    }
+
+    // Convert to array
+    const blockList = Array.from(allBlocks);
+
+    if (blockList.length === 0) {
+      // Empty preset, use defaults
+      this.blockTypePools = { ...this.defaultBlockTypePools };
+      return;
+    }
+
+    // Categorize blocks into bass/mid/high based on name patterns
+    const bass = [];
+    const mid = [];
+    const high = [];
+
+    for (const block of blockList) {
+      const category = this._categorizeBlock(block);
+      if (category === 'bass') {
+        bass.push(block);
+      } else if (category === 'high') {
+        high.push(block);
+      } else {
+        mid.push(block);
+      }
+    }
+
+    // Ensure each category has at least some blocks
+    this.blockTypePools = {
+      bass: bass.length > 0 ? bass : [...mid, ...high].slice(0, Math.ceil(blockList.length / 3)),
+      mid: mid.length > 0 ? mid : [...bass, ...high].slice(0, Math.ceil(blockList.length / 3)),
+      high: high.length > 0 ? high : [...bass, ...mid].slice(0, Math.ceil(blockList.length / 3)),
+      all: blockList
+    };
+
+    console.log(`[VJController] Updated block pools for preset '${presetName}':`, {
+      bass: this.blockTypePools.bass.length,
+      mid: this.blockTypePools.mid.length,
+      high: this.blockTypePools.high.length,
+      total: this.blockTypePools.all.length
+    });
+  }
+
+  /**
+   * Categorize a block type into bass (heavy), mid, or high (light)
+   * based on name patterns
+   */
+  _categorizeBlock(blockType) {
+    const name = blockType.toLowerCase();
+
+    // Bass/Heavy keywords - solid, large, industrial
+    const bassKeywords = [
+      'tank', 'boulder', 'rock', 'pillar', 'barrel', 'beam', 'pipe', 'platform',
+      'slab', 'cube', 'large', 'ibeam', 'duct', 'crate', 'pallet', 'bollard',
+      'post', 'truss', 'dome', 'vault', 'conduit', 'log', 'stump', 'pile'
+    ];
+
+    // High/Light keywords - delicate, thin, intricate
+    const highKeywords = [
+      'crystal', 'spike', 'cable', 'wire', 'antenna', 'shard', 'gem', 'small',
+      'finial', 'hanging', 'droop', 'loop', 'flower', 'grass', 'moss', 'vine',
+      'pebble', 'star', 'heart', 'cone', 'prism', 'needle'
+    ];
+
+    // Check bass keywords
+    for (const keyword of bassKeywords) {
+      if (name.includes(keyword)) return 'bass';
+    }
+
+    // Check high keywords
+    for (const keyword of highKeywords) {
+      if (name.includes(keyword)) return 'high';
+    }
+
+    // Default to mid
+    return 'mid';
   }
 
   /**
