@@ -844,47 +844,62 @@ export class VJController {
    * Spawn a generative paint structure at camera target position
    */
   _spawnGenerativePaint() {
-    // Get spawn origin - use camera target or center of existing blocks
-    const origin = { x: 0, y: 0, z: 0 };
+    console.log('[VJController] _spawnGenerativePaint() called');
 
-    // Try to spawn near camera target
-    if (this.cameraModes.target) {
-      origin.x = Math.round(this.cameraModes.target.x);
-      origin.y = Math.round(this.cameraModes.target.y);
-      origin.z = Math.round(this.cameraModes.target.z);
-    } else {
-      // Fallback: spawn near existing blocks or at origin
-      const blocks = this.blockManager.getAllBlocks();
-      if (blocks.length > 0) {
-        // Pick a random existing block position
-        const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
-        origin.x = randomBlock.gridPosition.x;
-        origin.y = randomBlock.gridPosition.y;
-        origin.z = randomBlock.gridPosition.z;
+    try {
+      // Get spawn origin - use camera target or center of existing blocks
+      const origin = { x: 0, y: 0, z: 0 };
+
+      // Try to spawn near camera target
+      if (this.cameraModes.target) {
+        origin.x = Math.round(this.cameraModes.target.x);
+        origin.y = Math.round(this.cameraModes.target.y);
+        origin.z = Math.round(this.cameraModes.target.z);
+        console.log(`[VJController] Using camera target: (${origin.x},${origin.y},${origin.z})`);
+      } else {
+        // Fallback: spawn near existing blocks or at origin
+        const blocks = this.blockManager.getAllBlocks();
+        console.log(`[VJController] No camera target, ${blocks.length} blocks in scene`);
+        if (blocks.length > 0) {
+          // Pick a random existing block position
+          const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
+          origin.x = randomBlock.gridPosition.x;
+          origin.y = randomBlock.gridPosition.y;
+          origin.z = randomBlock.gridPosition.z;
+          console.log(`[VJController] Using random block position: (${origin.x},${origin.y},${origin.z})`);
+        } else {
+          console.log(`[VJController] Using default origin: (0,0,0)`);
+        }
       }
-    }
 
-    // Generate blocks using audio-reactive scatter
-    const blockDefs = this.generativeScatter.generate(origin);
+      console.log(`[VJController] Calling generate() with maxBlocks=${this.generativeScatter.maxBlocks}, preset=${this.generativeScatter.preset}, algorithm=${this.generativeScatter.algorithm}`);
 
-    if (blockDefs.length === 0) {
-      console.warn('[VJController] GenerativeScatter returned 0 blocks!');
-      return;
-    }
+      // Generate blocks using audio-reactive scatter
+      const blockDefs = this.generativeScatter.generate(origin);
 
-    // Spawn each block as ephemeral (with lifetime and decay)
-    const energy = this.audioReactor.energy;
-    let spawnedCount = 0;
-    for (const def of blockDefs) {
-      try {
-        this.ephemeralBlockManager.spawn(def, energy);
-        spawnedCount++;
-      } catch (err) {
-        console.warn('[VJController] Failed to spawn ephemeral block:', err.message);
+      console.log(`[VJController] generate() returned ${blockDefs.length} block definitions`);
+
+      if (blockDefs.length === 0) {
+        console.warn('[VJController] GenerativeScatter returned 0 blocks!');
+        return;
       }
-    }
 
-    console.log(`[VJController] BEAT! Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Energy: ${energy.toFixed(2)} | Active: ${this.ephemeralBlockManager.getCount()}`);
+      // Spawn each block as ephemeral (with lifetime and decay)
+      const energy = this.audioReactor.energy;
+      let spawnedCount = 0;
+      for (const def of blockDefs) {
+        try {
+          this.ephemeralBlockManager.spawn(def, energy);
+          spawnedCount++;
+        } catch (err) {
+          console.error('[VJController] Failed to spawn ephemeral block:', err);
+        }
+      }
+
+      console.log(`[VJController] BEAT! Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Energy: ${energy.toFixed(2)} | Active: ${this.ephemeralBlockManager.getCount()}`);
+    } catch (error) {
+      console.error('[VJController] Error in _spawnGenerativePaint:', error);
+    }
   }
 
   dispose() {
