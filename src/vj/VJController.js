@@ -55,8 +55,8 @@ export class VJController {
     this.ephemeralBlockManager = new EphemeralBlockManager(blockManager);
     this.generativeScatter = new GenerativeScatter(blockManager);
     this.generativePaintEnabled = false;
-    this.generativeSpawnCooldown = 0;
-    this.generativeSpawnInterval = 2.0; // Spawn every 2 seconds when in paint mode
+    this.generativePaintDensity = 10; // Blocks per beat (3-30)
+    this.lastBeatState = false; // Track beat state to detect beat triggers
 
     // VJ shader passes
     this.vjPasses = {};
@@ -206,19 +206,21 @@ export class VJController {
       this.audioGenerative.update(this.audioReactor, delta);
     }
 
-    // 9. Generative paint mode - audio-reactive procedural generation with decay
+    // 9. Generative paint mode - spawn blocks on every beat with audio-reactive parameters
     if (this.generativePaintEnabled) {
       // Update ephemeral blocks (decay, removal)
       this.ephemeralBlockManager.update(performance.now() / 1000);
 
-      // Update scatter parameters from audio
-      const shouldSpawn = this.generativeScatter.updateFromAudio(this.audioReactor);
+      // Detect beat trigger (rising edge detection)
+      const beatNow = this.audioReactor.beat;
+      const beatTriggered = beatNow && !this.lastBeatState;
+      this.lastBeatState = beatNow;
 
-      // Spawn new structures on beat or cooldown expiry
-      this.generativeSpawnCooldown -= delta;
-      if (shouldSpawn || this.generativeSpawnCooldown <= 0) {
+      // Spawn on every beat
+      if (beatTriggered) {
+        // Update scatter parameters from audio (modulates density, complexity, etc.)
+        this.generativeScatter.updateFromAudio(this.audioReactor);
         this._spawnGenerativePaint();
-        this.generativeSpawnCooldown = this.generativeSpawnInterval;
       }
     }
   }
@@ -766,14 +768,27 @@ export class VJController {
       // Enable audio-reactive mode for scatter
       this.generativeScatter.setAudioReactive(true);
       this.ephemeralBlockManager.setEnabled(true);
-      this.generativeSpawnCooldown = 0; // Spawn immediately
-      console.log(`[VJController] Generative Paint ENABLED (interval: ${this.generativeSpawnInterval}s, preset: ${this.generativeScatter.preset}, algorithm: ${this.generativeScatter.algorithm})`);
+      this.lastBeatState = false; // Reset beat state
+
+      // Set density
+      this.generativeScatter.setMaxBlocks(this.generativePaintDensity);
+
+      console.log(`[VJController] Generative Paint ENABLED (density: ${this.generativePaintDensity} blocks/beat, preset: ${this.generativeScatter.preset}, algorithm: ${this.generativeScatter.algorithm})`);
     } else {
       // Disable and clear ephemeral blocks
       this.generativeScatter.setAudioReactive(false);
       this.ephemeralBlockManager.setEnabled(false);
       console.log('[VJController] Generative Paint DISABLED');
     }
+  }
+
+  /**
+   * Set blocks per beat (density)
+   */
+  setGenerativePaintDensity(blocks) {
+    this.generativePaintDensity = Math.max(3, Math.min(30, blocks));
+    this.generativeScatter.setMaxBlocks(this.generativePaintDensity);
+    console.log(`[VJController] Generative density: ${this.generativePaintDensity} blocks/beat`);
   }
 
   /**
@@ -832,8 +847,6 @@ export class VJController {
       }
     }
 
-    console.log(`[VJController] Spawning generative paint at origin (${origin.x}, ${origin.y}, ${origin.z})`);
-
     // Generate blocks using audio-reactive scatter
     const blockDefs = this.generativeScatter.generate(origin);
 
@@ -854,7 +867,7 @@ export class VJController {
       }
     }
 
-    console.log(`[VJController] Spawned ${spawnedCount}/${blockDefs.length} ephemeral blocks (energy: ${energy.toFixed(2)}, total active: ${this.ephemeralBlockManager.getCount()})`);
+    console.log(`[VJController] BEAT! Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Energy: ${energy.toFixed(2)} | Active: ${this.ephemeralBlockManager.getCount()}`);
   }
 
   dispose() {

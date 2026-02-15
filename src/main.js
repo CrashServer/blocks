@@ -2740,8 +2740,8 @@ class App {
 
     // Generative paint mode
     const paintEnabled = document.getElementById('vj-paint-enabled');
-    const paintIntervalSlider = document.getElementById('vj-paint-interval');
-    const paintIntervalVal = document.getElementById('vj-paint-interval-val');
+    const paintDensitySlider = document.getElementById('vj-paint-density');
+    const paintDensityVal = document.getElementById('vj-paint-density-val');
     const paintPreset = document.getElementById('vj-paint-preset');
     const paintAlgorithm = document.getElementById('vj-paint-algorithm');
     const paintLifetimeSlider = document.getElementById('vj-paint-lifetime');
@@ -2753,17 +2753,17 @@ class App {
       this.vjController.setGenerativePaintEnabled(enabled);
 
       // Enable/disable controls
-      paintIntervalSlider.disabled = !enabled;
+      paintDensitySlider.disabled = !enabled;
       paintPreset.disabled = !enabled;
       paintAlgorithm.disabled = !enabled;
       paintLifetimeSlider.disabled = !enabled;
       paintDecay.disabled = !enabled;
     });
 
-    paintIntervalSlider.addEventListener('input', (e) => {
-      const v = parseFloat(e.target.value);
-      this.vjController.generativeSpawnInterval = v;
-      paintIntervalVal.textContent = v + 's';
+    paintDensitySlider.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value);
+      this.vjController.setGenerativePaintDensity(v);
+      paintDensityVal.textContent = v;
     });
 
     paintPreset.addEventListener('change', (e) => {
