@@ -1793,109 +1793,6 @@ const CyberpunkShader = {
   `
 };
 
-// Datamosh Shader (compression artifacts and motion smearing)
-const DatamoshShader = {
-  uniforms: {
-    tDiffuse: { value: null },
-    resolution: { value: new THREE.Vector2(1920, 1080) },
-    time: { value: 0 },
-    intensity: { value: 0.5 },
-    grayscale: { value: 0.0 }
-  },
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    uniform sampler2D tDiffuse;
-    uniform vec2 resolution;
-    uniform float time;
-    uniform float intensity;
-    uniform float grayscale;
-    varying vec2 vUv;
-
-    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
-    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
-
-    void main() {
-      vec2 uv = vUv;
-
-      // Compression block artifacts (8x8 or 16x16 blocks)
-      float blockSize = 16.0;
-      vec2 blockId = floor(uv * resolution / blockSize);
-      vec2 blockUv = floor(uv * resolution / blockSize) * blockSize / resolution;
-
-      // Random motion vectors per block
-      float timeSnap = floor(time * 8.0);
-      vec2 motionVector = vec2(
-        (random(blockId + vec2(timeSnap, 0.0)) - 0.5) * intensity * 0.15,
-        (random(blockId + vec2(0.0, timeSnap)) - 0.5) * intensity * 0.1
-      );
-
-      // Some blocks freeze (I-frame simulation)
-      float freezeChance = random(blockId + floor(time * 0.5));
-      if (freezeChance > 0.8) {
-        motionVector = vec2(0.0);
-      }
-
-      // Some blocks smear heavily (P-frame artifacts)
-      float smearChance = random(blockId + vec2(timeSnap * 0.3, 0.0));
-      if (smearChance > 0.85) {
-        motionVector *= 3.0;
-      }
-
-      // Motion blur / smearing
-      vec3 color = vec3(0.0);
-      int samples = 5;
-      for (int i = 0; i < 5; i++) {
-        float offset = float(i) / float(samples - 1);
-        vec2 sampleUv = uv + motionVector * offset;
-        color += texture2D(tDiffuse, sampleUv).rgb;
-      }
-      color /= float(samples);
-
-      // RGB channel displacement (compression artifact)
-      float chromaShift = intensity * 0.03;
-      float r = texture2D(tDiffuse, uv + motionVector + vec2(chromaShift, 0.0)).r;
-      float g = texture2D(tDiffuse, uv + motionVector).g;
-      float b = texture2D(tDiffuse, uv + motionVector - vec2(chromaShift, 0.0)).b;
-      vec3 displaced = vec3(r, g, b);
-
-      // Mix smeared and displaced
-      color = mix(color, displaced, 0.5);
-
-      // Block quantization (posterize within blocks for compression look)
-      float levels = 8.0;
-      color = floor(color * levels) / levels;
-
-      // DCT-like blocking artifacts (darker lines at block boundaries)
-      vec2 pixelPos = mod(uv * resolution, blockSize);
-      float blockBorder = step(pixelPos.x, 1.0) + step(pixelPos.y, 1.0);
-      blockBorder += step(blockSize - 1.0, pixelPos.x) + step(blockSize - 1.0, pixelPos.y);
-      blockBorder = min(blockBorder, 1.0);
-      color = mix(color, color * 0.7, blockBorder * 0.5);
-
-      // Random corruption blocks
-      if (random(blockId + floor(time * 4.0)) > 0.96) {
-        color = vec3(random(blockId), random(blockId + 0.5), random(blockId + 1.0));
-      }
-
-      // Interlacing artifacts
-      float line = mod(floor(uv.y * resolution.y), 2.0);
-      color *= 0.95 + line * 0.05;
-
-      if (grayscale > 0.5) {
-        float g = luma(color);
-        color = vec3(g);
-      }
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `
-};
-
 // Matrix Shader (high contrast green digital rain)
 const MatrixShader = {
   uniforms: {
@@ -2242,8 +2139,7 @@ export class GPUStyleRenderer {
       mosaic: MosaicShader,
       tron: TronShader,
       cyberpunk: CyberpunkShader,
-      matrix: MatrixShader,
-      datamosh: DatamoshShader
+      matrix: MatrixShader
     };
 
     const shader = shaderMap[this.style] || CleanEdgeShader;
@@ -2347,9 +2243,6 @@ export class GPUStyleRenderer {
       case 'mosaic':
         if (uniforms.blockSize) uniforms.blockSize.value = 6.0 + this.lineWidth;
         break;
-      case 'datamosh':
-        if (uniforms.intensity) uniforms.intensity.value = 0.3 + this.lineWidth * 0.1;
-        break;
     }
   }
 
@@ -2377,8 +2270,7 @@ export class GPUStyleRenderer {
       mosaic: { bg: '#ffffff', fg: '#000000', accent: '#4169e1' },
       tron: { bg: '#000a14', fg: '#00ffff', accent: '#0080ff' },
       cyberpunk: { bg: '#000000', fg: '#ff00ff', accent: '#00ffff' },
-      matrix: { bg: '#000000', fg: '#00ff00', accent: '#00aa00' },
-      datamosh: { bg: '#1a1a1a', fg: '#ff00ff', accent: '#00ffff' }
+      matrix: { bg: '#000000', fg: '#00ff00', accent: '#00aa00' }
     };
 
     let colors = styles[this.style] || styles.clean;
