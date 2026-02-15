@@ -69,7 +69,8 @@ export class VJController {
     this.originalBlockColors = new Map(); // Store original colors to restore later
     this.blockFrequencyMap = new Map(); // Map each block to a specific FFT bin
     this.blockCurrentColors = new Map(); // Store current animated colors for damping
-    this.colorDampingFactor = 0.15; // Smoothing factor (0.1-0.3, lower = slower)
+    this.colorDampingFactor = 0.3; // Smoothing factor (increased from 0.15 for more responsiveness)
+    this.colorIntensityMultiplier = 3.0; // Boost intensity for more visible effect
 
     // VJ shader passes
     this.vjPasses = {};
@@ -1074,6 +1075,9 @@ export class VJController {
       const binIndex = this.blockFrequencyMap.get(block.id);
       const freqValue = freqData[binIndex] / 255.0; // Normalize 0-1
 
+      // Boost low values to make changes more visible
+      const boostedFreqValue = Math.min(1.0, freqValue * this.colorIntensityMultiplier);
+
       // Map bin index to frequency range and select color palette
       const freqRatio = binIndex / binCount; // 0 (low freq) to 1 (high freq)
       let palette;
@@ -1092,15 +1096,16 @@ export class VJController {
       }
 
       // Select color from palette based on frequency value
-      const colorIndex = Math.floor(freqValue * (palette.length - 1));
+      const colorIndex = Math.floor(boostedFreqValue * (palette.length - 1));
       const audioColor = palette[colorIndex];
 
       // Get original color
       const originalColor = new THREE.Color(this.originalBlockColors.get(block.id));
 
       // Calculate target color (lerp between original and audio based on frequency intensity)
-      const intensity = Math.pow(freqValue, 1.5); // Non-linear for more dynamic range
-      const targetColor = originalColor.clone().lerp(new THREE.Color(audioColor), intensity * 0.8);
+      // Use square root for gentler curve, makes low values more visible
+      const intensity = Math.sqrt(boostedFreqValue);
+      const targetColor = originalColor.clone().lerp(new THREE.Color(audioColor), intensity * 0.9); // Increased from 0.8 to 0.9
 
       // Get or initialize current color for this block
       if (!this.blockCurrentColors.has(block.id)) {
