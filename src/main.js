@@ -2738,6 +2738,12 @@ class App {
       genTTLVal.textContent = v + 's';
     });
 
+    // Color reactivity
+    const colorReactivityCheckbox = document.getElementById('vj-color-reactivity');
+    colorReactivityCheckbox.addEventListener('change', (e) => {
+      this.vjController.setColorReactivity(e.target.checked);
+    });
+
     // Generative paint mode
     const paintEnabled = document.getElementById('vj-paint-enabled');
     const paintDensitySlider = document.getElementById('vj-paint-density');

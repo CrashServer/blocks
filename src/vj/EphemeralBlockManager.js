@@ -29,9 +29,37 @@ export class EphemeralBlockManager {
 
   setEnabled(enabled) {
     this.enabled = enabled;
-    if (!enabled) {
-      this.clear();
+    // Don't clear blocks when disabling - let them persist
+    // User can manually clear if needed
+  }
+
+  /**
+   * Convert all ephemeral blocks to permanent (stop decay)
+   */
+  freezeAll() {
+    // Reset all block materials to full opacity and original scale
+    for (const [id, data] of this.blocks) {
+      const { block, originalScale, originalOpacity } = data;
+
+      // Restore original opacity and scale
+      if (Array.isArray(block.mesh.material)) {
+        block.mesh.material.forEach(m => {
+          m.opacity = originalOpacity;
+          m.transparent = originalOpacity < 1;
+          m.needsUpdate = true;
+        });
+      } else {
+        block.mesh.material.opacity = originalOpacity;
+        block.mesh.material.transparent = originalOpacity < 1;
+        block.mesh.material.needsUpdate = true;
+      }
+
+      block.mesh.scale.setScalar(originalScale);
     }
+
+    // Clear ephemeral tracking - blocks are now permanent
+    this.blocks.clear();
+    console.log('[EphemeralBlockManager] All ephemeral blocks frozen as permanent');
   }
 
   setBaseTTL(seconds) {

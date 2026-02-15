@@ -64,6 +64,10 @@ export class VJController {
     // Audio-reactive color and block type pools
     this._initAudioReactiveBlocks();
 
+    // Color reactivity for existing blocks
+    this.colorReactivityEnabled = false;
+    this.originalBlockColors = new Map(); // Store original colors to restore later
+
     // VJ shader passes
     this.vjPasses = {};
     this.vjPassesActive = false;
@@ -150,29 +154,19 @@ export class VJController {
     this.particleSpawner.setEnabled(false);
     this.audioGenerative.setEnabled(false);
 
-    // Disable generative paint spawning but keep ephemeral blocks
+    // Disable generative paint spawning and FREEZE ephemeral blocks (make them permanent)
     this.generativePaintEnabled = false;
     this.generativeScatter.setAudioReactive(false);
-    // Note: ephemeralBlockManager stays enabled so blocks continue to decay
+    this.ephemeralBlockManager.freezeAll(); // Convert ephemeral blocks to permanent
+    this.ephemeralBlockManager.setEnabled(false);
 
-    // Keep VJ update loop running ONLY if ephemeral blocks exist
-    // This allows blocks to continue decaying even after VJ mode stops
-    if (this.ephemeralBlockManager.getCount() > 0) {
-      console.log(`[VJController] VJ stopped but ${this.ephemeralBlockManager.getCount()} ephemeral blocks remain, continuing decay updates`);
-      this.engine.onVJUpdate = (delta) => {
-        // Only update ephemeral blocks, nothing else
-        this.ephemeralBlockManager.update(performance.now() / 1000);
-
-        // Stop updates when all blocks have decayed
-        if (this.ephemeralBlockManager.getCount() === 0) {
-          console.log('[VJController] All ephemeral blocks decayed, stopping updates');
-          this.engine.onVJUpdate = null;
-        }
-      };
-    } else {
-      // No ephemeral blocks, disconnect immediately
-      this.engine.onVJUpdate = null;
+    // Disable color reactivity and restore original colors
+    if (this.colorReactivityEnabled) {
+      this.setColorReactivity(false);
     }
+
+    // Disconnect from render loop
+    this.engine.onVJUpdate = null;
 
     // Remove VJ passes
     this._removeVJPasses();
@@ -230,6 +224,11 @@ export class VJController {
     // 8. Audio generative growth
     if (this.audioGenerative.enabled) {
       this.audioGenerative.update(this.audioReactor, delta);
+    }
+
+    // 8b. Color reactivity for all existing blocks
+    if (this.colorReactivityEnabled) {
+      this._updateBlockColorReactivity();
     }
 
     // 9. Generative paint mode - spawn blocks on beat OR BPM timer
@@ -766,6 +765,12 @@ export class VJController {
         }
         break;
       }
+
+      case 'k': { // Toggle color reactivity (K for Kolor)
+        this.setColorReactivity(!this.colorReactivityEnabled);
+        this._showOverlayMessage(this.colorReactivityEnabled ? 'Color Reactivity ON' : 'Color Reactivity OFF');
+        break;
+      }
     }
   }
 
@@ -963,6 +968,85 @@ export class VJController {
       console.log(`[VJController] ${triggerIcon} Spawned ${spawnedCount} blocks at (${origin.x},${origin.y},${origin.z}) | Scale: ${avgScale.toFixed(1)}x | Active: ${this.ephemeralBlockManager.getCount()}`);
     } catch (error) {
       console.error('[VJController] Error in _spawnGenerativePaint:', error);
+    }
+  }
+
+  /**
+   * Enable/disable color reactivity for all blocks
+   */
+  setColorReactivity(enabled) {
+    this.colorReactivityEnabled = enabled;
+
+    if (enabled) {
+      // Store original colors
+      const blocks = this.blockManager.getAllBlocks();
+      for (const block of blocks) {
+        if (!this.originalBlockColors.has(block.id)) {
+          // Store the original color
+          const color = block.mesh.material.color ? block.mesh.material.color.getHex() : 0xcccccc;
+          this.originalBlockColors.set(block.id, color);
+        }
+      }
+      console.log(`[VJController] Color reactivity ENABLED for ${blocks.length} blocks`);
+    } else {
+      // Restore original colors
+      const blocks = this.blockManager.getAllBlocks();
+      for (const block of blocks) {
+        const originalColor = this.originalBlockColors.get(block.id);
+        if (originalColor !== undefined) {
+          if (Array.isArray(block.mesh.material)) {
+            block.mesh.material.forEach(m => {
+              if (m.color) m.color.setHex(originalColor);
+            });
+          } else if (block.mesh.material.color) {
+            block.mesh.material.color.setHex(originalColor);
+          }
+        }
+      }
+      this.originalBlockColors.clear();
+      console.log('[VJController] Color reactivity DISABLED, colors restored');
+    }
+  }
+
+  /**
+   * Update block colors based on audio FFT
+   */
+  _updateBlockColorReactivity() {
+    const blocks = this.blockManager.getAllBlocks();
+    if (blocks.length === 0) return;
+
+    // Get audio frequency data
+    const bass = this.audioReactor.bands.bass;
+    const mid = this.audioReactor.bands.mid;
+    const high = this.audioReactor.bands.high;
+    const energy = this.audioReactor.energy;
+
+    // Determine color based on dominant frequency
+    const audioColor = this._getAudioReactiveColor(this.audioReactor);
+    const color = new THREE.Color(audioColor);
+
+    // Apply color to all blocks with intensity based on energy
+    const intensity = Math.min(1.0, energy * 1.5); // 0-1.5 mapped to 0-1
+
+    for (const block of blocks) {
+      // Store original color if not already stored
+      if (!this.originalBlockColors.has(block.id)) {
+        const origColor = block.mesh.material.color ? block.mesh.material.color.getHex() : 0xcccccc;
+        this.originalBlockColors.set(block.id, origColor);
+      }
+
+      // Lerp between original color and audio color based on intensity
+      const originalColor = new THREE.Color(this.originalBlockColors.get(block.id));
+      const targetColor = originalColor.clone().lerp(color, intensity);
+
+      // Apply to material(s)
+      if (Array.isArray(block.mesh.material)) {
+        block.mesh.material.forEach(m => {
+          if (m.color) m.color.copy(targetColor);
+        });
+      } else if (block.mesh.material.color) {
+        block.mesh.material.color.copy(targetColor);
+      }
     }
   }
 
