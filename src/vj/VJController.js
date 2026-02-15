@@ -232,6 +232,13 @@ export class VJController {
     // 8b. Color reactivity for all existing blocks
     if (this.colorReactivityEnabled) {
       this._updateBlockColorReactivity();
+
+      // Debug counter
+      if (!this._colorReactivityUpdateCount) this._colorReactivityUpdateCount = 0;
+      this._colorReactivityUpdateCount++;
+      if (this._colorReactivityUpdateCount % 60 === 0) {
+        console.log(`[VJController] Color reactivity active (${this._colorReactivityUpdateCount} updates)`);
+      }
     }
 
     // 9. Generative paint mode - spawn blocks on beat OR BPM timer
@@ -978,18 +985,26 @@ export class VJController {
    * Enable/disable color reactivity for all blocks
    */
   setColorReactivity(enabled) {
+    console.log(`[VJController] setColorReactivity(${enabled}) called`);
     this.colorReactivityEnabled = enabled;
 
     if (enabled) {
       // Store original colors and initialize current colors
       const blocks = this.blockManager.getAllBlocks();
+      console.log(`[VJController] Found ${blocks.length} blocks in scene`);
+
       for (const block of blocks) {
         if (!this.originalBlockColors.has(block.id)) {
           // Store the original color
-          const color = block.mesh.material.color ? block.mesh.material.color.getHex() : 0xcccccc;
-          this.originalBlockColors.set(block.id, color);
+          const materialColor = Array.isArray(block.mesh.material)
+            ? (block.mesh.material[0]?.color ? block.mesh.material[0].color.getHex() : 0xcccccc)
+            : (block.mesh.material?.color ? block.mesh.material.color.getHex() : 0xcccccc);
+
+          this.originalBlockColors.set(block.id, materialColor);
           // Initialize current color for damping
-          this.blockCurrentColors.set(block.id, new THREE.Color(color));
+          this.blockCurrentColors.set(block.id, new THREE.Color(materialColor));
+
+          console.log(`[VJController] Block ${block.id} - original color: #${materialColor.toString(16).padStart(6, '0')}`);
         }
       }
       console.log(`[VJController] Color reactivity ENABLED for ${blocks.length} blocks (damping: ${this.colorDampingFactor})`);
@@ -1021,13 +1036,25 @@ export class VJController {
    */
   _updateBlockColorReactivity() {
     const blocks = this.blockManager.getAllBlocks();
-    if (blocks.length === 0) return;
+    if (blocks.length === 0) {
+      console.warn('[VJController] No blocks to apply color reactivity');
+      return;
+    }
 
     // Get raw FFT data
     const freqData = this.audioReactor.freqData;
-    if (!freqData) return;
+    if (!freqData) {
+      console.warn('[VJController] No FFT data available from audioReactor');
+      return;
+    }
 
     const binCount = freqData.length; // Usually 512 for fftSize 1024
+
+    // Debug: log first time
+    if (!this._colorReactivityDebugLogged) {
+      console.log(`[VJController] Color reactivity updating ${blocks.length} blocks with ${binCount} FFT bins`);
+      this._colorReactivityDebugLogged = true;
+    }
 
     for (const block of blocks) {
       // Store original color if not already stored
@@ -1087,10 +1114,14 @@ export class VJController {
       // Apply to material(s)
       if (Array.isArray(block.mesh.material)) {
         block.mesh.material.forEach(m => {
-          if (m.color) m.color.copy(currentColor);
+          if (m.color) {
+            m.color.copy(currentColor);
+            m.needsUpdate = true;
+          }
         });
-      } else if (block.mesh.material.color) {
+      } else if (block.mesh.material && block.mesh.material.color) {
         block.mesh.material.color.copy(currentColor);
+        block.mesh.material.needsUpdate = true;
       }
     }
   }
