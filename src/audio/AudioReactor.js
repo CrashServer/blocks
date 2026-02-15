@@ -28,11 +28,11 @@ export class AudioReactor {
     this.onset = 0;
 
     // Beat detection state
-    this.beatThreshold = 1.4;
+    this.beatThreshold = 1.3; // Lowered from 1.4 for more sensitivity
     this.beatDecay = 0.98;
     this.beatAverage = 0;
     this.beatHoldFrames = 0;
-    this.beatHoldMax = 8; // frames to hold beat=true
+    this.beatHoldMax = 10; // frames to hold beat=true (increased from 8)
 
     // Onset envelope
     this.prevEnergy = 0;

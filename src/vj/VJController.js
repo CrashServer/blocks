@@ -216,6 +216,13 @@ export class VJController {
       const beatTriggered = beatNow && !this.lastBeatState;
       this.lastBeatState = beatNow;
 
+      // Debug: log beat detection every 60 frames
+      if (!this._beatDebugCount) this._beatDebugCount = 0;
+      this._beatDebugCount++;
+      if (this._beatDebugCount % 60 === 0) {
+        console.log(`[VJController] Paint active | Beat: ${beatNow} | Energy: ${this.audioReactor.energy.toFixed(2)} | Bass: ${this.audioReactor.bands.bass.toFixed(2)}`);
+      }
+
       // Spawn on every beat
       if (beatTriggered) {
         // Update scatter parameters from audio (modulates density, complexity, etc.)
@@ -712,6 +719,16 @@ export class VJController {
       case 'g': { // Toggle generative paint mode
         this.setGenerativePaintEnabled(!this.generativePaintEnabled);
         this._showOverlayMessage(this.generativePaintEnabled ? 'Generative Paint ON' : 'Generative Paint OFF');
+        break;
+      }
+
+      case 't': { // Test spawn (manual trigger for debugging)
+        if (this.generativePaintEnabled) {
+          console.log('[VJController] Manual test spawn triggered');
+          this.generativeScatter.updateFromAudio(this.audioReactor);
+          this._spawnGenerativePaint();
+          this._showOverlayMessage('Test Spawn');
+        }
         break;
       }
     }
