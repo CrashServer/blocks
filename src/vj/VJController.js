@@ -216,7 +216,7 @@ export class VJController {
 
       // Spawn new structures on beat or cooldown expiry
       this.generativeSpawnCooldown -= delta;
-      if ((shouldSpawn || this.generativeSpawnCooldown <= 0) && this.audioReactor.energy > 0.2) {
+      if (shouldSpawn || this.generativeSpawnCooldown <= 0) {
         this._spawnGenerativePaint();
         this.generativeSpawnCooldown = this.generativeSpawnInterval;
       }
@@ -767,12 +767,12 @@ export class VJController {
       this.generativeScatter.setAudioReactive(true);
       this.ephemeralBlockManager.setEnabled(true);
       this.generativeSpawnCooldown = 0; // Spawn immediately
-      console.log('[VJController] Generative Paint enabled');
+      console.log(`[VJController] Generative Paint ENABLED (interval: ${this.generativeSpawnInterval}s, preset: ${this.generativeScatter.preset}, algorithm: ${this.generativeScatter.algorithm})`);
     } else {
       // Disable and clear ephemeral blocks
       this.generativeScatter.setAudioReactive(false);
       this.ephemeralBlockManager.setEnabled(false);
-      console.log('[VJController] Generative Paint disabled');
+      console.log('[VJController] Generative Paint DISABLED');
     }
   }
 
@@ -820,22 +820,41 @@ export class VJController {
       origin.x = Math.round(this.cameraModes.target.x);
       origin.y = Math.round(this.cameraModes.target.y);
       origin.z = Math.round(this.cameraModes.target.z);
+    } else {
+      // Fallback: spawn near existing blocks or at origin
+      const blocks = this.blockManager.getAllBlocks();
+      if (blocks.length > 0) {
+        // Pick a random existing block position
+        const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
+        origin.x = randomBlock.gridPosition.x;
+        origin.y = randomBlock.gridPosition.y;
+        origin.z = randomBlock.gridPosition.z;
+      }
     }
+
+    console.log(`[VJController] Spawning generative paint at origin (${origin.x}, ${origin.y}, ${origin.z})`);
 
     // Generate blocks using audio-reactive scatter
     const blockDefs = this.generativeScatter.generate(origin);
 
+    if (blockDefs.length === 0) {
+      console.warn('[VJController] GenerativeScatter returned 0 blocks!');
+      return;
+    }
+
     // Spawn each block as ephemeral (with lifetime and decay)
     const energy = this.audioReactor.energy;
+    let spawnedCount = 0;
     for (const def of blockDefs) {
       try {
         this.ephemeralBlockManager.spawn(def, energy);
+        spawnedCount++;
       } catch (err) {
         console.warn('[VJController] Failed to spawn ephemeral block:', err.message);
       }
     }
 
-    console.log(`[VJController] Spawned ${blockDefs.length} ephemeral blocks (energy: ${energy.toFixed(2)})`);
+    console.log(`[VJController] Spawned ${spawnedCount}/${blockDefs.length} ephemeral blocks (energy: ${energy.toFixed(2)}, total active: ${this.ephemeralBlockManager.getCount()})`);
   }
 
   dispose() {

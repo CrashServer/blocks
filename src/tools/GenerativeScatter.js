@@ -76,7 +76,8 @@ export class GenerativeScatter {
     // Bass → density & scale (larger structures, more blocks)
     // Map bass (0-1) to maxBlocks multiplier (0.5x - 2.5x)
     const densityMultiplier = 0.5 + bass * 2.0;
-    this.maxBlocks = Math.round(this.baseMaxBlocks * densityMultiplier * (0.5 + energy * 1.5));
+    // Ensure minimum of 20 blocks and maximum of 200
+    this.maxBlocks = Math.max(20, Math.min(200, Math.round(this.baseMaxBlocks * densityMultiplier * (0.5 + energy * 1.5))));
 
     // Bass also affects scale ratio - more bass = bigger blocks
     // Map bass to scaleRatio (0.3 = lots of big blocks, 0.9 = mostly small blocks)
@@ -95,6 +96,13 @@ export class GenerativeScatter {
 
     // Map high to decorativeChance (0.02 - 0.2) - more high-freq details
     this.decorativeChance = 0.02 + high * 0.18;
+
+    // Debug log every 100 calls (to avoid spam)
+    if (!this._audioUpdateCount) this._audioUpdateCount = 0;
+    this._audioUpdateCount++;
+    if (this._audioUpdateCount % 100 === 0) {
+      console.log(`[GenerativeScatter] Audio params: maxBlocks=${this.maxBlocks}, bass=${bass.toFixed(2)}, mid=${mid.toFixed(2)}, high=${high.toFixed(2)}, energy=${energy.toFixed(2)}`);
+    }
 
     // Return true on beat to trigger generation bursts
     return audioData.beat;
