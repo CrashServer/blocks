@@ -985,6 +985,827 @@ const SaturatedShader = {
   `
 };
 
+// Glitch Shader (digital corruption with RGB split and block displacement)
+const GlitchShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    amount: { value: 0.05 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float amount;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+    void main() {
+      vec2 uv = vUv;
+
+      // Block displacement every few seconds
+      float block = floor(uv.y * 20.0);
+      float glitchRandom = random(vec2(block, floor(time * 3.0)));
+      if (glitchRandom > 0.95) {
+        uv.x += (random(vec2(block, time)) - 0.5) * amount * 2.0;
+      }
+
+      // RGB split
+      float splitAmount = amount * (sin(time * 5.0) * 0.5 + 0.5);
+      vec2 offset1 = vec2(splitAmount, 0.0);
+      vec2 offset2 = vec2(-splitAmount * 0.5, 0.0);
+
+      float r = texture2D(tDiffuse, uv + offset1).r;
+      float g = texture2D(tDiffuse, uv).g;
+      float b = texture2D(tDiffuse, uv + offset2).b;
+
+      vec3 color = vec3(r, g, b);
+
+      // Scanlines
+      float scanline = sin(uv.y * resolution.y * 1.5) * 0.1 + 0.9;
+      color *= scanline;
+
+      // Random noise flicker
+      if (random(vec2(uv.y, time)) > 0.98) {
+        color = vec3(random(uv + time));
+      }
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Vaporwave Shader (aesthetic pink/cyan gradients)
+const VaporwaveShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float thickness;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+      float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
+      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+
+      // Gradient background: pink top, purple mid, cyan bottom
+      vec3 top = vec3(1.0, 0.4, 0.7);     // Pink
+      vec3 mid = vec3(0.5, 0.2, 0.8);     // Purple
+      vec3 bottom = vec3(0.2, 0.9, 0.9);  // Cyan
+
+      float t = vUv.y;
+      vec3 bg = t > 0.5
+        ? mix(mid, top, (t - 0.5) * 2.0)
+        : mix(bottom, mid, t * 2.0);
+
+      // Shift colors to vaporwave palette
+      float lum = luma(texColor.rgb);
+      vec3 colored = mix(bg, texColor.rgb * vec3(1.2, 0.9, 1.3), 0.7);
+
+      // Grid overlay
+      float gridSize = 50.0;
+      float grid = max(
+        step(0.96, fract(vUv.x * resolution.x / gridSize)),
+        step(0.96, fract(vUv.y * resolution.y / gridSize))
+      ) * 0.3;
+      colored += vec3(0.8, 0.5, 1.0) * grid;
+
+      // Edge glow
+      float edge = detectEdge(vUv);
+      colored = mix(colored, vec3(1.0, 0.5, 0.9), edge * 0.6);
+
+      if (grayscale > 0.5) {
+        float g = luma(colored);
+        colored = vec3(g);
+      }
+      gl_FragColor = vec4(colored, 1.0);
+    }
+  `
+};
+
+// Thermal Vision Shader (heat map false colors)
+const ThermalShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    vec3 heatMap(float t) {
+      // Black -> Purple -> Red -> Yellow -> White
+      vec3 a = vec3(0.0, 0.0, 0.0);      // Cold - Black
+      vec3 b = vec3(0.5, 0.0, 0.8);      // Cool - Purple
+      vec3 c = vec3(1.0, 0.0, 0.0);      // Warm - Red
+      vec3 d = vec3(1.0, 1.0, 0.0);      // Hot - Yellow
+      vec3 e = vec3(1.0, 1.0, 1.0);      // Very Hot - White
+
+      if (t < 0.25) return mix(a, b, t * 4.0);
+      if (t < 0.5) return mix(b, c, (t - 0.25) * 4.0);
+      if (t < 0.75) return mix(c, d, (t - 0.5) * 4.0);
+      return mix(d, e, (t - 0.75) * 4.0);
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      float heat = luma(texColor.rgb);
+
+      // Add some noise for texture
+      float noise = fract(sin(dot(vUv * resolution, vec2(12.9898, 78.233))) * 43758.5453);
+      heat += noise * 0.05;
+
+      vec3 thermalColor = heatMap(heat);
+
+      // Scanlines for effect
+      float scanline = sin(vUv.y * resolution.y) * 0.05 + 0.95;
+      thermalColor *= scanline;
+
+      if (grayscale > 0.5) {
+        float g = luma(thermalColor);
+        thermalColor = vec3(g);
+      }
+      gl_FragColor = vec4(thermalColor, 1.0);
+    }
+  `
+};
+
+// CRT Shader (retro TV effect with curvature and phosphor dots)
+const CRTShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    curvature: { value: 0.15 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float curvature;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    vec2 curveUV(vec2 uv) {
+      uv = uv * 2.0 - 1.0;
+      vec2 offset = abs(uv.yx) / vec2(curvature, curvature);
+      uv = uv + uv * offset * offset;
+      uv = uv * 0.5 + 0.5;
+      return uv;
+    }
+
+    void main() {
+      vec2 uv = curveUV(vUv);
+
+      // Vignette at edges
+      if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
+      }
+
+      vec3 color = texture2D(tDiffuse, uv).rgb;
+
+      // RGB phosphor dots
+      vec2 pixel = uv * resolution;
+      vec3 phosphor = vec3(
+        sin(pixel.x * 3.0) * 0.5 + 0.5,
+        sin(pixel.x * 3.0 + 2.094) * 0.5 + 0.5,
+        sin(pixel.x * 3.0 + 4.188) * 0.5 + 0.5
+      ) * 0.1 + 0.9;
+      color *= phosphor;
+
+      // Scanlines
+      float scanline = sin(pixel.y * 2.0) * 0.15 + 0.85;
+      color *= scanline;
+
+      // Flicker
+      color *= 0.95 + sin(time * 50.0) * 0.05;
+
+      // Vignette
+      vec2 vigUv = vUv * 2.0 - 1.0;
+      float vig = 1.0 - dot(vigUv, vigUv) * 0.3;
+      color *= vig;
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Oil Paint Shader (thick brush strokes with posterization)
+const OilPaintShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    radius: { value: 4.0 },
+    levels: { value: 8.0 },
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float radius;
+    uniform float levels;
+    uniform float thickness;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    vec3 posterize(vec3 color, float steps) {
+      return floor(color * steps) / steps;
+    }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float gx = abs(l - r);
+      float gy = abs(tl - tr);
+      return smoothstep(0.03, 0.1, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec2 texel = 1.0 / resolution;
+      vec3 meanColor = vec3(0.0);
+
+      // Sample surrounding pixels
+      for (float x = -radius; x <= radius; x += 1.0) {
+        for (float y = -radius; y <= radius; y += 1.0) {
+          vec2 offset = vec2(x, y) * texel;
+          meanColor += texture2D(tDiffuse, vUv + offset).rgb;
+        }
+      }
+
+      float samples = (radius * 2.0 + 1.0) * (radius * 2.0 + 1.0);
+      meanColor /= samples;
+
+      // Posterize for painted look
+      vec3 painted = posterize(meanColor, levels);
+
+      // Dark brush strokes at edges
+      float edge = detectEdge(vUv);
+      painted = mix(painted, painted * 0.5, edge * 0.6);
+
+      if (grayscale > 0.5) {
+        float g = luma(painted);
+        painted = vec3(g);
+      }
+      gl_FragColor = vec4(painted, 1.0);
+    }
+  `
+};
+
+// Mosaic Shader (stained glass effect)
+const MosaicShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    blockSize: { value: 12.0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float blockSize;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    void main() {
+      vec2 pixel = vUv * resolution;
+      vec2 block = floor(pixel / blockSize) * blockSize;
+      vec2 blockCenter = (block + blockSize * 0.5) / resolution;
+
+      vec3 color = texture2D(tDiffuse, blockCenter).rgb;
+
+      // Boost saturation for stained glass look
+      float gray = luma(color);
+      color = mix(vec3(gray), color, 1.5);
+      color = clamp(color * 1.2, 0.0, 1.0);
+
+      // Dark borders between blocks
+      vec2 posInBlock = mod(pixel, blockSize);
+      float border = step(posInBlock.x, 1.0) + step(posInBlock.y, 1.0);
+      border += step(blockSize - 1.0, posInBlock.x) + step(blockSize - 1.0, posInBlock.y);
+      border = min(border, 1.0);
+
+      color = mix(color, color * 0.3, border);
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Plasma Shader (psychedelic moving colors)
+const PlasmaShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    speed: { value: 0.5 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float speed;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      float depth = luma(texColor.rgb);
+
+      vec2 p = vUv * 8.0;
+      float t = time * speed;
+
+      // Plasma waves
+      float v = sin(p.x + t);
+      v += sin(p.y + t);
+      v += sin(p.x + p.y + t);
+      v += sin(sqrt(p.x*p.x + p.y*p.y) + t);
+      v = v * 0.25 + 0.5;
+
+      // Rainbow colors
+      vec3 plasmaColor = vec3(
+        sin(v * 3.14159 * 2.0 + 0.0) * 0.5 + 0.5,
+        sin(v * 3.14159 * 2.0 + 2.094) * 0.5 + 0.5,
+        sin(v * 3.14159 * 2.0 + 4.188) * 0.5 + 0.5
+      );
+
+      // Blend with scene depth
+      vec3 color = mix(plasmaColor * 0.5, texColor.rgb + plasmaColor * 0.5, depth);
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Tron Shader (blue circuit board aesthetic)
+const TronShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    thickness: { value: 1.0 },
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float thickness;
+    uniform float time;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness * 2.0) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float bl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, -texel.y)).rgb);
+      float br = luma(texture2D(tDiffuse, uv + vec2(texel.x, -texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float t = luma(texture2D(tDiffuse, uv + vec2(0.0, texel.y)).rgb);
+      float b = luma(texture2D(tDiffuse, uv + vec2(0.0, -texel.y)).rgb);
+      float gx = -tl - 2.0*l - bl + tr + 2.0*r + br;
+      float gy = -tl - 2.0*t - tr + bl + 2.0*b + br;
+      return smoothstep(0.05, 0.2, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      float edge = detectEdge(vUv);
+
+      // Dark background
+      vec3 bg = vec3(0.0, 0.05, 0.1);
+
+      // Shift colors to blue/cyan
+      vec3 tronColor = vec3(
+        texColor.r * 0.2,
+        texColor.g * 0.5 + 0.2,
+        min(1.0, texColor.b * 0.8 + 0.4)
+      );
+
+      // Circuit grid
+      vec2 pixel = vUv * resolution;
+      float gridSize = 30.0;
+      float grid = max(
+        step(0.94, fract(pixel.x / gridSize)),
+        step(0.94, fract(pixel.y / gridSize))
+      );
+
+      // Pulsing grid lines
+      float pulse = sin(time * 2.0) * 0.3 + 0.7;
+      vec3 gridColor = vec3(0.0, 0.7, 1.0) * grid * 0.4 * pulse;
+
+      vec3 finalColor = mix(bg, tronColor, 0.6);
+      finalColor += gridColor;
+
+      // Glowing edges
+      finalColor = mix(finalColor, vec3(0.0, 1.0, 1.0) * 1.5, edge);
+
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+};
+
+// Posterize Shader (limited color palette)
+const PosterizeShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    levels: { value: 6.0 },
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float levels;
+    uniform float thickness;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+
+    vec3 posterize(vec3 color, float steps) {
+      return floor(color * steps + 0.5) / steps;
+    }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float gx = abs(l - r);
+      float gy = abs(tl - tr);
+      return smoothstep(0.08, 0.2, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      vec3 color = posterize(texColor.rgb, levels);
+
+      // Thick outlines
+      float edge = detectEdge(vUv);
+      color = mix(color, vec3(0.0), edge);
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Hologram Shader (scan lines with chromatic aberration)
+const HologramShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    glitchAmount: { value: 0.02 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float glitchAmount;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(float n) { return fract(sin(n) * 43758.5453123); }
+
+    void main() {
+      vec2 uv = vUv;
+
+      // Horizontal scan line moving down
+      float scanPos = mod(time * 0.2, 1.0);
+      float scan = abs(uv.y - scanPos);
+      float scanline = smoothstep(0.0, 0.02, scan) * smoothstep(0.1, 0.02, scan);
+
+      // Chromatic aberration
+      vec2 aberration = vec2(glitchAmount * sin(time * 3.0), 0.0);
+      float r = texture2D(tDiffuse, uv + aberration).r;
+      float g = texture2D(tDiffuse, uv).g;
+      float b = texture2D(tDiffuse, uv - aberration).b;
+
+      vec3 color = vec3(r, g, b);
+
+      // Hologram tint (cyan/blue)
+      color = color * vec3(0.7, 1.0, 1.2);
+
+      // Flicker
+      float flicker = 0.9 + random(floor(time * 20.0)) * 0.1;
+      color *= flicker;
+
+      // Scan line brightness
+      color += scanline * vec3(0.3, 0.6, 0.8);
+
+      // Horizontal lines
+      float lines = sin(uv.y * resolution.y * 0.5) * 0.1 + 0.9;
+      color *= lines;
+
+      if (grayscale > 0.5) {
+        float g = luma(color);
+        color = vec3(g);
+      }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  `
+};
+
+// Cyberpunk Shader (high contrast magenta/yellow glitchy)
+const CyberpunkShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    thickness: { value: 1.0 },
+    time: { value: 0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float thickness;
+    uniform float time;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float gx = abs(l - r);
+      float gy = abs(tl - tr);
+      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      float edge = detectEdge(vUv);
+
+      // High contrast boost
+      vec3 boosted = (texColor.rgb - 0.5) * 1.5 + 0.5;
+
+      // Cyberpunk color shift: magenta highlights, yellow shadows
+      float lum = luma(boosted);
+      vec3 cyberpunkColor;
+      if (lum > 0.5) {
+        cyberpunkColor = mix(boosted, vec3(1.0, 0.2, 1.0), 0.4); // Magenta
+      } else {
+        cyberpunkColor = mix(boosted, vec3(1.0, 1.0, 0.2), 0.3); // Yellow
+      }
+
+      // Dark background
+      vec3 bg = vec3(0.1, 0.05, 0.15);
+      vec3 finalColor = mix(bg, cyberpunkColor, 0.8);
+
+      // Random glitch blocks
+      float block = floor(vUv.y * 40.0);
+      if (random(vec2(block, floor(time * 2.0))) > 0.98) {
+        finalColor += vec3(random(vUv), random(vUv + 0.5), random(vUv + 1.0)) * 0.3;
+      }
+
+      // Neon edges
+      finalColor = mix(finalColor, vec3(1.0, 0.0, 1.0), edge * 0.8);
+
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+};
+
+// Matrix Shader (green digital rain)
+const MatrixShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    resolution: { value: new THREE.Vector2(1920, 1080) },
+    time: { value: 0 },
+    thickness: { value: 1.0 },
+    grayscale: { value: 0.0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform vec2 resolution;
+    uniform float time;
+    uniform float thickness;
+    uniform float grayscale;
+    varying vec2 vUv;
+
+    float luma(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+    float random(vec2 p) { return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+    float detectEdge(vec2 uv) {
+      vec2 texel = vec2(thickness) / resolution;
+      float tl = luma(texture2D(tDiffuse, uv + vec2(-texel.x, texel.y)).rgb);
+      float tr = luma(texture2D(tDiffuse, uv + vec2(texel.x, texel.y)).rgb);
+      float l = luma(texture2D(tDiffuse, uv + vec2(-texel.x, 0.0)).rgb);
+      float r = luma(texture2D(tDiffuse, uv + vec2(texel.x, 0.0)).rgb);
+      float gx = abs(l - r);
+      float gy = abs(tl - tr);
+      return smoothstep(0.05, 0.15, sqrt(gx*gx + gy*gy));
+    }
+
+    void main() {
+      vec4 texColor = texture2D(tDiffuse, vUv);
+      float depth = luma(texColor.rgb);
+
+      // Digital rain effect
+      float col = floor(vUv.x * 50.0);
+      float rainSpeed = 2.0 + random(vec2(col, 0.0)) * 3.0;
+      float rainPos = mod(vUv.y + time * rainSpeed * 0.1, 1.0);
+      float rain = smoothstep(0.95, 1.0, rainPos) * smoothstep(0.0, 0.2, rainPos);
+
+      // Green tint with varying brightness
+      vec3 green = vec3(0.0, 0.8, 0.2);
+      vec3 brightGreen = vec3(0.5, 1.0, 0.5);
+      vec3 matrixColor = mix(green, brightGreen, rain);
+
+      // Blend with depth
+      vec3 finalColor = matrixColor * depth;
+
+      // Edge glow
+      float edge = detectEdge(vUv);
+      finalColor = mix(finalColor, brightGreen, edge * 0.6);
+
+      // Dark background
+      finalColor = mix(vec3(0.0, 0.05, 0.0), finalColor, depth * 0.8 + 0.2);
+
+      if (grayscale > 0.5) {
+        float g = luma(finalColor);
+        finalColor = vec3(g);
+      }
+      gl_FragColor = vec4(finalColor, 1.0);
+    }
+  `
+};
+
 // Clean Edge Shader (solid fills with edge outlines)
 const CleanEdgeShader = {
   uniforms: {
@@ -1240,7 +2061,20 @@ export class GPUStyleRenderer {
       watercolor: WatercolorShader,
       noir: NoirShader,
       synthwave: SynthwaveShader,
-      ascii: ASCIIShader
+      ascii: ASCIIShader,
+      // New funky styles
+      glitch: GlitchShader,
+      vaporwave: VaporwaveShader,
+      thermal: ThermalShader,
+      crt: CRTShader,
+      oilpaint: OilPaintShader,
+      mosaic: MosaicShader,
+      plasma: PlasmaShader,
+      tron: TronShader,
+      posterize: PosterizeShader,
+      hologram: HologramShader,
+      cyberpunk: CyberpunkShader,
+      matrix: MatrixShader
     };
 
     const shader = shaderMap[this.style] || CleanEdgeShader;
@@ -1251,7 +2085,7 @@ export class GPUStyleRenderer {
     this.composer.addPass(this.stylePass);
 
     // Bloom for glow styles — create fresh each time
-    if (['neon', 'synthwave', 'scifi'].includes(this.style)) {
+    if (['neon', 'synthwave', 'scifi', 'tron', 'cyberpunk', 'hologram', 'vaporwave', 'plasma'].includes(this.style)) {
       const bloom = new UnrealBloomPass(
         new THREE.Vector2(this.width, this.height),
         0.5, 0.4, 0.85
@@ -1330,6 +2164,29 @@ export class GPUStyleRenderer {
       case 'saturated':
         uniforms.saturation.value = 1.4;
         break;
+      // New styles
+      case 'glitch':
+        if (uniforms.amount) uniforms.amount.value = 0.03 + this.lineWidth * 0.01;
+        break;
+      case 'crt':
+        if (uniforms.curvature) uniforms.curvature.value = 0.15;
+        break;
+      case 'oilpaint':
+        if (uniforms.radius) uniforms.radius.value = this.lineWidth * 1.5;
+        if (uniforms.levels) uniforms.levels.value = 8.0;
+        break;
+      case 'mosaic':
+        if (uniforms.blockSize) uniforms.blockSize.value = 8.0 + this.lineWidth * 2.0;
+        break;
+      case 'plasma':
+        if (uniforms.speed) uniforms.speed.value = 0.5;
+        break;
+      case 'posterize':
+        if (uniforms.levels) uniforms.levels.value = 4.0 + this.lineWidth;
+        break;
+      case 'hologram':
+        if (uniforms.glitchAmount) uniforms.glitchAmount.value = 0.02;
+        break;
     }
   }
 
@@ -1347,7 +2204,20 @@ export class GPUStyleRenderer {
       watercolor: { bg: '#faf8f5', fg: '#2c4a52', accent: '#8b4513' },
       noir: { bg: '#000000', fg: '#ffffff', accent: '#808080' },
       synthwave: { bg: '#1a1a2e', fg: '#ff6ec7', accent: '#00fff7' },
-      ascii: { bg: '#000000', fg: '#00ff00', accent: '#00aa00' }
+      ascii: { bg: '#000000', fg: '#00ff00', accent: '#00aa00' },
+      // New funky styles
+      glitch: { bg: '#000000', fg: '#ff00ff', accent: '#00ffff' },
+      vaporwave: { bg: '#ff69b4', fg: '#00ffff', accent: '#9370db' },
+      thermal: { bg: '#000000', fg: '#ff0000', accent: '#ffff00' },
+      crt: { bg: '#0a0a0a', fg: '#33ff33', accent: '#44ff44' },
+      oilpaint: { bg: '#f5f5dc', fg: '#2c2c2c', accent: '#8b4513' },
+      mosaic: { bg: '#ffffff', fg: '#000000', accent: '#4169e1' },
+      plasma: { bg: '#000000', fg: '#ff00ff', accent: '#00ffff' },
+      tron: { bg: '#000a14', fg: '#00ffff', accent: '#0080ff' },
+      posterize: { bg: '#ffffff', fg: '#000000', accent: '#ff0000' },
+      hologram: { bg: '#000a1a', fg: '#00ffff', accent: '#0099ff' },
+      cyberpunk: { bg: '#0f0520', fg: '#ff00ff', accent: '#ffff00' },
+      matrix: { bg: '#000500', fg: '#00ff00', accent: '#00aa00' }
     };
 
     let colors = styles[this.style] || styles.clean;
