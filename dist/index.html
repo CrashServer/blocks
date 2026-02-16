@@ -852,86 +852,38 @@
           </div>
 
           <div class="export-section">
-            <span class="section-label">Optimization</span>
-            <div class="export-row">
-              <input type="checkbox" id="opt-face-cull" checked>
-              <label for="opt-face-cull">Cull hidden faces</label>
-              <span class="hint">Remove faces between adjacent blocks</span>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="opt-merge-cubes" checked>
-              <label for="opt-merge-cubes">Merge adjacent cubes</label>
-              <span class="hint">Combine same-color cubes into larger meshes</span>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="opt-material-batch" checked>
-              <label for="opt-material-batch">Batch by material</label>
-              <span class="hint">Group geometry by color for fewer draw calls</span>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="opt-deduplicate" checked>
-              <label for="opt-deduplicate">Deduplicate vertices</label>
-              <span class="hint">Merge duplicate vertices to reduce mesh size</span>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="opt-merge-all">
-              <label for="opt-merge-all">Merge all into single mesh</label>
-              <span class="hint">Combine everything using vertex colors (1 draw call)</span>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="opt-instancing">
-              <label for="opt-instancing">Use GPU instancing</label>
-              <span class="hint">Best for scenes with many identical block types</span>
-            </div>
-          </div>
-
-          <div class="export-section">
-            <span class="section-label">Include</span>
+            <span class="section-label">Options</span>
             <div class="export-row">
               <input type="checkbox" id="inc-animations" checked>
-              <label for="inc-animations">Animations</label>
+              <label for="inc-animations">Include animations</label>
+              <span class="hint">Export timeline animations with the model</span>
             </div>
             <div class="export-row">
               <input type="checkbox" id="inc-baked-lighting">
-              <label for="inc-baked-lighting">Baked lighting texture</label>
-              <span class="hint">Include lightmap if baked</span>
+              <label for="inc-baked-lighting">Include baked lighting</label>
+              <span class="hint">Include lightmap texture if lighting has been baked</span>
             </div>
           </div>
 
           <div class="export-section">
-            <span class="section-label">Debug Exports</span>
-            <div class="export-row">
-              <input type="checkbox" id="dbg-lightmap">
-              <label for="dbg-lightmap">Export lightmap PNG</label>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="dbg-colors">
-              <label for="dbg-colors">Export debug colors PNG</label>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="dbg-palette">
-              <label for="dbg-palette">Export color palette PNG</label>
-            </div>
-            <div class="export-row">
-              <input type="checkbox" id="dbg-json">
-              <label for="dbg-json">Also export GLTF JSON</label>
-              <span class="hint">For debugging structure</span>
+            <span class="section-label">Export Strategy</span>
+            <div class="export-info">
+              <p>Exports as <strong>one mesh with material slots per color</strong>. Each unique color becomes a material slot, making it easy to swap materials in Godot or other 3D engines.</p>
             </div>
           </div>
 
           <div class="export-stats" id="export-stats">
-            <span class="section-label">Statistics</span>
+            <span class="section-label">Preview</span>
             <div class="stats-row">
-              <span>Blocks:</span>
+              <span>Total blocks:</span>
               <span id="stat-blocks">0</span>
             </div>
             <div class="stats-row">
-              <span>Estimated faces:</span>
-              <span id="stat-faces">0</span>
+              <span>Unique colors:</span>
+              <span id="stat-materials">0</span>
             </div>
-            <div class="stats-row">
-              <span>After optimization:</span>
-              <span id="stat-optimized">0</span>
+            <div class="export-info">
+              <p style="font-size: 0.85em; margin-top: 10px;">Will export as 1 mesh with <span id="stat-materials-inline">0</span> material slots</p>
             </div>
           </div>
         </div>

@@ -729,6 +729,40 @@ export class MeshOptimizer {
   }
 
   /**
+   * Estimate unique material count for material consolidation
+   */
+  estimateUniqueMaterials(blocks) {
+    const materialSet = new Set();
+
+    const getMaterialSignature = (color, emissive) => {
+      const emissiveKey = emissive?.enabled
+        ? `_e${emissive.color}_${emissive.intensity}`
+        : '';
+      return `${color.toLowerCase()}${emissiveKey}`;
+    };
+
+    for (const block of blocks) {
+      // Check if block has per-face materials
+      const hasFaceMaterials = Array.isArray(block.mesh.material) && block.mesh.material.length === 6;
+
+      if (hasFaceMaterials) {
+        // Count unique materials per face
+        for (const mat of block.mesh.material) {
+          const color = mat.color.getStyle();
+          const sig = getMaterialSignature(color, block.emissive?.enabled ? block.emissive : null);
+          materialSet.add(sig);
+        }
+      } else {
+        // Single material for block
+        const sig = getMaterialSignature(block.color, block.emissive?.enabled ? block.emissive : null);
+        materialSet.add(sig);
+      }
+    }
+
+    return materialSet.size;
+  }
+
+  /**
    * Estimate face count for statistics before optimization
    */
   estimateFaceCount(blocks) {
@@ -930,6 +964,516 @@ export class MeshOptimizer {
     mergedMesh.name = 'merged_all';
 
     return [mergedMesh];
+  }
+
+  /**
+   * Consolidate materials - creates ONE mesh with multiple material slots
+   * Each unique color/material becomes a material slot, making it easy to swap materials in Godot
+   * Returns single mesh with material groups + array of materials
+   */
+  consolidateMaterials(blocks) {
+    console.log('Consolidating materials for', blocks.length, 'blocks');
+
+    // Count block types for debugging
+    const blockTypeCounts = new Map();
+    for (const block of blocks) {
+      const count = blockTypeCounts.get(block.type) || 0;
+      blockTypeCounts.set(block.type, count + 1);
+    }
+    console.log('Block types:', Object.fromEntries(blockTypeCounts));
+
+    // Step 1: Build material palette (unique material signatures)
+    const materialPalette = new Map(); // signature -> { index, color, roughness, metalness, emissive }
+    const materialSignatures = []; // Array of material data for export
+
+    const getMaterialSignature = (color, roughness = 0.7, metalness = 0.1, emissive = null) => {
+      // Normalize color to hex format for consistent signatures
+      const normalizedColor = new THREE.Color(color).getHexString();
+      const emissiveKey = emissive?.enabled
+        ? `_e${new THREE.Color(emissive.color).getHexString()}_${emissive.intensity.toFixed(2)}`
+        : '';
+      return `${normalizedColor}_r${roughness.toFixed(2)}_m${metalness.toFixed(2)}${emissiveKey}`;
+    };
+
+    const getOrCreateMaterial = (color, roughness, metalness, emissive) => {
+      const sig = getMaterialSignature(color, roughness, metalness, emissive);
+
+      if (!materialPalette.has(sig)) {
+        const index = materialSignatures.length;
+        const matData = {
+          index,
+          signature: sig,
+          color: new THREE.Color(color),
+          roughness,
+          metalness,
+          emissive: emissive?.enabled ? {
+            color: new THREE.Color(emissive.color),
+            intensity: emissive.intensity
+          } : null
+        };
+        materialSignatures.push(matData);
+        materialPalette.set(sig, matData);
+      }
+
+      return materialPalette.get(sig);
+    };
+
+    // Step 2: Group geometry by material index
+    const geometryGroups = new Map(); // materialIndex -> array of {geometry, matrix}
+
+    for (const block of blocks) {
+      const srcMat = Array.isArray(block.mesh.material)
+        ? block.mesh.material[0]
+        : block.mesh.material;
+
+      const baseRoughness = srcMat.roughness || 0.7;
+      const baseMetalness = srcMat.metalness || 0.1;
+
+      // Create world transform matrix for this block
+      const matrix = new THREE.Matrix4();
+      matrix.compose(
+        block.mesh.position,
+        block.mesh.quaternion,
+        block.mesh.scale
+      );
+
+      const groups = block.mesh.geometry.groups;
+      const hasMultipleMaterials = Array.isArray(block.mesh.material) && block.mesh.material.length > 1;
+
+      // Check if this geometry has groups defined
+      const hasGroups = groups && groups.length > 0;
+
+      // Debug first block of each type
+      const logKey = `logged_${block.type}`;
+      if (!this[logKey]) {
+        this[logKey] = true;
+        console.log(`Block type "${block.type}":`, {
+          hasGroups,
+          groupCount: groups?.length || 0,
+          hasMultipleMaterials,
+          materialCount: Array.isArray(block.mesh.material) ? block.mesh.material.length : 1,
+          indexed: !!block.mesh.geometry.getIndex()
+        });
+      }
+
+      if (hasGroups) {
+        // Geometry has groups - extract per group
+        // This handles: cubes, wedges, slabs, pipes, cylinders with groups, etc.
+
+        for (const group of groups) {
+          // Get material for this group
+          const matIndex = group.materialIndex !== undefined ? group.materialIndex : 0;
+
+          let groupMat, groupColor;
+
+          if (hasMultipleMaterials) {
+            groupMat = block.mesh.material[matIndex];
+            if (!groupMat) {
+              console.warn('No material at index', matIndex, 'for block', block.id);
+              continue;
+            }
+            groupColor = groupMat.color.getStyle();
+          } else {
+            // Single material - use block color
+            groupMat = block.mesh.material;
+            groupColor = block.color;
+          }
+
+          // Get emissive data
+          const groupEmissive = block.emissive?.enabled ? {
+            enabled: true,
+            color: block.emissive.color,
+            intensity: block.emissive.intensity
+          } : null;
+
+          const material = getOrCreateMaterial(
+            groupColor,
+            groupMat.roughness || baseRoughness,
+            groupMat.metalness || baseMetalness,
+            groupEmissive
+          );
+
+          // Extract geometry for this group
+          const groupGeometry = this.extractGroupGeometry(block.mesh.geometry, group);
+
+          if (!groupGeometry) {
+            console.warn('Failed to extract geometry for block', block.id, 'group', group);
+            continue;
+          }
+
+          if (!geometryGroups.has(material.index)) {
+            geometryGroups.set(material.index, []);
+          }
+
+          geometryGroups.get(material.index).push({
+            geometry: groupGeometry,
+            matrix
+          });
+        }
+      } else {
+        // No groups - extract entire geometry
+        // This handles: spheres, custom geometries without groups, etc.
+
+        const blockColor = hasMultipleMaterials
+          ? block.mesh.material[0].color.getStyle()
+          : block.color;
+
+        const material = getOrCreateMaterial(
+          blockColor,
+          baseRoughness,
+          baseMetalness,
+          block.emissive?.enabled ? block.emissive : null
+        );
+
+        // Extract all geometry as non-indexed
+        const extractedGeometry = this.extractAllGeometry(block.mesh.geometry);
+
+        if (!extractedGeometry) {
+          console.warn('Failed to extract geometry for block', block.id);
+          continue;
+        }
+
+        if (!geometryGroups.has(material.index)) {
+          geometryGroups.set(material.index, []);
+        }
+
+        geometryGroups.get(material.index).push({
+          geometry: extractedGeometry,
+          matrix
+        });
+      }
+    }
+
+    console.log('Material consolidation - Created', materialSignatures.length, 'unique materials');
+    console.log('Material consolidation - Processing', geometryGroups.size, 'material groups');
+
+    // Debug: log geometry group details
+    let totalGeomPieces = 0;
+    for (const [matIdx, geoms] of geometryGroups) {
+      totalGeomPieces += geoms.length;
+      console.log(`  Material ${matIdx}: ${geoms.length} geometry pieces`);
+    }
+    console.log(`Total geometry pieces: ${totalGeomPieces}`);
+
+    // Step 3: Build consolidated geometry with material groups
+    const allPositions = [];
+    const allNormals = [];
+    const allUVs = [];
+    const groups = [];
+
+    let indexOffset = 0;
+
+    for (const [materialIndex, geometries] of geometryGroups) {
+      const groupStart = indexOffset;
+
+      for (const { geometry, matrix } of geometries) {
+        const posAttr = geometry.getAttribute('position');
+        const normAttr = geometry.getAttribute('normal');
+        const uvAttr = geometry.getAttribute('uv');
+
+        // Create temporary vectors for transformation
+        const position = new THREE.Vector3();
+        const normal = new THREE.Vector3();
+
+        // Extract vertices
+        const vertexCount = posAttr.count;
+
+        for (let i = 0; i < vertexCount; i++) {
+          // Position - apply full transform
+          position.set(
+            posAttr.getX(i),
+            posAttr.getY(i),
+            posAttr.getZ(i)
+          );
+          position.applyMatrix4(matrix);
+          allPositions.push(position.x, position.y, position.z);
+
+          // Normal - apply rotation only (no translation, uniform scale)
+          if (normAttr) {
+            normal.set(
+              normAttr.getX(i),
+              normAttr.getY(i),
+              normAttr.getZ(i)
+            );
+            normal.transformDirection(matrix);
+            normal.normalize();
+            allNormals.push(normal.x, normal.y, normal.z);
+          }
+
+          // UV
+          if (uvAttr) {
+            allUVs.push(uvAttr.getX(i), uvAttr.getY(i));
+          } else {
+            allUVs.push(0, 0); // Default UVs
+          }
+        }
+
+        indexOffset += vertexCount;
+        geometry.dispose();
+      }
+
+      const groupCount = indexOffset - groupStart;
+
+      if (groupCount > 0) {
+        groups.push({
+          start: groupStart,
+          count: groupCount,
+          materialIndex
+        });
+      }
+    }
+
+    // Step 4: Create consolidated geometry
+    const consolidatedGeometry = new THREE.BufferGeometry();
+    consolidatedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(allPositions, 3));
+
+    if (allNormals.length > 0) {
+      consolidatedGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(allNormals, 3));
+    } else {
+      // If no normals, compute them
+      consolidatedGeometry.computeVertexNormals();
+    }
+
+    if (allUVs.length > 0) {
+      consolidatedGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(allUVs, 2));
+    }
+
+    // Clear any existing groups
+    consolidatedGeometry.clearGroups();
+
+    // Add material groups
+    for (const group of groups) {
+      consolidatedGeometry.addGroup(group.start, group.count, group.materialIndex);
+    }
+
+    console.log('Consolidated geometry created:', {
+      totalVertices: allPositions.length / 3,
+      materialGroups: groups.length,
+      uniqueMaterials: materialSignatures.length
+    });
+
+    // Step 5: Create materials array
+    const materials = materialSignatures.map(matData => {
+      const mat = new THREE.MeshStandardMaterial({
+        color: matData.color,
+        roughness: matData.roughness,
+        metalness: matData.metalness
+      });
+
+      if (matData.emissive) {
+        mat.emissive = matData.emissive.color;
+        mat.emissiveIntensity = matData.emissive.intensity;
+      }
+
+      // Set material name for easy identification in Godot
+      const colorHex = matData.color.getHexString();
+      const emissiveSuffix = matData.emissive ? '_Emissive' : '';
+      mat.name = `Material_${colorHex}${emissiveSuffix}`;
+
+      return mat;
+    });
+
+    // Step 6: Create single mesh
+    const mesh = new THREE.Mesh(consolidatedGeometry, materials);
+    mesh.name = 'ConsolidatedMesh';
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    const stats = {
+      totalBlocks: blocks.length,
+      uniqueMaterials: materials.length,
+      totalVertices: allPositions.length / 3,
+      materialGroups: groups.length
+    };
+
+    console.log('Material consolidation stats:', stats);
+
+    return {
+      mesh,
+      materials,
+      stats
+    };
+  }
+
+  /**
+   * Extract entire geometry as non-indexed triangles
+   * Converts indexed geometry to non-indexed for merging
+   */
+  extractAllGeometry(geometry) {
+    const posAttr = geometry.getAttribute('position');
+    const normAttr = geometry.getAttribute('normal');
+    const uvAttr = geometry.getAttribute('uv');
+    const index = geometry.getIndex();
+
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+
+    if (index) {
+      // Indexed geometry - expand all indices
+      for (let i = 0; i < index.count; i++) {
+        const idx = index.getX(i);
+
+        positions.push(
+          posAttr.getX(idx),
+          posAttr.getY(idx),
+          posAttr.getZ(idx)
+        );
+
+        if (normAttr) {
+          normals.push(
+            normAttr.getX(idx),
+            normAttr.getY(idx),
+            normAttr.getZ(idx)
+          );
+        }
+
+        if (uvAttr) {
+          uvs.push(
+            uvAttr.getX(idx),
+            uvAttr.getY(idx)
+          );
+        }
+      }
+    } else {
+      // Non-indexed geometry - copy all vertices
+      for (let i = 0; i < posAttr.count; i++) {
+        positions.push(
+          posAttr.getX(i),
+          posAttr.getY(i),
+          posAttr.getZ(i)
+        );
+
+        if (normAttr) {
+          normals.push(
+            normAttr.getX(i),
+            normAttr.getY(i),
+            normAttr.getZ(i)
+          );
+        }
+
+        if (uvAttr) {
+          uvs.push(
+            uvAttr.getX(i),
+            uvAttr.getY(i)
+          );
+        }
+      }
+    }
+
+    if (positions.length === 0) {
+      console.error('No positions extracted from geometry');
+      return null;
+    }
+
+    const extractedGeometry = new THREE.BufferGeometry();
+    extractedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    if (normals.length > 0) {
+      extractedGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    } else {
+      extractedGeometry.computeVertexNormals();
+    }
+
+    if (uvs.length > 0) {
+      extractedGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    }
+
+    return extractedGeometry;
+  }
+
+  /**
+   * Extract geometry for a specific material group
+   * Works with ANY geometry type - cubes, wedges, pipes, etc.
+   */
+  extractGroupGeometry(geometry, group) {
+    const posAttr = geometry.getAttribute('position');
+    const normAttr = geometry.getAttribute('normal');
+    const uvAttr = geometry.getAttribute('uv');
+    const index = geometry.getIndex();
+
+    if (!group || typeof group.count === 'undefined' || typeof group.start === 'undefined') {
+      console.error('Invalid group:', group);
+      return null;
+    }
+
+    const positions = [];
+    const normals = [];
+    const uvs = [];
+
+    if (index) {
+      // Indexed geometry - extract via indices
+      for (let i = 0; i < group.count; i++) {
+        const indexValue = index.getX(group.start + i);
+
+        positions.push(
+          posAttr.getX(indexValue),
+          posAttr.getY(indexValue),
+          posAttr.getZ(indexValue)
+        );
+
+        if (normAttr) {
+          normals.push(
+            normAttr.getX(indexValue),
+            normAttr.getY(indexValue),
+            normAttr.getZ(indexValue)
+          );
+        }
+
+        if (uvAttr) {
+          uvs.push(
+            uvAttr.getX(indexValue),
+            uvAttr.getY(indexValue)
+          );
+        }
+      }
+    } else {
+      // Non-indexed geometry - extract directly
+      for (let i = 0; i < group.count; i++) {
+        const vertexIdx = group.start + i;
+
+        positions.push(
+          posAttr.getX(vertexIdx),
+          posAttr.getY(vertexIdx),
+          posAttr.getZ(vertexIdx)
+        );
+
+        if (normAttr) {
+          normals.push(
+            normAttr.getX(vertexIdx),
+            normAttr.getY(vertexIdx),
+            normAttr.getZ(vertexIdx)
+          );
+        }
+
+        if (uvAttr) {
+          uvs.push(
+            uvAttr.getX(vertexIdx),
+            uvAttr.getY(vertexIdx)
+          );
+        }
+      }
+    }
+
+    if (positions.length === 0) {
+      console.error('No positions extracted for group');
+      return null;
+    }
+
+    const groupGeometry = new THREE.BufferGeometry();
+    groupGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    if (normals.length > 0) {
+      groupGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+    } else {
+      groupGeometry.computeVertexNormals();
+    }
+
+    if (uvs.length > 0) {
+      groupGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    }
+
+    return groupGeometry;
   }
 
   /**

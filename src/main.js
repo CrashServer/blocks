@@ -3464,18 +3464,11 @@ class App {
   }
 
   updateExportStats() {
-    const cullFaces = document.getElementById('opt-face-cull').checked;
-    const mergeCubes = document.getElementById('opt-merge-cubes').checked;
-
-    const stats = this.exporter.getOptimizationStats(this.blockManager, {
-      cullFaces,
-      mergeCubes
-    });
+    const stats = this.exporter.getOptimizationStats(this.blockManager, {});
 
     document.getElementById('stat-blocks').textContent = stats.blockCount;
-    document.getElementById('stat-faces').textContent = stats.originalFaces;
-    document.getElementById('stat-optimized').textContent =
-      `${stats.optimizedFaces} (-${stats.reduction}%)`;
+    document.getElementById('stat-materials').textContent = stats.uniqueMaterials;
+    document.getElementById('stat-materials-inline').textContent = stats.uniqueMaterials;
   }
 
   setupExportModal() {
@@ -3497,15 +3490,6 @@ class App {
       }
     });
 
-    // Update stats when options change
-    document.getElementById('opt-face-cull').addEventListener('change', () => {
-      this.updateExportStats();
-    });
-
-    document.getElementById('opt-merge-cubes').addEventListener('change', () => {
-      this.updateExportStats();
-    });
-
     // Export confirm
     document.getElementById('export-confirm').addEventListener('click', async () => {
       await this.performExport();
@@ -3515,18 +3499,8 @@ class App {
   async performExport() {
     // Gather options from modal
     const formatGLB = document.querySelector('input[name="export-format"][value="glb"]').checked;
-    const cullFaces = document.getElementById('opt-face-cull').checked;
-    const mergeCubes = document.getElementById('opt-merge-cubes').checked;
-    const batchMaterials = document.getElementById('opt-material-batch').checked;
-    const deduplicateVertices = document.getElementById('opt-deduplicate').checked;
-    const mergeAll = document.getElementById('opt-merge-all').checked;
-    const useInstancing = document.getElementById('opt-instancing').checked;
     const includeAnimations = document.getElementById('inc-animations').checked;
     const includeBakedLighting = document.getElementById('inc-baked-lighting').checked;
-    const exportLightmap = document.getElementById('dbg-lightmap').checked;
-    const exportDebugColors = document.getElementById('dbg-colors').checked;
-    const exportPalette = document.getElementById('dbg-palette').checked;
-    const exportJson = document.getElementById('dbg-json').checked;
 
     const exportBtn = document.getElementById('export-confirm');
     const originalText = exportBtn.textContent;
@@ -3534,50 +3508,19 @@ class App {
     exportBtn.disabled = true;
 
     try {
-      // Main export
+      // Main export - always use material consolidation
       const data = await this.exporter.exportScene(this.blockManager, {
         binary: formatGLB,
         includeAnimations,
         animator: this.animator,
         bakedTexture: includeBakedLighting ? this.bakedTexture : null,
         uvData: includeBakedLighting ? this.bakedUVData : null,
-        cullFaces,
-        mergeCubes,
-        batchMaterials,
-        deduplicateVertices,
-        mergeAll,
-        useInstancing
+        consolidateMaterials: true, // Always enabled
+        deduplicateVertices: true   // Always enabled for smaller files
       });
 
       const filename = formatGLB ? 'model.glb' : 'model.gltf';
       this.exporter.downloadFile(data, filename, formatGLB);
-
-      // Debug exports
-      if (exportJson && formatGLB) {
-        // Also export GLTF JSON for inspection
-        const jsonData = await this.exporter.exportScene(this.blockManager, {
-          binary: false,
-          includeAnimations,
-          animator: this.animator,
-          bakedTexture: includeBakedLighting ? this.bakedTexture : null,
-          uvData: includeBakedLighting ? this.bakedUVData : null
-        });
-        this.exporter.downloadFile(jsonData, 'model.gltf', false);
-      }
-
-      if (exportLightmap && this.bakedTexture) {
-        this.lightBaker.downloadCanvasAsPNG(this.bakedTexture, 'baked_lightmap.png');
-      }
-
-      if (exportDebugColors) {
-        const debugCanvas = this.lightBaker.generateDebugTexture(this.blockManager);
-        this.lightBaker.downloadCanvasAsPNG(debugCanvas, 'debug_colors.png');
-      }
-
-      if (exportPalette) {
-        const paletteCanvas = this.generateColorPalette();
-        this.lightBaker.downloadCanvasAsPNG(paletteCanvas, 'color_palette.png');
-      }
 
       console.log('Export completed successfully');
       this.hideExportModal();

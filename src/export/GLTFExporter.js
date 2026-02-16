@@ -21,6 +21,7 @@ export class GLTFExporter {
       batchMaterials = false,
       useInstancing = false,
       mergeAll = false,
+      consolidateMaterials = false,
       deduplicateVertices = true
     } = options;
 
@@ -34,7 +35,12 @@ export class GLTFExporter {
     // Determine if we should use optimization
     const useOptimization = cullFaces || mergeCubes || batchMaterials || mergeAll;
 
-    if (useInstancing && !bakedTexture) {
+    // Material consolidation takes priority (creates single mesh with material slots)
+    if (consolidateMaterials && !bakedTexture) {
+      const result = this.optimizer.consolidateMaterials(blocks);
+      exportScene.add(result.mesh);
+      console.log('Material consolidation stats:', result.stats);
+    } else if (useInstancing && !bakedTexture) {
       // Use instancing export path (best for many identical block types)
       const result = this.optimizer.createInstancedExport(blocks);
 
@@ -256,11 +262,13 @@ export class GLTFExporter {
     const blocks = blockManager.getAllBlocks();
     const originalFaces = this.optimizer.estimateFaceCount(blocks);
     const optimizedFaces = this.optimizer.estimateOptimizedCount(blocks, options);
+    const uniqueMaterials = this.optimizer.estimateUniqueMaterials(blocks);
 
     return {
       blockCount: blocks.length,
       originalFaces,
       optimizedFaces,
+      uniqueMaterials,
       reduction: originalFaces > 0
         ? Math.round((1 - optimizedFaces / originalFaces) * 100)
         : 0
