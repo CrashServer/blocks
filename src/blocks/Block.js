@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { FACE_DIRECTIONS } from '../texturing/FacePainter.js';
+import { getFaceNamesForBlockType } from '../texturing/FacePainter.js';
 import {
   GEOMETRY_CREATORS,
   BLOCK_HEIGHT_MULTIPLIERS,
@@ -33,12 +33,27 @@ export class Block {
 
     // Per-face materials and colors
     this.faces = {};
-    if (options.faces) {
-      // Deep copy faces
-      FACE_DIRECTIONS.forEach(dir => {
-        if (options.faces[dir]) {
-          this.faces[dir] = { ...options.faces[dir] };
-        } else {
+    const faceNames = getFaceNamesForBlockType(this.type);
+
+    if (faceNames) {
+      if (options.faces) {
+        // Deep copy faces from options
+        faceNames.forEach(dir => {
+          if (options.faces[dir]) {
+            this.faces[dir] = { ...options.faces[dir] };
+          } else {
+            this.faces[dir] = {
+              direction: dir,
+              materialId: null,
+              color: null, // null means use block.color
+              uvRotation: 0,
+              uvFlip: { x: false, y: false }
+            };
+          }
+        });
+      } else {
+        // Initialize default faces for this block type
+        faceNames.forEach(dir => {
           this.faces[dir] = {
             direction: dir,
             materialId: null,
@@ -46,19 +61,12 @@ export class Block {
             uvRotation: 0,
             uvFlip: { x: false, y: false }
           };
-        }
-      });
+        });
+      }
     } else {
-      // Initialize default faces
-      FACE_DIRECTIONS.forEach(dir => {
-        this.faces[dir] = {
-          direction: dir,
-          materialId: null,
-          color: null, // null means use block.color
-          uvRotation: 0,
-          uvFlip: { x: false, y: false }
-        };
-      });
+      // Single-material block (spheres, complex merged geometries)
+      // No per-face support
+      this.faces = {};
     }
 
     this.mesh = null;
@@ -75,13 +83,22 @@ export class Block {
       geometry.scale(this.scale, this.scale, this.scale);
     }
 
-    // Check if geometry supports 6-face materials (BoxGeometry has 6 groups)
-    const supportsPerFaceMaterials = geometry.groups && geometry.groups.length === 6;
+    // Get face names for this block type
+    const faceNames = getFaceNamesForBlockType(this.type);
+
+    // Add material groups if this geometry type supports per-face painting but doesn't have groups yet
+    if (faceNames && faceNames.length > 1 && (!geometry.groups || geometry.groups.length === 0)) {
+      console.log(`Adding groups for ${this.type}, expected faces:`, faceNames);
+      this.addGeometryGroups(geometry, this.type, faceNames);
+      console.log(`Groups created:`, geometry.groups.length, geometry.groups);
+    } else if (faceNames && faceNames.length > 1) {
+      console.log(`${this.type} already has groups:`, geometry.groups.length);
+    }
 
     let material;
-    if (supportsPerFaceMaterials) {
-      // Create material array (6 materials for 6 faces) to support per-face coloring
-      material = FACE_DIRECTIONS.map(dir => {
+    if (faceNames && faceNames.length > 0) {
+      // Create material array for per-face painting support
+      material = faceNames.map(dir => {
         const face = this.faces[dir];
         const faceColor = (face && face.color) ? face.color : this.color;
 
@@ -100,7 +117,7 @@ export class Block {
         return mat;
       });
     } else {
-      // Single material for non-box geometries (spheres, cylinders, etc.)
+      // Single material for blocks that don't support per-face painting
       material = new THREE.MeshStandardMaterial({
         color: this.color,
         roughness: 0.7,
@@ -220,27 +237,33 @@ export class Block {
   setColor(color) {
     this.color = color;
     if (Array.isArray(this.mesh.material)) {
-      this.mesh.material.forEach((m, i) => {
-        const dir = FACE_DIRECTIONS[i];
-        // Only update faces that don't have a specific color set
-        if (!this.faces[dir] || !this.faces[dir].color) {
-          m.color.set(color);
-        }
-      });
+      const faceNames = getFaceNamesForBlockType(this.type);
+      if (faceNames) {
+        this.mesh.material.forEach((m, i) => {
+          const dir = faceNames[i];
+          // Only update faces that don't have a specific color set
+          if (!this.faces[dir] || !this.faces[dir].color) {
+            m.color.set(color);
+          }
+        });
+      }
     } else {
       this.mesh.material.color.set(color);
     }
   }
 
   setFaceColor(faceDirection, color) {
-    // For non-box geometries, just set the whole block color
+    // For blocks that don't support per-face painting, set whole block color
     if (!Array.isArray(this.mesh.material)) {
       this.color = color;
       this.mesh.material.color.set(color);
       return;
     }
 
-    const faceIndex = FACE_DIRECTIONS.indexOf(faceDirection);
+    const faceNames = getFaceNamesForBlockType(this.type);
+    if (!faceNames) return;
+
+    const faceIndex = faceNames.indexOf(faceDirection);
     if (faceIndex === -1) return;
 
     // Store the color in face data
@@ -260,7 +283,7 @@ export class Block {
   }
 
   getFaceColor(faceDirection) {
-    // For non-box geometries, return the block color
+    // For blocks that don't support per-face painting, return block color
     if (!Array.isArray(this.mesh.material)) {
       return this.color;
     }
@@ -269,11 +292,88 @@ export class Block {
   }
 
   /**
+   * Add material groups to geometry for per-face painting support
+   */
+  addGeometryGroups(geometry, blockType, faceNames) {
+    const index = geometry.getIndex();
+    if (!index) {
+      console.warn('Cannot add groups to non-indexed geometry:', blockType);
+      return;
+    }
+
+    const totalIndices = index.count;
+
+    // Clear existing groups
+    geometry.clearGroups();
+
+    // Cylinder-like geometries (cylinder, pipe, pillar, barrel, tube)
+    if (blockType.includes('cylinder') || blockType.includes('pipe') ||
+        blockType.includes('pillar') || blockType.includes('column') ||
+        blockType.includes('barrel') || blockType.includes('tube')) {
+
+      // CylinderGeometry structure (with caps):
+      // Indices are organized as: sides, top cap, bottom cap
+      // For radialSegments = N:
+      //   Sides: N * 2 triangles * 3 indices = N * 6 indices
+      //   Top cap: N triangles * 3 indices = N * 3 indices
+      //   Bottom cap: N triangles * 3 indices = N * 3 indices
+
+      // Try to infer radial segments from index count
+      // Total = N*6 + N*3 + N*3 = N*12
+      const radialSegments = totalIndices / 12;
+
+      if (Number.isInteger(radialSegments)) {
+        const sidesCount = radialSegments * 6;
+        const capCount = radialSegments * 3;
+
+        // Groups: [top, bottom, sides] - matching CYLINDER_FACES order
+        geometry.addGroup(sidesCount, capCount, 0); // top
+        geometry.addGroup(sidesCount + capCount, capCount, 1); // bottom
+        geometry.addGroup(0, sidesCount, 2); // sides
+      } else {
+        console.warn('Could not determine cylinder structure for:', blockType);
+      }
+    }
+    // Cone-like geometries
+    else if (blockType.includes('cone') || blockType.includes('pyramid')) {
+      // ConeGeometry structure:
+      // Indices organized as: cone surface, base cap
+      const radialSegments = Math.sqrt(totalIndices / 6); // Rough estimate
+
+      if (Number.isInteger(radialSegments)) {
+        const coneCount = radialSegments * 3;
+        const baseCount = radialSegments * 3;
+
+        // Groups: [base, cone] - matching CONE_FACES order
+        geometry.addGroup(coneCount, baseCount, 0); // base
+        geometry.addGroup(0, coneCount, 1); // cone surface
+      } else {
+        // Fallback: split in half
+        const half = Math.floor(totalIndices / 2);
+        geometry.addGroup(half, totalIndices - half, 0); // base
+        geometry.addGroup(0, half, 1); // cone
+      }
+    }
+    // Wedge geometries - these are typically merged geometries
+    else if (blockType.includes('wedge') || blockType.includes('ramp') || blockType.includes('slope')) {
+      // For wedges, we need to analyze the geometry more carefully
+      // For now, create even splits for 5 faces
+      const indicesPerFace = Math.floor(totalIndices / 5);
+      for (let i = 0; i < 5; i++) {
+        const start = i * indicesPerFace;
+        const count = i === 4 ? totalIndices - start : indicesPerFace;
+        geometry.addGroup(start, count, i);
+      }
+    }
+  }
+
+  /**
    * Check if this block supports per-face painting
-   * Only simple box geometries with 6 material groups support it
+   * Works for cubes, cylinders, cones, wedges, and other supported types
    */
   supportsPerFacePainting() {
-    return Array.isArray(this.mesh.material) && this.mesh.material.length === 6;
+    const faceNames = getFaceNamesForBlockType(this.type);
+    return faceNames !== null && Array.isArray(this.mesh.material);
   }
 
   setEmissive(enabled, color = null, intensity = null, radius = null) {

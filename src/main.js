@@ -458,21 +458,33 @@ class App {
       this.updateSelectionUI();
     };
 
-    // Helper to transform world normal to block's local space (accounting for rotation)
-    const getLocalFaceDirection = (worldNormal, block) => {
-      // Create inverse rotation quaternion from block's rotation
-      const euler = new THREE.Euler(
-        THREE.MathUtils.degToRad(block.rotation.x),
-        THREE.MathUtils.degToRad(block.rotation.y),
-        THREE.MathUtils.degToRad(block.rotation.z)
-      );
-      const quat = new THREE.Quaternion().setFromEuler(euler);
-      const invQuat = quat.clone().invert();
+    // Helper to get face direction from raycast result
+    const getFaceDirection = (result) => {
+      if (!result || !result.block) return null;
 
-      // Transform world normal to local space
-      const localNormal = worldNormal.clone().applyQuaternion(invQuat);
+      const block = result.block;
 
-      return this.facePainter.getFaceFromNormal(localNormal);
+      // Create a local intersect object with the face data
+      const localIntersect = {
+        faceIndex: result.faceIndex,
+        face: {
+          normal: result.normal ? result.normal.clone() : null
+        }
+      };
+
+      // If block is rotated, transform the normal to local space
+      if (localIntersect.face.normal) {
+        const euler = new THREE.Euler(
+          THREE.MathUtils.degToRad(block.rotation.x),
+          THREE.MathUtils.degToRad(block.rotation.y),
+          THREE.MathUtils.degToRad(block.rotation.z)
+        );
+        const quat = new THREE.Quaternion().setFromEuler(euler);
+        const invQuat = quat.clone().invert();
+        localIntersect.face.normal.applyQuaternion(invQuat);
+      }
+
+      return this.facePainter.getFaceFromIntersect(block, localIntersect);
     };
 
     // Track last painted position for shift+click line painting
@@ -487,7 +499,9 @@ class App {
     let lastComplexBlockNotification = 0;
 
     // Helper to paint a single block/face and return history action
-    const paintBlockOrFace = (block, normal) => {
+    const paintBlockOrFace = (result) => {
+      const block = result.block;
+
       // Check if face mode but block doesn't support per-face painting
       const forceBlockMode = this.paintMode === 'face' && !block.supportsPerFacePainting();
 
@@ -498,7 +512,7 @@ class App {
           lastComplexBlockNotification = now;
           const hint = document.getElementById('tool-hint');
           const originalText = hint.textContent;
-          hint.textContent = `Complex block "${block.type}" - painting entire block (face mode not supported)`;
+          hint.textContent = `Block "${block.type}" doesn't support per-face painting - painting entire block`;
           hint.style.color = '#ffaa00';
           setTimeout(() => {
             hint.textContent = originalText;
@@ -519,7 +533,20 @@ class App {
         block.setColor(this.currentColor);
         return createPaintBlockColorAction(block, oldColor, this.currentColor, oldFaces);
       } else {
-        const faceDirection = getLocalFaceDirection(normal, block);
+        const faceDirection = getFaceDirection(result);
+        if (!faceDirection) {
+          // Fallback to block mode if face detection failed
+          const oldColor = block.color;
+          const oldFaces = {};
+          Object.entries(block.faces).forEach(([dir, face]) => {
+            if (face && face.color) {
+              oldFaces[dir] = { color: face.color };
+            }
+          });
+          block.setColor(this.currentColor);
+          return createPaintBlockColorAction(block, oldColor, this.currentColor, oldFaces);
+        }
+
         const oldColor = block.getFaceColor(faceDirection);
         // Check if face had explicit color or was using block color
         const hadExplicitColor = block.faces[faceDirection] && block.faces[faceDirection].color !== null;
@@ -562,7 +589,7 @@ class App {
         };
         const block = this.blockManager.getBlockAtPosition(pos);
         if (block) {
-          blocks.push({ block, normal });
+          blocks.push({ block, normal, faceIndex });
         }
       }
       return blocks;
@@ -576,10 +603,10 @@ class App {
 
       // Shift+click: paint line from last position to current
       if (shiftKey && lastPaintedPosition) {
-        const blocksToPoint = getBlocksAlongLine(lastPaintedPosition, currentPos, result.normal);
+        const blocksToPoint = getBlocksAlongLine(lastPaintedPosition, currentPos, result.faceIndex, result.normal);
         const actions = [];
-        blocksToPoint.forEach(({ block, normal }) => {
-          const action = paintBlockOrFace(block, normal);
+        blocksToPoint.forEach((blockResult) => {
+          const action = paintBlockOrFace(blockResult);
           actions.push(action);
         });
         if (actions.length > 0) {
@@ -587,7 +614,7 @@ class App {
         }
       } else {
         // Normal single block/face paint
-        const action = paintBlockOrFace(result.block, result.normal);
+        const action = paintBlockOrFace(result);
 
         // If we're dragging, collect actions for batch undo
         if (this.inputManager.isPainting && !isPaintDragging) {
@@ -625,8 +652,13 @@ class App {
     // Handle color picking - picks from the clicked face
     this.inputManager.onPick = (result) => {
       if (result && result.block) {
-        const faceDirection = getLocalFaceDirection(result.normal, result.block);
-        this.currentColor = result.block.getFaceColor(faceDirection);
+        const faceDirection = getFaceDirection(result);
+        if (faceDirection) {
+          this.currentColor = result.block.getFaceColor(faceDirection);
+        } else {
+          // Fallback to block color if face detection failed
+          this.currentColor = result.block.color;
+        }
         this.colorInput.value = this.currentColor;
         this.updateColorSwatchSelection();
       }
