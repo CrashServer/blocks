@@ -44,6 +44,14 @@ export const TEMPLATE_CATEGORIES = {
   alien: {
     label: 'Alien Structures',
     templates: ['nexusSpire', 'hiveNode', 'energyPylon', 'growthChamber', 'scoutWisp', 'sentinel', 'construct']
+  },
+  ammo: {
+    label: 'Ammo Factory',
+    templates: ['ammoFactoryHall', 'assemblyLine', 'ammoStorageBunker', 'gunpowderDepot', 'artilleryAssembly', 'shippingDock', 'munitionsRack', 'tankFactory', 'productionComplex', 'missileBay', 'radarStation', 'energyNode', 'antennaArray', 'ammoFactoryOpen', 'materialRefinery']
+  },
+  ruins: {
+    label: 'Ruins & Huts',
+    templates: ['decayedTenement', 'ancientTemple', 'hutVillage', 'triumphalArch', 'aqueductRuin']
   }
 };
 
@@ -5944,6 +5952,3208 @@ export const TEMPLATES = {
       // === MOBILITY BASE ===
       { type: 'torus', position: { x: 0, y: 0, z: 0 }, color: '#0D4D4D' },
       { type: 'sphere', position: { x: 0, y: 0, z: 0 }, color: '#1A5C5C' },
+    ]
+  },
+
+  // =====================
+  // AMMO FACTORY
+  // =====================
+  ammoFactoryHall: {
+    name: 'Ammo Factory Hall',
+    category: 'ammo',
+    description: 'Industrial ammunition production hall with assembly lines, presses, robotic arms and storage',
+    blocks: [
+      // === FOUNDATION & CONCRETE FLOOR ===
+      ...makeFloor(0, 0, 0, 12, 9, '#4A4A4A'),
+      // Drainage grates
+      { type: 'grate', position: { x: 5, y: 0, z: 4 }, color: '#2A2A2A' },
+      { type: 'grate', position: { x: 6, y: 0, z: 4 }, color: '#2A2A2A' },
+      // Yellow safety lines
+      { type: 'panel', position: { x: 1, y: 0, z: 1 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 10, y: 0, z: 1 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 1, y: 0, z: 7 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 10, y: 0, z: 7 }, color: '#FFD700' },
+
+      // === STEEL FRAME WALLS (corrugated) ===
+      ...makeWallX(0, 1, 0, 12, 4, '#5A6678'),
+      ...makeWallX(0, 1, 8, 12, 4, '#5A6678'),
+      ...makeWallZ(0, 1, 1, 7, 4, '#5A6678'),
+      ...makeWallZ(11, 1, 1, 7, 4, '#5A6678'),
+
+      // === ROOF ===
+      ...makeFloor(0, 5, 0, 12, 9, '#3F3F3F'),
+      // Skylights
+      { type: 'panel', position: { x: 3, y: 5, z: 4 }, color: '#87CEEB' },
+      { type: 'panel', position: { x: 5, y: 5, z: 4 }, color: '#87CEEB' },
+      { type: 'panel', position: { x: 7, y: 5, z: 4 }, color: '#87CEEB' },
+      { type: 'panel', position: { x: 9, y: 5, z: 4 }, color: '#87CEEB' },
+
+      // === STRUCTURAL I-BEAMS (column grid) ===
+      { type: 'iBeam', position: { x: 0, y: 1, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 2, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 3, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 4, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 1, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 2, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 3, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 4, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 1, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 2, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 3, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 0, y: 4, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 1, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 2, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 3, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 11, y: 4, z: 8 }, color: '#8B0000' },
+      // Mid columns
+      { type: 'iBeam', position: { x: 5, y: 1, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 2, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 3, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 4, z: 0 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 1, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 2, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 3, z: 8 }, color: '#8B0000' },
+      { type: 'iBeam', position: { x: 5, y: 4, z: 8 }, color: '#8B0000' },
+
+      // === LOADING BAY DOOR ===
+      { type: 'doorFrame', position: { x: 5, y: 1, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 6, y: 1, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 5, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 6, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 5, y: 3, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 6, y: 3, z: 0 }, color: '#FFD700' },
+
+      // === INDUSTRIAL WINDOWS (high) ===
+      { type: 'windowFrame', position: { x: 2, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 9, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 2, y: 3, z: 8 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 9, y: 3, z: 8 }, color: '#4682B4' },
+
+      // === ASSEMBLY LINE 1 (bullet production) ===
+      // Stamper press at start
+      { type: 'stamperPress', position: { x: 1, y: 1, z: 2 }, color: '#3A3A3A' },
+      // Conveyor flowing right with cartridges
+      { type: 'conveyorAmmo', position: { x: 2, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 3, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 4, y: 1, z: 2 }, color: '#2A2A2A' },
+      // Robotic arm picking
+      { type: 'assemblyArm', position: { x: 3, y: 2, z: 2 }, color: '#FFA500' },
+      // More conveyor
+      { type: 'conveyor', position: { x: 5, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 6, y: 1, z: 2 }, color: '#2A2A2A' },
+      // Output crate at end
+      { type: 'cartridgeBox', position: { x: 7, y: 1, z: 2 }, color: '#8B4513' },
+      { type: 'ammoCrate', position: { x: 8, y: 1, z: 2 }, color: '#556B2F' },
+      // Hopper feeding the line from above
+      { type: 'hopper', position: { x: 1, y: 3, z: 2 }, color: '#606060' },
+      { type: 'pipeY', position: { x: 1, y: 2, z: 2 }, color: '#808080' },
+
+      // === ASSEMBLY LINE 2 (shell casing forming) ===
+      { type: 'stamperPress', position: { x: 1, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'conveyor', position: { x: 2, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'shellCasing', position: { x: 2, y: 2, z: 6 }, color: '#DAA520' },
+      { type: 'conveyor', position: { x: 3, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'shellCasing', position: { x: 3, y: 2, z: 6 }, color: '#DAA520' },
+      { type: 'conveyor', position: { x: 4, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'assemblyArm', position: { x: 4, y: 2, z: 6 }, color: '#FFA500' },
+      { type: 'conveyor', position: { x: 5, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 6, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'cartridgeBox', position: { x: 7, y: 1, z: 6 }, color: '#8B4513' },
+      { type: 'ammoCrate', position: { x: 8, y: 1, z: 6 }, color: '#556B2F' },
+
+      // === STORAGE / FINISHED GOODS (right side) ===
+      { type: 'pallet', position: { x: 9, y: 1, z: 2 }, color: '#A0522D' },
+      { type: 'ammoCrate', position: { x: 9, y: 1, z: 3 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 9, y: 2, z: 3 }, color: '#556B2F' },
+      { type: 'ammoCan', position: { x: 9, y: 1, z: 4 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 9, y: 1, z: 5 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 9, y: 2, z: 4 }, color: '#3F4A2A' },
+      { type: 'pallet', position: { x: 9, y: 1, z: 6 }, color: '#A0522D' },
+      { type: 'ammoCrate', position: { x: 9, y: 2, z: 6 }, color: '#556B2F' },
+
+      // === CONTROL PANELS along walls ===
+      { type: 'controlPanel', position: { x: 4, y: 1, z: 1 }, color: '#2F4F4F' },
+      { type: 'controlPanel', position: { x: 7, y: 1, z: 1 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 0, y: 3, z: 4 }, color: '#1A1A1A' },
+
+      // === HAZARD SIGNAGE ===
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'hazardSign', position: { x: 11, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'sign', position: { x: 5, y: 4, z: 1 }, color: '#FF4500' },
+
+      // === CATWALK overhead ===
+      { type: 'catwalk', position: { x: 2, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 3, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 4, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 5, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 6, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 7, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 8, y: 4, z: 4 }, color: '#3A3A3A' },
+      ...makeRow(2, 5, 4, 7, 'X', 'railing', '#505050'),
+
+      // === DUCTING along ceiling ===
+      ...makeRow(0, 4, 0, 12, 'X', 'ductX', '#909090'),
+      ...makeRow(0, 4, 8, 12, 'X', 'ductX', '#909090'),
+
+      // === LIGHTING ===
+      { type: 'lightFixture', position: { x: 2, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 6, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 9, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 2, y: 4, z: 6 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 6, y: 4, z: 6 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 9, y: 4, z: 6 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+
+      // === FANS for ventilation ===
+      { type: 'industrialFan', position: { x: 0, y: 3, z: 2 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 0, y: 3, z: 6 }, color: '#404040' },
+
+      // === FUSE BOX ===
+      { type: 'fuseBox', position: { x: 11, y: 1, z: 2 }, color: '#404040' },
+      { type: 'powerBox', position: { x: 11, y: 1, z: 6 }, color: '#2F4F4F' },
+
+      // === CHIMNEY / EXHAUST ===
+      { type: 'chimney', position: { x: 1, y: 5, z: 1 }, color: '#3A3A3A' },
+      { type: 'chimney', position: { x: 1, y: 6, z: 1 }, color: '#3A3A3A' },
+      { type: 'chimney', position: { x: 1, y: 7, z: 1 }, color: '#2A2A2A' },
+
+      // === ROOFTOP TANKS (cooling/water) ===
+      { type: 'tank', position: { x: 9, y: 5, z: 1 }, color: '#A8B8C8' },
+      { type: 'tank', position: { x: 9, y: 6, z: 1 }, color: '#A8B8C8' },
+      { type: 'pipeY', position: { x: 9, y: 5, z: 7 }, color: '#909090' },
+    ]
+  },
+
+  assemblyLine: {
+    name: 'Ammo Assembly Line',
+    category: 'ammo',
+    description: 'Compact bullet production line with stamper, robotic arm and conveyor',
+    blocks: [
+      // === FLOOR ===
+      ...makeFloor(0, 0, 0, 9, 4, '#4A4A4A'),
+      // Yellow line
+      { type: 'panel', position: { x: 1, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 7, y: 0, z: 0 }, color: '#FFD700' },
+
+      // === STATION 1: BRASS HOPPER + STAMPER ===
+      { type: 'pillar', position: { x: 1, y: 1, z: 1 }, color: '#505050' },
+      { type: 'pillar', position: { x: 1, y: 2, z: 1 }, color: '#505050' },
+      { type: 'hopper', position: { x: 1, y: 3, z: 1 }, color: '#707070' },
+      { type: 'shellCasing', position: { x: 1, y: 4, z: 1 }, color: '#DAA520' },
+      { type: 'stamperPress', position: { x: 1, y: 1, z: 2 }, color: '#3A3A3A' },
+      { type: 'pipeY', position: { x: 1, y: 2, z: 2 }, color: '#808080' },
+
+      // === CONVEYOR DOWN THE LINE ===
+      { type: 'conveyorAmmo', position: { x: 2, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 3, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 4, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 5, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 6, y: 1, z: 2 }, color: '#2A2A2A' },
+
+      // === STATION 2: ROBOTIC ARM (powder filling) ===
+      { type: 'pillar', position: { x: 3, y: 1, z: 3 }, color: '#505050' },
+      { type: 'assemblyArm', position: { x: 3, y: 2, z: 2 }, color: '#FFA500' },
+      // Powder source
+      { type: 'gunpowderBarrel', position: { x: 3, y: 1, z: 3 }, color: '#1C1C1C' },
+      { type: 'pipeY', position: { x: 3, y: 2, z: 3 }, color: '#808080' },
+
+      // === STATION 3: PRIMER INSERT ===
+      { type: 'primerBox', position: { x: 5, y: 1, z: 3 }, color: '#8B4513' },
+      { type: 'assemblyArm', position: { x: 5, y: 2, z: 2 }, color: '#FFA500' },
+
+      // === STATION 4: PACKAGING ===
+      { type: 'cartridgeBox', position: { x: 6, y: 2, z: 2 }, color: '#8B4513' },
+      { type: 'ammoCrate', position: { x: 7, y: 1, z: 2 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 7, y: 2, z: 2 }, color: '#556B2F' },
+      { type: 'pallet', position: { x: 8, y: 1, z: 2 }, color: '#A0522D' },
+      { type: 'ammoCan', position: { x: 8, y: 1, z: 1 }, color: '#3F4A2A' },
+
+      // === CONTROL PANEL ===
+      { type: 'controlPanel', position: { x: 4, y: 1, z: 0 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 5, y: 1, z: 0 }, color: '#1A1A1A' },
+
+      // === SAFETY ===
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 2 }, color: '#FFD700' },
+      { type: 'fuseBox', position: { x: 8, y: 1, z: 0 }, color: '#404040' },
+      { type: 'cableY', position: { x: 8, y: 2, z: 0 }, color: '#1A1A1A' },
+      ...makeRow(2, 3, 0, 6, 'X', 'cableX', '#1A1A1A'),
+      ...makeRow(2, 3, 0, 6, 'X', 'beamX', '#404040'),
+
+      // === LIGHTING ===
+      { type: 'lightFixture', position: { x: 2, y: 3, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.6, radius: 4 } },
+      { type: 'lightFixture', position: { x: 5, y: 3, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.6, radius: 4 } },
+
+      // === SCRAP CASING BIN ===
+      { type: 'bin', position: { x: 0, y: 1, z: 3 }, color: '#5A5A5A' },
+      { type: 'shellCasing', position: { x: 0, y: 2, z: 3 }, color: '#B8860B' },
+    ]
+  },
+
+  ammoStorageBunker: {
+    name: 'Ammo Storage Bunker',
+    category: 'ammo',
+    description: 'Reinforced concrete bunker with stacks of ammo crates and ammo cans',
+    blocks: [
+      // === REINFORCED FOUNDATION ===
+      ...makeFloor(0, 0, 0, 9, 7, '#5A5A5A'),
+
+      // === THICK CONCRETE WALLS ===
+      ...makeWallX(0, 1, 0, 9, 3, '#707070'),
+      ...makeWallX(0, 1, 6, 9, 3, '#707070'),
+      ...makeWallZ(0, 1, 1, 5, 3, '#707070'),
+      ...makeWallZ(8, 1, 1, 5, 3, '#707070'),
+      // Reinforcement (inner liner)
+      ...makeWallX(0, 1, 1, 9, 3, '#5A5A5A'),
+      ...makeWallX(0, 1, 5, 9, 3, '#5A5A5A'),
+
+      // === REINFORCED ROOF (3 layers) ===
+      ...makeFloor(0, 4, 0, 9, 7, '#606060'),
+      ...makeFloor(0, 5, 0, 9, 7, '#4A4A4A'),
+
+      // === BLAST DOOR ENTRY ===
+      { type: 'arch', position: { x: 4, y: 1, z: 0 }, color: '#3A3A3A' },
+      { type: 'doorFrame', position: { x: 4, y: 1, z: 0 }, color: '#7A2A2A' },
+      { type: 'doorFrame', position: { x: 4, y: 2, z: 0 }, color: '#7A2A2A' },
+
+      // === STACKED AMMO CRATES (rows) ===
+      // Row 1
+      { type: 'ammoCrate', position: { x: 1, y: 1, z: 2 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 2, y: 1, z: 2 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 3, y: 1, z: 2 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 1, y: 2, z: 2 }, color: '#4F5F40' },
+      { type: 'ammoCrate', position: { x: 2, y: 2, z: 2 }, color: '#4F5F40' },
+      { type: 'ammoCrate', position: { x: 3, y: 2, z: 2 }, color: '#4F5F40' },
+      // Row 2
+      { type: 'ammoCrate', position: { x: 1, y: 1, z: 3 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 2, y: 1, z: 3 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 3, y: 1, z: 3 }, color: '#556B2F' },
+
+      // === AMMO CANS STACKED ===
+      { type: 'pallet', position: { x: 5, y: 1, z: 2 }, color: '#A0522D' },
+      { type: 'ammoCan', position: { x: 5, y: 1, z: 2 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 5, y: 1, z: 3 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 6, y: 1, z: 2 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 6, y: 1, z: 3 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 5, y: 2, z: 2 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 5, y: 2, z: 3 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 6, y: 2, z: 2 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 6, y: 2, z: 3 }, color: '#4F5F40' },
+
+      // === ARTILLERY SHELL RACK ===
+      { type: 'pallet', position: { x: 1, y: 1, z: 4 }, color: '#A0522D' },
+      { type: 'artilleryShell', position: { x: 1, y: 1, z: 4 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 2, y: 1, z: 4 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 3, y: 1, z: 4 }, color: '#4F5F40' },
+
+      // === ROCKETS / MISSILES ===
+      { type: 'rocketShell', position: { x: 5, y: 1, z: 4 }, color: '#3F3F3F' },
+      { type: 'rocketShell', position: { x: 6, y: 1, z: 4 }, color: '#3F3F3F' },
+
+      // === GRENADE BOX ===
+      { type: 'crateOpen', position: { x: 7, y: 1, z: 4 }, color: '#556B2F' },
+      { type: 'grenade', position: { x: 7, y: 2, z: 4 }, color: '#3D4D2D' },
+
+      // === SHELVING ===
+      { type: 'shelfUnit', position: { x: 7, y: 1, z: 2 }, color: '#404040' },
+      { type: 'cartridgeBox', position: { x: 7, y: 2, z: 2 }, color: '#8B4513' },
+      { type: 'shelfUnit', position: { x: 7, y: 1, z: 3 }, color: '#404040' },
+      { type: 'cartridgeBox', position: { x: 7, y: 2, z: 3 }, color: '#8B4513' },
+
+      // === HAZARD SIGNS ===
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 3 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 8, y: 1, z: 3 }, color: '#FF4500' },
+      { type: 'sign', position: { x: 3, y: 3, z: 0 }, color: '#FFD700' },
+
+      // === LIGHTING ===
+      { type: 'bulb', position: { x: 2, y: 3, z: 3 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+      { type: 'bulb', position: { x: 5, y: 3, z: 3 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+      { type: 'bulb', position: { x: 7, y: 3, z: 3 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+
+      // === SANDBAGS OUTSIDE ENTRY ===
+      { type: 'sack', position: { x: 3, y: 0, z: -1 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 4, y: 0, z: -1 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 5, y: 0, z: -1 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 3, y: 1, z: -1 }, color: '#9C8466' },
+      { type: 'sack', position: { x: 5, y: 1, z: -1 }, color: '#9C8466' },
+
+      // === SECURITY CAMERA ===
+      { type: 'spotlight', position: { x: 0, y: 4, z: 0 }, color: '#3A3A3A' },
+      { type: 'spotlight', position: { x: 8, y: 4, z: 0 }, color: '#3A3A3A' },
+
+      // === CABLES along ceiling ===
+      ...makeRow(1, 3, 1, 7, 'X', 'cableX', '#1A1A1A'),
+      ...makeRow(1, 3, 5, 7, 'X', 'cableX', '#1A1A1A'),
+    ]
+  },
+
+  gunpowderDepot: {
+    name: 'Gunpowder Depot',
+    category: 'ammo',
+    description: 'Outdoor hazard yard with rows of gunpowder barrels and explosives',
+    blocks: [
+      // === CONCRETE PAD ===
+      ...makeFloor(0, 0, 0, 10, 8, '#7A7A7A'),
+      // Hazard stripe pattern
+      { type: 'panel', position: { x: 0, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 1, y: 0, z: 0 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 2, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 3, y: 0, z: 0 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 4, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 5, y: 0, z: 0 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 6, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 7, y: 0, z: 0 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 8, y: 0, z: 0 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 9, y: 0, z: 0 }, color: '#1A1A1A' },
+
+      // === FENCED PERIMETER ===
+      ...makeRow(0, 1, 7, 10, 'X', 'fence', '#3A3A3A'),
+      ...makeRow(0, 1, 0, 8, 'Z', 'fenceZ', '#3A3A3A'),
+      ...makeRow(9, 1, 0, 8, 'Z', 'fenceZ', '#3A3A3A'),
+      // Gate
+      { type: 'gateDouble', position: { x: 4, y: 1, z: 7 }, color: '#5A2A2A' },
+      { type: 'gateDouble', position: { x: 5, y: 1, z: 7 }, color: '#5A2A2A' },
+
+      // === ROW 1: GUNPOWDER BARRELS (3 across) ===
+      { type: 'gunpowderBarrel', position: { x: 1, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 2, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 3, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 4, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 5, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 6, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 7, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 8, y: 1, z: 2 }, color: '#1C1C1C' },
+
+      // === ROW 2: EXPLOSIVE BARRELS ===
+      { type: 'explosiveBarrel', position: { x: 1, y: 1, z: 4 }, color: '#C70039' },
+      { type: 'explosiveBarrel', position: { x: 2, y: 1, z: 4 }, color: '#C70039' },
+      { type: 'explosiveBarrel', position: { x: 3, y: 1, z: 4 }, color: '#C70039' },
+      { type: 'explosiveBarrel', position: { x: 6, y: 1, z: 4 }, color: '#C70039' },
+      { type: 'explosiveBarrel', position: { x: 7, y: 1, z: 4 }, color: '#C70039' },
+      { type: 'explosiveBarrel', position: { x: 8, y: 1, z: 4 }, color: '#C70039' },
+
+      // === ROW 3: STACKED BARRELS ===
+      { type: 'gunpowderBarrel', position: { x: 1, y: 1, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 1, y: 2, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 2, y: 1, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 2, y: 2, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 7, y: 1, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 7, y: 2, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 8, y: 1, z: 6 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 8, y: 2, z: 6 }, color: '#1C1C1C' },
+
+      // === GUARD TOWER ===
+      { type: 'pillar', position: { x: 0, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 0, y: 2, z: 7 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 0, y: 3, z: 7 }, color: '#5A5A5A' },
+      { type: 'platform', position: { x: 0, y: 4, z: 7 }, color: '#3A3A3A' },
+      { type: 'spotlight', position: { x: 0, y: 4, z: 7 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.2, radius: 8 } },
+      { type: 'pillar', position: { x: 9, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 9, y: 2, z: 7 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 9, y: 3, z: 7 }, color: '#5A5A5A' },
+      { type: 'platform', position: { x: 9, y: 4, z: 7 }, color: '#3A3A3A' },
+      { type: 'spotlight', position: { x: 9, y: 4, z: 7 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.2, radius: 8 } },
+
+      // === HAZARD SIGNS ===
+      { type: 'hazardSign', position: { x: 2, y: 1, z: 7 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 7, y: 1, z: 7 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 4, y: 1, z: 1 }, color: '#FF4500' },
+
+      // === FIRE EXTINGUISHER STATIONS (use cylinder + post) ===
+      { type: 'pillar2', position: { x: 0, y: 1, z: 3 }, color: '#3A3A3A' },
+      { type: 'cylinder', position: { x: 0, y: 1, z: 3 }, color: '#C70039' },
+      { type: 'pillar2', position: { x: 9, y: 1, z: 3 }, color: '#3A3A3A' },
+      { type: 'cylinder', position: { x: 9, y: 1, z: 3 }, color: '#C70039' },
+
+      // === BARRIER POSTS ===
+      { type: 'bollard', position: { x: 3, y: 1, z: 1 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 6, y: 1, z: 1 }, color: '#FFD700' },
+
+      // === A SCATTERED GRENADE ON GROUND (as detail) ===
+      { type: 'grenade', position: { x: 4, y: 1, z: 5 }, color: '#3D4D2D' },
+      { type: 'grenade', position: { x: 5, y: 1, z: 5 }, color: '#3D4D2D' },
+    ]
+  },
+
+  artilleryAssembly: {
+    name: 'Artillery Assembly',
+    category: 'ammo',
+    description: 'Heavy munitions workshop assembling artillery shells, mortars and rockets',
+    blocks: [
+      // === FLOOR ===
+      ...makeFloor(0, 0, 0, 10, 6, '#4A4A4A'),
+      { type: 'grateFloor', position: { x: 4, y: 0, z: 2 }, color: '#2A2A2A' },
+      { type: 'grateFloor', position: { x: 5, y: 0, z: 2 }, color: '#2A2A2A' },
+
+      // === BACK WALL ===
+      ...makeWallX(0, 1, 0, 10, 4, '#5A6678'),
+      // Side walls
+      ...makeWallZ(0, 1, 1, 5, 4, '#5A6678'),
+      ...makeWallZ(9, 1, 1, 5, 4, '#5A6678'),
+      // Roof
+      ...makeFloor(0, 5, 0, 10, 6, '#3F3F3F'),
+
+      // === COLUMNS ===
+      { type: 'iBeam', position: { x: 0, y: 1, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 2, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 3, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 4, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 9, y: 1, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 9, y: 2, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 9, y: 3, z: 0 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 9, y: 4, z: 0 }, color: '#7A2A2A' },
+
+      // === ARTILLERY SHELL RACK (back row) ===
+      { type: 'platform', position: { x: 1, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'platform', position: { x: 2, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'platform', position: { x: 3, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'platform', position: { x: 4, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'artilleryShell', position: { x: 1, y: 1, z: 1 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 2, y: 1, z: 1 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 3, y: 1, z: 1 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 4, y: 1, z: 1 }, color: '#4F5F40' },
+
+      // === MORTAR SHELL ROW ===
+      { type: 'platform', position: { x: 5, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'platform', position: { x: 6, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'platform', position: { x: 7, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'mortarShell', position: { x: 5, y: 1, z: 1 }, color: '#3D4D2D' },
+      { type: 'mortarShell', position: { x: 6, y: 1, z: 1 }, color: '#3D4D2D' },
+      { type: 'mortarShell', position: { x: 7, y: 1, z: 1 }, color: '#3D4D2D' },
+
+      // === ROCKET ASSEMBLY (vertical mount) ===
+      { type: 'rocketShell', position: { x: 8, y: 1, z: 1 }, color: '#3F3F3F' },
+      { type: 'rocketShell', position: { x: 8, y: 2, z: 1 }, color: '#3F3F3F' },
+
+      // === ASSEMBLY BENCH (long table) ===
+      ...makeRow(1, 1, 3, 7, 'X', 'table', '#4A4A4A'),
+      // Tools / pieces on bench
+      { type: 'shellCasing', position: { x: 1, y: 2, z: 3 }, color: '#DAA520' },
+      { type: 'primerBox', position: { x: 2, y: 2, z: 3 }, color: '#8B4513' },
+      { type: 'mortarShell', position: { x: 4, y: 2, z: 3 }, color: '#3D4D2D' },
+      { type: 'valve', position: { x: 5, y: 2, z: 3 }, color: '#B22222' },
+      { type: 'cartridgeBox', position: { x: 6, y: 2, z: 3 }, color: '#8B4513' },
+
+      // === ROBOTIC ARMS ===
+      { type: 'assemblyArm', position: { x: 2, y: 1, z: 4 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 5, y: 1, z: 4 }, color: '#FFA500' },
+
+      // === STAMPER PRESS (shell forming) ===
+      { type: 'stamperPress', position: { x: 7, y: 1, z: 4 }, color: '#3A3A3A' },
+
+      // === GUNPOWDER BARRELS (propellant) ===
+      { type: 'gunpowderBarrel', position: { x: 1, y: 1, z: 4 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 1, y: 1, z: 5 }, color: '#1C1C1C' },
+
+      // === CONTROL PANEL & MONITORS ===
+      { type: 'controlPanel', position: { x: 8, y: 1, z: 4 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 8, y: 1, z: 5 }, color: '#1A1A1A' },
+
+      // === OVERHEAD CRANE (using chains and beam) ===
+      ...makeRow(2, 4, 2, 6, 'X', 'iBeam', '#404040'),
+      { type: 'chain', position: { x: 4, y: 3, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 4, y: 2, z: 2 }, color: '#5A5A5A' },
+
+      // === HAZARD ZONE ===
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 3 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 9, y: 1, z: 3 }, color: '#FF4500' },
+
+      // === LIGHTING ===
+      { type: 'lightFixture', position: { x: 2, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 5, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+      { type: 'lightFixture', position: { x: 7, y: 4, z: 2 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.8, radius: 5 } },
+
+      // === CABLES ===
+      ...makeRow(1, 3, 0, 8, 'X', 'cableX', '#1A1A1A'),
+
+      // === FAN ===
+      { type: 'industrialFan', position: { x: 0, y: 3, z: 4 }, color: '#404040' },
+    ]
+  },
+
+  shippingDock: {
+    name: 'Ammo Shipping Dock',
+    category: 'ammo',
+    description: 'Loading dock with stacked ammo crates, conveyors, and forklift area',
+    blocks: [
+      // === RAISED DOCK PLATFORM ===
+      ...makeFloor(0, 0, 0, 10, 4, '#5A5A5A'),
+      ...makeFloor(0, 1, 0, 10, 4, '#6A6A6A'),
+      // Edge curb (yellow)
+      ...makeRow(0, 2, 0, 10, 'X', 'step', '#FFD700'),
+
+      // === BACK WAREHOUSE WALL ===
+      ...makeWallX(0, 2, 4, 10, 3, '#5A6678'),
+      // Roof overhang
+      ...makeFloor(0, 5, 0, 10, 5, '#3A3A3A'),
+
+      // === LOADING DOORS ===
+      { type: 'doorFrame', position: { x: 2, y: 2, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 3, y: 2, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 2, y: 3, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 3, y: 3, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 6, y: 2, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 7, y: 2, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 6, y: 3, z: 4 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 7, y: 3, z: 4 }, color: '#FFD700' },
+
+      // === STACKS OF AMMO CRATES ===
+      // Stack 1 (3 high pyramid)
+      { type: 'pallet', position: { x: 0, y: 2, z: 0 }, color: '#A0522D' },
+      { type: 'ammoCrate', position: { x: 0, y: 2, z: 0 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 0, y: 2, z: 1 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 0, y: 3, z: 0 }, color: '#4F5F40' },
+      { type: 'ammoCrate', position: { x: 0, y: 3, z: 1 }, color: '#4F5F40' },
+      { type: 'ammoCrate', position: { x: 0, y: 4, z: 0 }, color: '#4F5F40' },
+
+      // Stack 2 (mixed)
+      { type: 'pallet', position: { x: 4, y: 2, z: 0 }, color: '#A0522D' },
+      { type: 'ammoCan', position: { x: 4, y: 2, z: 0 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 4, y: 2, z: 1 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 5, y: 2, z: 0 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 5, y: 2, z: 1 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 4, y: 3, z: 0 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 4, y: 3, z: 1 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 5, y: 3, z: 0 }, color: '#4F5F40' },
+      { type: 'cartridgeBox', position: { x: 5, y: 3, z: 1 }, color: '#8B4513' },
+
+      // Stack 3 (large crate stack)
+      { type: 'pallet', position: { x: 8, y: 2, z: 0 }, color: '#A0522D' },
+      { type: 'crateLarge', position: { x: 8, y: 2, z: 0 }, color: '#556B2F' },
+      { type: 'crateLarge', position: { x: 8, y: 2, z: 1 }, color: '#556B2F' },
+      { type: 'crateLarge', position: { x: 8, y: 3, z: 0 }, color: '#4F5F40' },
+      { type: 'crateLarge', position: { x: 9, y: 2, z: 0 }, color: '#556B2F' },
+      { type: 'crateLarge', position: { x: 9, y: 2, z: 1 }, color: '#556B2F' },
+
+      // === CONVEYOR INTO WAREHOUSE ===
+      { type: 'conveyor', position: { x: 2, y: 2, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 2, y: 2, z: 3 }, color: '#2A2A2A' },
+      { type: 'cartridgeBox', position: { x: 2, y: 3, z: 3 }, color: '#8B4513' },
+      { type: 'conveyor', position: { x: 6, y: 2, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 6, y: 2, z: 3 }, color: '#2A2A2A' },
+      { type: 'ammoCrate', position: { x: 6, y: 3, z: 3 }, color: '#556B2F' },
+
+      // === BARRIERS / FORKLIFT LANE ===
+      { type: 'barrier', position: { x: 1, y: 2, z: 2 }, color: '#FFD700' },
+      { type: 'barrier', position: { x: 1, y: 2, z: 3 }, color: '#FFD700' },
+      { type: 'barrier', position: { x: 5, y: 2, z: 2 }, color: '#FFD700' },
+      { type: 'barrier', position: { x: 5, y: 2, z: 3 }, color: '#FFD700' },
+
+      // === BOLLARDS edge of dock ===
+      { type: 'bollard', position: { x: 0, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 5, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 9, y: 2, z: 0 }, color: '#FFD700' },
+
+      // === SIGNAGE ===
+      { type: 'sign', position: { x: 0, y: 4, z: 4 }, color: '#FFD700' },
+      { type: 'sign', position: { x: 9, y: 4, z: 4 }, color: '#FFD700' },
+      { type: 'hazardSign', position: { x: 4, y: 2, z: 0 }, color: '#FF4500' },
+
+      // === DOCK LIGHTING ===
+      { type: 'spotlight', position: { x: 0, y: 5, z: 0 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      { type: 'spotlight', position: { x: 4, y: 5, z: 0 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      { type: 'spotlight', position: { x: 9, y: 5, z: 0 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+
+      // === STAIRS DOWN FROM DOCK ===
+      { type: 'stairs', position: { x: 4, y: 1, z: -1 }, color: '#5A5A5A' },
+      { type: 'stairs', position: { x: 5, y: 1, z: -1 }, color: '#5A5A5A' },
+    ]
+  },
+
+  munitionsRack: {
+    name: 'Munitions Display Rack',
+    category: 'ammo',
+    description: 'Compact showcase of every munitions block - perfect reference rack',
+    blocks: [
+      // === FLOOR / BASE ===
+      ...makeFloor(0, 0, 0, 8, 3, '#4A4A4A'),
+
+      // === SHELF UNIT ===
+      ...makeRow(0, 1, 0, 8, 'X', 'shelfUnit', '#3A3A3A'),
+      ...makeRow(0, 1, 2, 8, 'X', 'shelfUnit', '#3A3A3A'),
+
+      // === ROW 1: SMALL ARMS AMMO ===
+      { type: 'bullet', position: { x: 0, y: 1, z: 0 }, color: '#DAA520' },
+      { type: 'bulletTip', position: { x: 1, y: 1, z: 0 }, color: '#B8860B' },
+      { type: 'shellCasing', position: { x: 2, y: 1, z: 0 }, color: '#DAA520' },
+      { type: 'cartridgeBox', position: { x: 3, y: 1, z: 0 }, color: '#8B4513' },
+      { type: 'magazine', position: { x: 4, y: 1, z: 0 }, color: '#1C1C1C' },
+      { type: 'magazineDrum', position: { x: 5, y: 1, z: 0 }, color: '#1C1C1C' },
+      { type: 'primerBox', position: { x: 6, y: 1, z: 0 }, color: '#8B4513' },
+      { type: 'grenade', position: { x: 7, y: 1, z: 0 }, color: '#3D4D2D' },
+
+      // === ROW 2: STORAGE & EXPLOSIVES ===
+      { type: 'ammoCan', position: { x: 0, y: 1, z: 2 }, color: '#3F4A2A' },
+      { type: 'ammoCrate', position: { x: 1, y: 1, z: 2 }, color: '#556B2F' },
+      { type: 'gunpowderBarrel', position: { x: 2, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'explosiveBarrel', position: { x: 3, y: 1, z: 2 }, color: '#C70039' },
+      { type: 'mortarShell', position: { x: 4, y: 1, z: 2 }, color: '#3D4D2D' },
+      { type: 'artilleryShell', position: { x: 5, y: 1, z: 2 }, color: '#4F5F40' },
+      { type: 'rocketShell', position: { x: 6, y: 1, z: 2 }, color: '#3F3F3F' },
+      { type: 'hazardSign', position: { x: 7, y: 1, z: 2 }, color: '#FFD700' },
+
+      // === LABELS (signs above each row) ===
+      { type: 'sign', position: { x: 0, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'sign', position: { x: 0, y: 2, z: 2 }, color: '#FF4500' },
+
+      // === LIGHTING ===
+      { type: 'lightFixture', position: { x: 3, y: 2, z: 1 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+      { type: 'lightFixture', position: { x: 5, y: 2, z: 1 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+    ]
+  },
+
+  tankFactory: {
+    name: 'Tank Factory',
+    category: 'ammo',
+    description: 'Open-roof tank assembly hall with a large multi-color MBT under construction, gantry chain hoists, and robotic arms',
+    blocks: [
+      // ====================================================
+      // CONCRETE FLOOR (18 wide x 14 deep)
+      // ====================================================
+      ...makeFloor(0, 0, 0, 18, 14, '#5A5A5A'),
+      // Yellow safety stripes around tank work zone
+      ...makeRow(2, 0, 2, 14, 'X', 'panel', '#FFD700'),
+      ...makeRow(2, 0, 11, 14, 'X', 'panel', '#FFD700'),
+      // Drainage grates
+      { type: 'grateFloor', position: { x: 8, y: 0, z: 6 }, color: '#2A2A2A' },
+      { type: 'grateFloor', position: { x: 9, y: 0, z: 6 }, color: '#2A2A2A' },
+      { type: 'grateFloor', position: { x: 8, y: 0, z: 7 }, color: '#2A2A2A' },
+      { type: 'grateFloor', position: { x: 9, y: 0, z: 7 }, color: '#2A2A2A' },
+
+      // ====================================================
+      // PERIMETER WALLS (no roof, 4 high) - brick + steel
+      // ====================================================
+      ...makeWallX(0, 1, 0, 18, 4, '#8B6F47'),
+      ...makeWallX(0, 1, 13, 18, 4, '#8B6F47'),
+      ...makeWallZ(0, 1, 1, 12, 4, '#8B6F47'),
+      ...makeWallZ(17, 1, 1, 12, 4, '#8B6F47'),
+      // Top trim band of walls (steel)
+      ...makeRow(0, 4, 0, 18, 'X', 'cube', '#5A6678'),
+      ...makeRow(0, 4, 13, 18, 'X', 'cube', '#5A6678'),
+      // Wall windows (factory clerestory)
+      { type: 'windowFrame', position: { x: 3, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 6, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 11, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 14, y: 3, z: 0 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 3, y: 3, z: 13 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 6, y: 3, z: 13 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 11, y: 3, z: 13 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 14, y: 3, z: 13 }, color: '#4682B4' },
+      // Loading bay doors (large, double)
+      { type: 'doorFrame', position: { x: 8, y: 1, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 9, y: 1, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 8, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 9, y: 2, z: 0 }, color: '#FFD700' },
+      { type: 'doorFrame', position: { x: 8, y: 3, z: 0 }, color: '#B8860B' },
+      { type: 'doorFrame', position: { x: 9, y: 3, z: 0 }, color: '#B8860B' },
+
+      // ====================================================
+      // GANTRY CRANE STRUCTURE
+      // ====================================================
+      // 4 corner support columns (I-beams, full height to wall top)
+      { type: 'iBeam', position: { x: 4, y: 1, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 2, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 3, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 4, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 1, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 2, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 3, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 4, z: 2 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 1, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 2, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 3, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 4, y: 4, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 1, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 2, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 3, z: 11 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 4, z: 11 }, color: '#7A2A2A' },
+      // Horizontal gantry rails (run along X) sitting on top of columns
+      ...makeRow(4, 5, 2, 10, 'X', 'beamX', '#404040'),
+      ...makeRow(4, 5, 11, 10, 'X', 'beamX', '#404040'),
+      // Crossbeam over the tank (runs along Z, connects the two rails)
+      ...makeRow(8, 5, 3, 8, 'Z', 'beamZ', '#404040'),
+      ...makeRow(11, 5, 3, 8, 'Z', 'beamZ', '#404040'),
+
+      // ====================================================
+      // CHAIN HOISTS (factory style, hanging from gantry)
+      // ====================================================
+      // Main hook over tank turret
+      { type: 'chain', position: { x: 8, y: 4, z: 6 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 8, y: 4, z: 7 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 8, y: 4, z: 8 }, color: '#404040' },
+      // Side chains along front rail
+      { type: 'chain', position: { x: 6, y: 4, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 6, y: 3, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 4, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 3, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 12, y: 4, z: 2 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 12, y: 3, z: 2 }, color: '#5A5A5A' },
+      // Side chains along back rail
+      { type: 'chain', position: { x: 5, y: 4, z: 11 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 5, y: 3, z: 11 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 4, z: 11 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 3, z: 11 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 12, y: 4, z: 11 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 12, y: 3, z: 11 }, color: '#5A5A5A' },
+      // Crossbeam chains
+      { type: 'chain', position: { x: 11, y: 4, z: 5 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 11, y: 3, z: 5 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 11, y: 4, z: 9 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 11, y: 3, z: 9 }, color: '#5A5A5A' },
+
+      // ====================================================
+      // THE TANK (large MBT, multi-colored)
+      // Tank zone: x=4..12, z=4..9, points +X
+      // ====================================================
+      // --- Track bands (dark, sit on floor) ---
+      ...makeRow(4, 1, 4, 9, 'X', 'cube', '#1A1A1A'),
+      ...makeRow(4, 1, 9, 9, 'X', 'cube', '#1A1A1A'),
+      // Drive sprocket / idler wheels (rounded ends of tracks)
+      { type: 'wheel', position: { x: 4, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 12, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 4, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 12, y: 1, z: 9 }, color: '#3A3A3A' },
+      // Road wheels (small, between sprockets)
+      { type: 'wheel', position: { x: 6, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 8, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 10, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 6, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 8, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 10, y: 1, z: 9 }, color: '#3A3A3A' },
+
+      // --- Hull belly (between tracks, dark olive) ---
+      ...makeFloor(4, 1, 5, 9, 4, '#2F3F1F'),
+
+      // --- Upper hull (narrower, olive green) ---
+      ...makeFloor(5, 2, 5, 7, 4, '#4F5F40'),
+
+      // --- Side fenders (above tracks, slightly different green) ---
+      ...makeRow(5, 2, 4, 7, 'X', 'halfZ', '#3D4D2D'),
+      ...makeRow(5, 2, 9, 7, 'X', 'halfZ', '#3D4D2D'),
+
+      // --- Sloped front glacis plate (front of tank) ---
+      // Note: wedge at x=12 sloping shape adds visual interest
+      { type: 'wedge', position: { x: 12, y: 2, z: 5 }, color: '#3D4D2D' },
+      { type: 'wedge', position: { x: 12, y: 2, z: 6 }, color: '#3D4D2D' },
+      { type: 'wedge', position: { x: 12, y: 2, z: 7 }, color: '#3D4D2D' },
+      { type: 'wedge', position: { x: 12, y: 2, z: 8 }, color: '#3D4D2D' },
+      // Headlights on front
+      { type: 'bulb', position: { x: 12, y: 2, z: 5 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.6, radius: 3 } },
+      { type: 'bulb', position: { x: 12, y: 2, z: 8 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.6, radius: 3 } },
+
+      // --- Rear engine deck details ---
+      { type: 'vent', position: { x: 5, y: 3, z: 6 }, color: '#3A3A3A' },
+      { type: 'vent', position: { x: 5, y: 3, z: 7 }, color: '#3A3A3A' },
+      // Exhaust pipe poking out the side
+      { type: 'pipeY', position: { x: 5, y: 3, z: 4 }, color: '#2A2A2A' },
+
+      // --- Turret (5 wide x 4 deep, lighter olive) ---
+      ...makeFloor(6, 3, 5, 5, 4, '#5A6A45'),
+
+      // --- Turret armor accents (different shade for variety) ---
+      { type: 'cube', position: { x: 6, y: 3, z: 5 }, color: '#6A7A55' },
+      { type: 'cube', position: { x: 6, y: 3, z: 8 }, color: '#6A7A55' },
+      { type: 'cube', position: { x: 10, y: 3, z: 5 }, color: '#6A7A55' },
+      { type: 'cube', position: { x: 10, y: 3, z: 8 }, color: '#6A7A55' },
+
+      // --- Turret stowage bins on sides ---
+      { type: 'crate', position: { x: 6, y: 3, z: 4 }, color: '#3D4D2D' },
+      { type: 'crate', position: { x: 10, y: 3, z: 4 }, color: '#3D4D2D' },
+      { type: 'crate', position: { x: 6, y: 3, z: 9 }, color: '#3D4D2D' },
+      { type: 'crate', position: { x: 10, y: 3, z: 9 }, color: '#3D4D2D' },
+
+      // --- Commander's cupola (top center of turret) ---
+      { type: 'cylinder', position: { x: 8, y: 4, z: 6 }, color: '#3D4D2D' },
+      { type: 'dome', position: { x: 8, y: 4, z: 6 }, color: '#2A3A1A' },
+      // Hatch
+      { type: 'cube', position: { x: 8, y: 4, z: 7 }, color: '#3D4D2D' },
+      // Antenna
+      { type: 'antenna', position: { x: 8, y: 4, z: 7 }, color: '#1A1A1A' },
+      // Loader's hatch
+      { type: 'cylinder', position: { x: 9, y: 4, z: 6 }, color: '#3D4D2D' },
+      // Searchlight on turret
+      { type: 'spotlight', position: { x: 7, y: 4, z: 5 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 0.7, radius: 4 } },
+      // Smoke launchers (small tubes on turret front)
+      { type: 'pipeY', position: { x: 10, y: 4, z: 5 }, color: '#2A2A2A' },
+      { type: 'pipeY', position: { x: 10, y: 4, z: 8 }, color: '#2A2A2A' },
+
+      // --- Mantlet (cannon base, horizontal block at front of turret) ---
+      { type: 'cube', position: { x: 11, y: 3, z: 6 }, color: '#3F4A2A' },
+      { type: 'cube', position: { x: 11, y: 3, z: 7 }, color: '#3F4A2A' },
+
+      // --- Main cannon barrel (extends forward in +X) ---
+      { type: 'pipeX', position: { x: 12, y: 3, z: 6 }, color: '#2A2A2A' },
+      { type: 'pipeX', position: { x: 13, y: 3, z: 6 }, color: '#2A2A2A' },
+      { type: 'pipeX', position: { x: 14, y: 3, z: 6 }, color: '#2A2A2A' },
+      { type: 'pipeX', position: { x: 15, y: 3, z: 6 }, color: '#2A2A2A' },
+      // Muzzle brake at the end
+      { type: 'octagon', position: { x: 16, y: 3, z: 6 }, color: '#1A1A1A' },
+      // Bore evacuator (mid-barrel bulge)
+      { type: 'sphere', position: { x: 14, y: 3, z: 6 }, color: '#3A3A3A' },
+
+      // --- Coaxial machine gun (smaller cannon next to main) ---
+      { type: 'pipeX', position: { x: 12, y: 3, z: 7 }, color: '#1A1A1A' },
+      { type: 'pipeX', position: { x: 13, y: 3, z: 7 }, color: '#1A1A1A' },
+
+      // ====================================================
+      // ROBOTIC ARMS WORKING ON THE TANK
+      // ====================================================
+      { type: 'assemblyArm', position: { x: 3, y: 1, z: 5 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 3, y: 1, z: 8 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 14, y: 1, z: 5 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 14, y: 1, z: 8 }, color: '#FFA500' },
+      // Welding sparks (emissive points where arms touch tank)
+      { type: 'bulb', position: { x: 4, y: 2, z: 5 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.6, radius: 3 } },
+      { type: 'bulb', position: { x: 12, y: 2, z: 8 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.6, radius: 3 } },
+
+      // ====================================================
+      // SPARE PARTS / WORKSHOP DETAILS (around tank)
+      // ====================================================
+      // Spare track section
+      { type: 'cube', position: { x: 1, y: 1, z: 4 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 2, y: 1, z: 4 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 3, y: 1, z: 4 }, color: '#1A1A1A' },
+      { type: 'wheel', position: { x: 1, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'wheel', position: { x: 3, y: 1, z: 4 }, color: '#3A3A3A' },
+      // Spare turret being machined (round shape, light olive)
+      { type: 'pallet', position: { x: 2, y: 1, z: 7 }, color: '#A0522D' },
+      { type: 'octagon', position: { x: 2, y: 1, z: 7 }, color: '#5A6A45' },
+      { type: 'cylinder', position: { x: 2, y: 2, z: 7 }, color: '#3D4D2D' },
+      // Spare cannon barrel on rack
+      { type: 'pallet', position: { x: 14, y: 1, z: 11 }, color: '#A0522D' },
+      { type: 'pipeX', position: { x: 14, y: 1, z: 11 }, color: '#2A2A2A' },
+      { type: 'pipeX', position: { x: 15, y: 1, z: 11 }, color: '#2A2A2A' },
+      { type: 'pipeX', position: { x: 16, y: 1, z: 11 }, color: '#2A2A2A' },
+      // Armor plates stacked
+      { type: 'pallet', position: { x: 1, y: 1, z: 9 }, color: '#A0522D' },
+      { type: 'crateLarge', position: { x: 1, y: 1, z: 9 }, color: '#3F4A2A' },
+      { type: 'crateLarge', position: { x: 1, y: 2, z: 9 }, color: '#4F5F40' },
+      { type: 'pallet', position: { x: 1, y: 1, z: 10 }, color: '#A0522D' },
+      { type: 'crateLarge', position: { x: 1, y: 1, z: 10 }, color: '#3F4A2A' },
+
+      // ====================================================
+      // STORAGE / BARRELS / TOOLBOXES
+      // ====================================================
+      { type: 'barrel', position: { x: 1, y: 1, z: 2 }, color: '#1C1C1C' },
+      { type: 'barrel', position: { x: 1, y: 1, z: 3 }, color: '#7A4A2A' },
+      { type: 'oilBarrel', position: { x: 16, y: 1, z: 2 }, color: '#7A2A2A' },
+      { type: 'oilBarrel', position: { x: 16, y: 1, z: 3 }, color: '#3A6A8A' },
+      { type: 'crate', position: { x: 1, y: 1, z: 11 }, color: '#5A4A2A' },
+      { type: 'crate', position: { x: 2, y: 1, z: 11 }, color: '#6A5A3A' },
+      { type: 'cabinet', position: { x: 16, y: 1, z: 6 }, color: '#3F4F5F' },
+      { type: 'cabinet', position: { x: 16, y: 1, z: 7 }, color: '#3F4F5F' },
+      { type: 'shelfUnit', position: { x: 16, y: 1, z: 4 }, color: '#404040' },
+      { type: 'ammoCrate', position: { x: 16, y: 2, z: 4 }, color: '#556B2F' },
+
+      // ====================================================
+      // CONTROL & SAFETY
+      // ====================================================
+      { type: 'controlPanel', position: { x: 16, y: 1, z: 8 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 16, y: 1, z: 9 }, color: '#1A1A1A' },
+      { type: 'fuseBox', position: { x: 16, y: 1, z: 10 }, color: '#404040' },
+      { type: 'hazardSign', position: { x: 1, y: 1, z: 6 }, color: '#FFD700' },
+      { type: 'hazardSign', position: { x: 16, y: 1, z: 11 }, color: '#FF4500' },
+      { type: 'sign', position: { x: 8, y: 4, z: 1 }, color: '#FFD700' },
+      // Bollards along walking path
+      { type: 'bollard', position: { x: 3, y: 1, z: 11 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 7, y: 1, z: 11 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 11, y: 1, z: 11 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 14, y: 1, z: 11 }, color: '#FFD700' },
+
+      // ====================================================
+      // LIGHTING (perimeter spotlights & overhead)
+      // ====================================================
+      { type: 'spotlight', position: { x: 4, y: 5, z: 2 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+      { type: 'spotlight', position: { x: 13, y: 5, z: 2 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+      { type: 'spotlight', position: { x: 4, y: 5, z: 11 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+      { type: 'spotlight', position: { x: 13, y: 5, z: 11 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+      { type: 'lightFixture', position: { x: 8, y: 5, z: 6 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.2, radius: 6 } },
+      { type: 'lightFixture', position: { x: 8, y: 5, z: 7 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.2, radius: 6 } },
+
+      // ====================================================
+      // INDUSTRIAL FANS on walls
+      // ====================================================
+      { type: 'industrialFan', position: { x: 0, y: 2, z: 4 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 0, y: 2, z: 9 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 17, y: 2, z: 4 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 17, y: 2, z: 9 }, color: '#404040' },
+    ]
+  },
+
+  productionComplex: {
+    name: 'Production Complex',
+    category: 'ammo',
+    description: 'Sprawling industrial complex: material refinery + ammo factory + energy/antenna node + radar array, all linked by conveyors and cables',
+    blocks: [
+      // ====================================================
+      // GROUND PAD (24 wide x 14 deep)
+      // ====================================================
+      ...makeFloor(0, 0, 0, 24, 14, '#5A5A5A'),
+      // Safety stripes around perimeter
+      ...makeRow(0, 0, 0, 24, 'X', 'panel', '#FFD700'),
+      ...makeRow(0, 0, 13, 24, 'X', 'panel', '#FFD700'),
+      // Section dividers (yellow stripes between sections)
+      { type: 'panel', position: { x: 7, y: 0, z: 5 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 7, y: 0, z: 6 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 7, y: 0, z: 7 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 14, y: 0, z: 5 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 14, y: 0, z: 6 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 14, y: 0, z: 7 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 19, y: 0, z: 5 }, color: '#1A1A1A' },
+      { type: 'panel', position: { x: 19, y: 0, z: 6 }, color: '#FFD700' },
+      { type: 'panel', position: { x: 19, y: 0, z: 7 }, color: '#1A1A1A' },
+
+      // ====================================================
+      // SECTION 1: MATERIAL REFINERY (x=0..6)
+      // ====================================================
+      // Smelter building: 3x3 base, brick walls
+      ...makeWallX(2, 1, 4, 3, 3, '#8B4513'),
+      ...makeWallX(2, 1, 6, 3, 3, '#8B4513'),
+      ...makeWallZ(2, 1, 4, 3, 3, '#8B4513'),
+      ...makeWallZ(4, 1, 4, 3, 3, '#8B4513'),
+      // Furnace opening (front, dark with glow)
+      { type: 'archLow', position: { x: 3, y: 1, z: 4 }, color: '#1A1A1A' },
+      // Furnace interior glow (emissive)
+      { type: 'cube', position: { x: 3, y: 1, z: 5 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 1.8, radius: 5 } },
+      // Roof of smelter
+      ...makeFloor(2, 4, 4, 3, 3, '#5A2A2A'),
+      // Smokestack (rising chimney)
+      { type: 'chimney', position: { x: 3, y: 5, z: 5 }, color: '#3A3A3A' },
+      { type: 'chimney', position: { x: 3, y: 6, z: 5 }, color: '#2A2A2A' },
+      { type: 'chimney', position: { x: 3, y: 7, z: 5 }, color: '#1A1A1A' },
+      // Smoke (small emissive sphere at top)
+      { type: 'sphere', position: { x: 3, y: 8, z: 5 }, color: '#5A5A5A', emissive: { enabled: true, color: '#404040', intensity: 0.4, radius: 2 } },
+
+      // Material hopper feeding into smelter (top-left)
+      { type: 'pillar', position: { x: 1, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 1, y: 2, z: 5 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 1, y: 3, z: 5 }, color: '#707070' },
+      { type: 'rockPile', position: { x: 1, y: 4, z: 5 }, color: '#5A4A3A' },
+
+      // Conveyor input (raw ore from outside)
+      { type: 'conveyor', position: { x: 1, y: 1, z: 4 }, color: '#2A2A2A' },
+      { type: 'rockSmall', position: { x: 1, y: 2, z: 4 }, color: '#5A4A3A' },
+      { type: 'conveyor', position: { x: 1, y: 1, z: 3 }, color: '#2A2A2A' },
+      { type: 'rockSmall', position: { x: 1, y: 2, z: 3 }, color: '#4A3A2A' },
+
+      // Output conveyor (carries molten ingots eastward to ammo factory)
+      { type: 'conveyor', position: { x: 5, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'cube', position: { x: 5, y: 2, z: 5 }, color: '#DAA520' },
+      { type: 'conveyor', position: { x: 6, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'cube', position: { x: 6, y: 2, z: 5 }, color: '#DAA520' },
+
+      // Cooling tank (water-blue)
+      { type: 'oilTank', position: { x: 5, y: 1, z: 8 }, color: '#4682B4' },
+      { type: 'oilTank', position: { x: 5, y: 2, z: 8 }, color: '#5A92C4' },
+      { type: 'pipeY', position: { x: 5, y: 3, z: 8 }, color: '#909090' },
+      { type: 'valve', position: { x: 5, y: 3, z: 8 }, color: '#B22222' },
+      // Pipe arching back to smelter
+      { type: 'pipeElbowXY', position: { x: 4, y: 3, z: 8 }, color: '#909090' },
+      { type: 'pipeX', position: { x: 4, y: 3, z: 8 }, color: '#909090' },
+
+      // Raw material storage piles
+      { type: 'rockPile', position: { x: 1, y: 1, z: 9 }, color: '#5A4A3A' },
+      { type: 'rockPile', position: { x: 2, y: 1, z: 9 }, color: '#4A3A2A' },
+      { type: 'rockPile', position: { x: 1, y: 1, z: 10 }, color: '#3A3A2A' },
+      { type: 'crateLarge', position: { x: 5, y: 1, z: 10 }, color: '#5A4A2A' },
+      { type: 'crateLarge', position: { x: 6, y: 1, z: 10 }, color: '#5A4A2A' },
+      // Sand/ore sacks
+      { type: 'sack', position: { x: 1, y: 1, z: 12 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 2, y: 1, z: 12 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 5, y: 1, z: 12 }, color: '#8B7355' },
+
+      // Worker control panel
+      { type: 'controlPanel', position: { x: 6, y: 1, z: 12 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 6, y: 1, z: 11 }, color: '#1A1A1A' },
+      // Smelter operator stand
+      { type: 'platform', position: { x: 0, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'fuseBox', position: { x: 0, y: 1, z: 4 }, color: '#404040' },
+      { type: 'cableY', position: { x: 0, y: 2, z: 4 }, color: '#1A1A1A' },
+
+      // Hazard signage
+      { type: 'hazardSign', position: { x: 1, y: 1, z: 1 }, color: '#FF4500' },
+      { type: 'sign', position: { x: 6, y: 1, z: 1 }, color: '#FFD700' },
+
+      // ====================================================
+      // CONVEYOR LINK 1->2 (material to ammo factory)
+      // ====================================================
+      { type: 'conveyor', position: { x: 7, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'cube', position: { x: 7, y: 2, z: 5 }, color: '#DAA520' },
+
+      // ====================================================
+      // SECTION 2: AMMO FACTORY (x=8..13)
+      // ====================================================
+      // Stamper press (forms casings from incoming brass)
+      { type: 'stamperPress', position: { x: 8, y: 1, z: 5 }, color: '#3A3A3A' },
+      { type: 'shellCasing', position: { x: 8, y: 2, z: 5 }, color: '#DAA520' },
+      // Hot output indicator
+      { type: 'bulb', position: { x: 8, y: 3, z: 5 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.2, radius: 3 } },
+
+      // Conveyor with cartridges riding
+      { type: 'conveyorAmmo', position: { x: 9, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 10, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 11, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 12, y: 1, z: 5 }, color: '#2A2A2A' },
+
+      // Robotic arm 1 - shaping
+      { type: 'assemblyArm', position: { x: 9, y: 1, z: 4 }, color: '#FFA500' },
+      // Robotic arm 2 - filling
+      { type: 'assemblyArm', position: { x: 11, y: 1, z: 4 }, color: '#FFA500' },
+
+      // Gunpowder feed (above conveyor)
+      { type: 'pillar', position: { x: 11, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 11, y: 2, z: 6 }, color: '#5A5A5A' },
+      { type: 'gunpowderBarrel', position: { x: 11, y: 3, z: 6 }, color: '#1C1C1C' },
+      { type: 'pipeY', position: { x: 11, y: 2, z: 5 }, color: '#808080' },
+      { type: 'valve', position: { x: 11, y: 2, z: 5 }, color: '#B22222' },
+
+      // Boxing area (output of line)
+      { type: 'cartridgeBox', position: { x: 13, y: 1, z: 5 }, color: '#8B4513' },
+      // Output stack
+      { type: 'pallet', position: { x: 13, y: 1, z: 6 }, color: '#A0522D' },
+      { type: 'ammoCrate', position: { x: 13, y: 1, z: 6 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 13, y: 2, z: 6 }, color: '#4F5F40' },
+
+      // Storage - finished ammo cans/crates
+      { type: 'ammoCan', position: { x: 9, y: 1, z: 8 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 10, y: 1, z: 8 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 9, y: 2, z: 8 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 10, y: 2, z: 8 }, color: '#4F5F40' },
+      { type: 'ammoCrate', position: { x: 11, y: 1, z: 8 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 12, y: 1, z: 8 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 13, y: 1, z: 8 }, color: '#556B2F' },
+      // Heavy munitions storage
+      { type: 'artilleryShell', position: { x: 9, y: 1, z: 10 }, color: '#4F5F40' },
+      { type: 'artilleryShell', position: { x: 10, y: 1, z: 10 }, color: '#4F5F40' },
+      { type: 'rocketShell', position: { x: 12, y: 1, z: 10 }, color: '#3F3F3F' },
+      { type: 'rocketShell', position: { x: 13, y: 1, z: 10 }, color: '#3F3F3F' },
+      { type: 'pallet', position: { x: 9, y: 1, z: 10 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 10, y: 1, z: 10 }, color: '#A0522D' },
+
+      // Control & safety for ammo line
+      { type: 'controlPanel', position: { x: 9, y: 1, z: 12 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 10, y: 1, z: 12 }, color: '#1A1A1A' },
+      { type: 'hazardSign', position: { x: 13, y: 1, z: 12 }, color: '#FFD700' },
+      { type: 'industrialFan', position: { x: 9, y: 2, z: 12 }, color: '#404040' },
+      // Cable runs
+      { type: 'cableX', position: { x: 8, y: 1, z: 0 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 9, y: 1, z: 0 }, color: '#1A1A1A' },
+
+      // ====================================================
+      // CABLE LINK 2->3 (power feed to energy node)
+      // ====================================================
+      { type: 'pillar2', position: { x: 14, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'pillar2', position: { x: 14, y: 2, z: 5 }, color: '#5A5A5A' },
+      { type: 'cableY', position: { x: 14, y: 3, z: 5 }, color: '#FFA500', emissive: { enabled: true, color: '#FFAA00', intensity: 0.6, radius: 2 } },
+
+      // ====================================================
+      // SECTION 3: ENERGY / NODE / ANTENNAS (x=15..18)
+      // ====================================================
+      // Octagonal foundation pad
+      { type: 'octagon', position: { x: 16, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 17, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 16, y: 1, z: 7 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 17, y: 1, z: 7 }, color: '#3A3A3A' },
+
+      // Central energy core (2 stacked emissive spheres)
+      { type: 'cylinder', position: { x: 16, y: 2, z: 6 }, color: '#1A1A2A' },
+      { type: 'cylinder', position: { x: 17, y: 2, z: 6 }, color: '#1A1A2A' },
+      { type: 'cylinder', position: { x: 16, y: 2, z: 7 }, color: '#1A1A2A' },
+      { type: 'cylinder', position: { x: 17, y: 2, z: 7 }, color: '#1A1A2A' },
+      { type: 'sphere', position: { x: 16, y: 3, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00DDFF', intensity: 2.0, radius: 6 } },
+      { type: 'sphere', position: { x: 17, y: 3, z: 7 }, color: '#FF00FF', emissive: { enabled: true, color: '#DD00FF', intensity: 2.0, radius: 6 } },
+      { type: 'crystal', position: { x: 16, y: 4, z: 6 }, color: '#00FFAA', emissive: { enabled: true, color: '#00FFAA', intensity: 1.8, radius: 5 } },
+
+      // 4 corner antenna spires (each 4 high + antenna)
+      // Front-left corner antenna
+      { type: 'pillar', position: { x: 15, y: 1, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 2, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 3, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 4, z: 4 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 15, y: 5, z: 4 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 15, y: 6, z: 4 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 3 } },
+      // Front-right
+      { type: 'pillar', position: { x: 18, y: 1, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 2, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 3, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 4, z: 4 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 18, y: 5, z: 4 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 18, y: 6, z: 4 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 3 } },
+      // Back-left
+      { type: 'pillar', position: { x: 15, y: 1, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 2, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 3, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 15, y: 4, z: 9 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 15, y: 5, z: 9 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 15, y: 6, z: 9 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 3 } },
+      // Back-right
+      { type: 'pillar', position: { x: 18, y: 1, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 2, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 3, z: 9 }, color: '#404040' },
+      { type: 'pillar', position: { x: 18, y: 4, z: 9 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 18, y: 5, z: 9 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 18, y: 6, z: 9 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 3 } },
+
+      // Capacitor banks around the core
+      { type: 'cylinder', position: { x: 15, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 15, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 18, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 18, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 16, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 17, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 16, y: 1, z: 8 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 17, y: 1, z: 8 }, color: '#5A5A5A' },
+
+      // Transformers around the perimeter
+      { type: 'transformer', position: { x: 15, y: 1, z: 12 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 18, y: 1, z: 12 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 15, y: 1, z: 1 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 18, y: 1, z: 1 }, color: '#3F4F5F' },
+
+      // Power lines connecting antennas to core (cables along Z direction)
+      { type: 'cableY', position: { x: 16, y: 4, z: 6 }, color: '#FFA500', emissive: { enabled: true, color: '#FFAA00', intensity: 0.8, radius: 2 } },
+      { type: 'cableY', position: { x: 17, y: 4, z: 7 }, color: '#FFA500', emissive: { enabled: true, color: '#FFAA00', intensity: 0.8, radius: 2 } },
+
+      // Lightning arrestor rods on top of core platform
+      { type: 'pillarRound2', position: { x: 16, y: 5, z: 6 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 17, y: 4, z: 7 }, color: '#C0C0C0' },
+
+      // Control hub
+      { type: 'controlPanel', position: { x: 15, y: 1, z: 11 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 16, y: 1, z: 11 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      { type: 'fuseBox', position: { x: 18, y: 1, z: 11 }, color: '#404040' },
+
+      // ====================================================
+      // CABLE LINK 3->4 (energy to radar)
+      // ====================================================
+      { type: 'pillar2', position: { x: 19, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'pillar2', position: { x: 19, y: 2, z: 5 }, color: '#5A5A5A' },
+      { type: 'cableY', position: { x: 19, y: 3, z: 5 }, color: '#FFA500', emissive: { enabled: true, color: '#FFAA00', intensity: 0.6, radius: 2 } },
+
+      // ====================================================
+      // SECTION 4: RADAR ARRAY (x=20..23)
+      // ====================================================
+      // Control building under tower (3x3 footprint at x=20..22, z=5..7)
+      ...makeWallX(20, 1, 5, 3, 2, '#5A6678'),
+      ...makeWallX(20, 1, 7, 3, 2, '#5A6678'),
+      ...makeWallZ(20, 1, 6, 1, 2, '#5A6678'),
+      ...makeWallZ(22, 1, 6, 1, 2, '#5A6678'),
+      // Door (front)
+      { type: 'doorFrame', position: { x: 21, y: 1, z: 5 }, color: '#7A2A2A' },
+      // Window
+      { type: 'windowFrame', position: { x: 21, y: 1, z: 7 }, color: '#4682B4' },
+      // Roof = 1st level platform
+      ...makeFloor(20, 3, 5, 3, 3, '#3A3A3A'),
+
+      // 4 corner pillars rising from roof to platform top
+      { type: 'pillar', position: { x: 20, y: 4, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 20, y: 5, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 22, y: 4, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 22, y: 5, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 20, y: 4, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 20, y: 5, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 22, y: 4, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 22, y: 5, z: 7 }, color: '#404040' },
+
+      // Truss bracing (X-cross between pillars)
+      { type: 'truss', position: { x: 21, y: 4, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 21, y: 4, z: 7 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 21, y: 5, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 21, y: 5, z: 7 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 20, y: 4, z: 6 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 22, y: 4, z: 6 }, color: '#5A5A5A' },
+
+      // Top platform (radar mounting deck)
+      ...makeFloor(20, 6, 5, 3, 3, '#3A3A3A'),
+      // Railing around platform
+      { type: 'railing', position: { x: 20, y: 7, z: 5 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 21, y: 7, z: 5 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 22, y: 7, z: 5 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 20, y: 7, z: 7 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 22, y: 7, z: 7 }, color: '#5A5A5A' },
+
+      // Radar dish mount (cone base)
+      { type: 'cone', position: { x: 21, y: 7, z: 6 }, color: '#5A5A5A' },
+      // Big radar dish (bowl, faces up)
+      { type: 'bowl', position: { x: 21, y: 8, z: 6 }, color: '#C0C0C0' },
+      // Dish feed horn (small antenna in center)
+      { type: 'antenna', position: { x: 21, y: 8, z: 6 }, color: '#1A1A1A' },
+
+      // Secondary smaller antennas on top deck
+      { type: 'pillarRound2', position: { x: 20, y: 7, z: 6 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 22, y: 7, z: 6 }, color: '#C0C0C0' },
+
+      // Warning beacon on top
+      { type: 'bulb', position: { x: 21, y: 9, z: 6 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 2.0, radius: 4 } },
+
+      // Satellite dish (smaller, ground-mounted) for variety
+      { type: 'pillar', position: { x: 23, y: 1, z: 10 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 23, y: 2, z: 10 }, color: '#5A5A5A' },
+      { type: 'cone', position: { x: 23, y: 3, z: 10 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 23, y: 4, z: 10 }, color: '#E0E0E0' },
+      { type: 'antenna', position: { x: 23, y: 4, z: 10 }, color: '#1A1A1A' },
+
+      // Ground-level radar controls
+      { type: 'controlPanel', position: { x: 20, y: 1, z: 10 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 21, y: 1, z: 10 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.5, radius: 2 } },
+      { type: 'monitor', position: { x: 22, y: 1, z: 10 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.5, radius: 2 } },
+
+      // Backup power (generator-like)
+      { type: 'oilTank', position: { x: 20, y: 1, z: 12 }, color: '#3F4F5F' },
+      { type: 'powerBox', position: { x: 21, y: 1, z: 12 }, color: '#2F4F4F' },
+      { type: 'fuseBox', position: { x: 22, y: 1, z: 12 }, color: '#404040' },
+
+      // Small antenna farm on right edge
+      { type: 'pillar', position: { x: 23, y: 1, z: 1 }, color: '#404040' },
+      { type: 'pillar', position: { x: 23, y: 2, z: 1 }, color: '#404040' },
+      { type: 'pillar', position: { x: 23, y: 3, z: 1 }, color: '#404040' },
+      { type: 'antenna', position: { x: 23, y: 4, z: 1 }, color: '#1A1A1A' },
+      { type: 'pillar', position: { x: 23, y: 1, z: 3 }, color: '#404040' },
+      { type: 'pillar', position: { x: 23, y: 2, z: 3 }, color: '#404040' },
+      { type: 'antenna', position: { x: 23, y: 3, z: 3 }, color: '#1A1A1A' },
+
+      // Radar warning sign
+      { type: 'hazardSign', position: { x: 20, y: 1, z: 1 }, color: '#FF4500' },
+
+      // ====================================================
+      // GLOBAL DETAILS
+      // ====================================================
+      // Industrial fans on edges (mounted on smelter wall)
+      { type: 'industrialFan', position: { x: 2, y: 2, z: 7 }, color: '#404040' },
+      // Spotlights on tall posts at corners
+      { type: 'pillar2', position: { x: 0, y: 1, z: 0 }, color: '#404040' },
+      { type: 'pillar2', position: { x: 0, y: 2, z: 0 }, color: '#404040' },
+      { type: 'pillar2', position: { x: 0, y: 3, z: 0 }, color: '#404040' },
+      { type: 'spotlight', position: { x: 0, y: 4, z: 0 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+      { type: 'pillar2', position: { x: 23, y: 1, z: 13 }, color: '#404040' },
+      { type: 'pillar2', position: { x: 23, y: 2, z: 13 }, color: '#404040' },
+      { type: 'pillar2', position: { x: 23, y: 3, z: 13 }, color: '#404040' },
+      { type: 'spotlight', position: { x: 23, y: 4, z: 13 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 8 } },
+    ]
+  },
+
+  missileBay: {
+    name: 'Missile Production Bay',
+    category: 'ammo',
+    description: 'Open assembly bay with a massive multi-stage missile and strap-on boosters, gantry scaffolding, fuel tanks, and a crew control tower',
+    blocks: [
+      // ====================================================
+      // GROUND PAD (22 wide x 14 deep)
+      // ====================================================
+      ...makeFloor(0, 0, 0, 22, 14, '#5A5A5A'),
+      // Hazard stripes around launch pad
+      ...makeRow(8, 0, 4, 7, 'X', 'panel', '#FFD700'),
+      ...makeRow(8, 0, 10, 7, 'X', 'panel', '#FFD700'),
+      ...makeRow(8, 0, 5, 5, 'Z', 'panel', '#FFD700'),
+      ...makeRow(14, 0, 5, 5, 'Z', 'panel', '#FFD700'),
+      // Drainage / blast trench grates around pad
+      { type: 'grateFloor', position: { x: 9, y: 0, z: 7 }, color: '#1A1A1A' },
+      { type: 'grateFloor', position: { x: 13, y: 0, z: 7 }, color: '#1A1A1A' },
+      { type: 'grateFloor', position: { x: 11, y: 0, z: 5 }, color: '#1A1A1A' },
+      { type: 'grateFloor', position: { x: 11, y: 0, z: 9 }, color: '#1A1A1A' },
+
+      // ====================================================
+      // REINFORCED LAUNCH PAD (octagonal blocks at base)
+      // ====================================================
+      { type: 'octagon', position: { x: 10, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 10, y: 1, z: 7 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 10, y: 1, z: 8 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 11, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 11, y: 1, z: 8 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 12, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 12, y: 1, z: 7 }, color: '#3A3A3A' },
+      { type: 'octagon', position: { x: 12, y: 1, z: 8 }, color: '#3A3A3A' },
+
+      // ====================================================
+      // THE MISSILE (vertical column at x=11, z=7) — 12 cells tall
+      // ====================================================
+      // Engine nozzle (dark gunmetal)
+      { type: 'cylinder', position: { x: 11, y: 1, z: 7 }, color: '#2A2A2A' },
+      // Engine bell flare detail
+      { type: 'cone', position: { x: 11, y: 1, z: 7 }, color: '#3A3A3A' },
+      // Stage 1 (lower, white with red band)
+      { type: 'cylinder', position: { x: 11, y: 2, z: 7 }, color: '#F0F0F0' },
+      { type: 'cylinder', position: { x: 11, y: 3, z: 7 }, color: '#F0F0F0' },
+      { type: 'cylinder', position: { x: 11, y: 4, z: 7 }, color: '#F0F0F0' },
+      { type: 'cylinder', position: { x: 11, y: 5, z: 7 }, color: '#C70039' }, // red separator band
+      // Interstage (dark)
+      { type: 'cylinder', position: { x: 11, y: 6, z: 7 }, color: '#3A3A3A' },
+      // Stage 2 (white)
+      { type: 'cylinder', position: { x: 11, y: 7, z: 7 }, color: '#F0F0F0' },
+      { type: 'cylinder', position: { x: 11, y: 8, z: 7 }, color: '#F0F0F0' },
+      // Payload band (red/white striped section)
+      { type: 'cylinder', position: { x: 11, y: 9, z: 7 }, color: '#C70039' },
+      // Warhead body
+      { type: 'cylinder', position: { x: 11, y: 10, z: 7 }, color: '#F0F0F0' },
+      // Nose cone
+      { type: 'cone', position: { x: 11, y: 11, z: 7 }, color: '#C70039' },
+      // Aerospike tip (yellow tip)
+      { type: 'pillarRound2', position: { x: 11, y: 12, z: 7 }, color: '#FFFF00' },
+
+      // ====================================================
+      // STRAP-ON BOOSTERS (4, around base of missile)
+      // ====================================================
+      // West booster (x=10, z=7)
+      { type: 'cylinder', position: { x: 10, y: 2, z: 7 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 10, y: 3, z: 7 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 10, y: 4, z: 7 }, color: '#C0C0C0' },
+      { type: 'cone', position: { x: 10, y: 5, z: 7 }, color: '#C70039' },
+      // Engine bell at the base
+      { type: 'cone', position: { x: 10, y: 1, z: 7 }, color: '#1A1A1A' },
+
+      // East booster (x=12, z=7)
+      { type: 'cylinder', position: { x: 12, y: 2, z: 7 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 12, y: 3, z: 7 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 12, y: 4, z: 7 }, color: '#C0C0C0' },
+      { type: 'cone', position: { x: 12, y: 5, z: 7 }, color: '#C70039' },
+      { type: 'cone', position: { x: 12, y: 1, z: 7 }, color: '#1A1A1A' },
+
+      // North booster (x=11, z=6)
+      { type: 'cylinder', position: { x: 11, y: 2, z: 6 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 11, y: 3, z: 6 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 11, y: 4, z: 6 }, color: '#C0C0C0' },
+      { type: 'cone', position: { x: 11, y: 5, z: 6 }, color: '#C70039' },
+      { type: 'cone', position: { x: 11, y: 1, z: 6 }, color: '#1A1A1A' },
+
+      // South booster (x=11, z=8)
+      { type: 'cylinder', position: { x: 11, y: 2, z: 8 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 11, y: 3, z: 8 }, color: '#C0C0C0' },
+      { type: 'cylinder', position: { x: 11, y: 4, z: 8 }, color: '#C0C0C0' },
+      { type: 'cone', position: { x: 11, y: 5, z: 8 }, color: '#C70039' },
+      { type: 'cone', position: { x: 11, y: 1, z: 8 }, color: '#1A1A1A' },
+
+      // Stage 2 ring decorations (small bumps for guidance computer/RCS)
+      { type: 'cube', position: { x: 10, y: 8, z: 7 }, color: '#3A3A3A' },
+      { type: 'cube', position: { x: 12, y: 8, z: 7 }, color: '#3A3A3A' },
+
+      // ====================================================
+      // SCAFFOLDING GANTRY (4 corner columns, 12 high)
+      // ====================================================
+      // NW column (x=8, z=4)
+      { type: 'iBeam', position: { x: 8, y: 1, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 2, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 3, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 5, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 6, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 7, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 8, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 9, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 10, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 11, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 12, z: 4 }, color: '#5A2A2A' },
+      // SW column (x=8, z=10)
+      { type: 'iBeam', position: { x: 8, y: 1, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 2, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 3, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 4, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 5, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 6, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 7, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 8, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 9, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 10, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 11, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 8, y: 12, z: 10 }, color: '#5A2A2A' },
+      // NE column (x=14, z=4)
+      { type: 'iBeam', position: { x: 14, y: 1, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 2, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 3, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 5, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 6, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 7, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 8, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 9, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 10, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 11, z: 4 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 12, z: 4 }, color: '#5A2A2A' },
+      // SE column (x=14, z=10)
+      { type: 'iBeam', position: { x: 14, y: 1, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 2, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 3, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 4, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 5, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 6, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 7, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 8, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 9, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 10, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 11, z: 10 }, color: '#5A2A2A' },
+      { type: 'iBeam', position: { x: 14, y: 12, z: 10 }, color: '#5A2A2A' },
+
+      // ====================================================
+      // CROSS-BEAMS at y=4 (lower service level)
+      // ====================================================
+      ...makeRow(9, 4, 4, 5, 'X', 'beamX', '#404040'),
+      ...makeRow(9, 4, 10, 5, 'X', 'beamX', '#404040'),
+      ...makeRow(8, 4, 5, 5, 'Z', 'beamZ', '#404040'),
+      ...makeRow(14, 4, 5, 5, 'Z', 'beamZ', '#404040'),
+      // CROSS-BEAMS at y=8 (upper service level)
+      ...makeRow(9, 8, 4, 5, 'X', 'beamX', '#404040'),
+      ...makeRow(9, 8, 10, 5, 'X', 'beamX', '#404040'),
+      ...makeRow(8, 8, 5, 5, 'Z', 'beamZ', '#404040'),
+      ...makeRow(14, 8, 5, 5, 'Z', 'beamZ', '#404040'),
+      // CROSS-BEAMS at y=12 (top crane rails)
+      ...makeRow(9, 12, 4, 5, 'X', 'beamX', '#3A3A3A'),
+      ...makeRow(9, 12, 10, 5, 'X', 'beamX', '#3A3A3A'),
+      ...makeRow(8, 12, 5, 5, 'Z', 'beamZ', '#3A3A3A'),
+      ...makeRow(14, 12, 5, 5, 'Z', 'beamZ', '#3A3A3A'),
+
+      // ====================================================
+      // SERVICE CATWALKS (around the missile)
+      // ====================================================
+      // Lower service ring at y=4
+      { type: 'catwalk', position: { x: 9, y: 4, z: 7 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 13, y: 4, z: 7 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 11, y: 4, z: 5 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 11, y: 4, z: 9 }, color: '#3A3A3A' },
+      { type: 'railing', position: { x: 9, y: 5, z: 7 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 13, y: 5, z: 7 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 5, z: 5 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 5, z: 9 }, color: '#5A5A5A' },
+      // Upper service ring at y=8
+      { type: 'catwalk', position: { x: 9, y: 8, z: 7 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 13, y: 8, z: 7 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 11, y: 8, z: 5 }, color: '#3A3A3A' },
+      { type: 'catwalk', position: { x: 11, y: 8, z: 9 }, color: '#3A3A3A' },
+      { type: 'railing', position: { x: 9, y: 9, z: 7 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 13, y: 9, z: 7 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 9, z: 5 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 9, z: 9 }, color: '#5A5A5A' },
+
+      // Access ladder up the side of NW column
+      { type: 'ladder', position: { x: 8, y: 1, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 2, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 3, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 5, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 6, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 7, z: 5 }, color: '#FFD700' },
+
+      // ====================================================
+      // ROBOTIC ARMS (working on missile at multiple levels)
+      // ====================================================
+      { type: 'assemblyArm', position: { x: 9, y: 4, z: 7 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 13, y: 4, z: 7 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 9, y: 8, z: 7 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 13, y: 8, z: 7 }, color: '#FFA500' },
+      // Welding sparks (emissive)
+      { type: 'bulb', position: { x: 10, y: 4, z: 7 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.6, radius: 3 } },
+      { type: 'bulb', position: { x: 12, y: 8, z: 7 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.6, radius: 3 } },
+
+      // ====================================================
+      // OVERHEAD CRANE HOOK (top of gantry)
+      // ====================================================
+      { type: 'chain', position: { x: 11, y: 11, z: 7 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 11, y: 11, z: 6 }, color: '#404040' },
+      { type: 'chain', position: { x: 11, y: 11, z: 5 }, color: '#5A5A5A' },
+
+      // ====================================================
+      // FUEL TANKS (large, west of bay)
+      // ====================================================
+      // Tank 1 (oxidizer, blue)
+      { type: 'oilTank', position: { x: 1, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'oilTank', position: { x: 1, y: 2, z: 4 }, color: '#5A92C4' },
+      { type: 'oilTank', position: { x: 1, y: 3, z: 4 }, color: '#5A92C4' },
+      { type: 'dome', position: { x: 1, y: 4, z: 4 }, color: '#4682B4' },
+      // Tank 2 (fuel, red)
+      { type: 'oilTank', position: { x: 1, y: 1, z: 6 }, color: '#7A2A2A' },
+      { type: 'oilTank', position: { x: 1, y: 2, z: 6 }, color: '#9A2A2A' },
+      { type: 'oilTank', position: { x: 1, y: 3, z: 6 }, color: '#9A2A2A' },
+      { type: 'dome', position: { x: 1, y: 4, z: 6 }, color: '#7A2A2A' },
+      // Tank 3 (cryogenic, white with frost)
+      { type: 'oilTank', position: { x: 1, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'oilTank', position: { x: 1, y: 2, z: 8 }, color: '#F0F0F0' },
+      { type: 'oilTank', position: { x: 1, y: 3, z: 8 }, color: '#F0F0F0' },
+      { type: 'dome', position: { x: 1, y: 4, z: 8 }, color: '#E0E0E0' },
+      // Cryogenic vapor (emissive cool)
+      { type: 'sphere', position: { x: 2, y: 4, z: 8 }, color: '#B0E0E6', emissive: { enabled: true, color: '#B0E0E6', intensity: 0.6, radius: 3 } },
+
+      // Fuel feed pipes (running from tanks toward missile, along ground)
+      { type: 'pipeX', position: { x: 2, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 3, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 4, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 5, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 6, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 7, y: 1, z: 4 }, color: '#4682B4' },
+      { type: 'valve', position: { x: 4, y: 1, z: 4 }, color: '#B22222' },
+      // Fuel pipe rising up the gantry (along NW column)
+      { type: 'pipeY', position: { x: 8, y: 1, z: 5 }, color: '#4682B4' },
+      // Fuel umbilical reaching out to missile at lower stage
+      { type: 'pipeX', position: { x: 9, y: 2, z: 5 }, color: '#4682B4' },
+      { type: 'pipeX', position: { x: 10, y: 2, z: 5 }, color: '#4682B4' },
+
+      { type: 'pipeX', position: { x: 2, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'pipeX', position: { x: 3, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'pipeX', position: { x: 4, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'pipeX', position: { x: 5, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'pipeX', position: { x: 6, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'pipeX', position: { x: 7, y: 1, z: 6 }, color: '#9A2A2A' },
+      { type: 'valve', position: { x: 4, y: 1, z: 6 }, color: '#B22222' },
+
+      { type: 'pipeX', position: { x: 2, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'pipeX', position: { x: 3, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'pipeX', position: { x: 4, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'pipeX', position: { x: 5, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'pipeX', position: { x: 6, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'pipeX', position: { x: 7, y: 1, z: 8 }, color: '#E0E0E0' },
+      { type: 'valve', position: { x: 4, y: 1, z: 8 }, color: '#B22222' },
+
+      // ====================================================
+      // CONTROL TOWER (east side)
+      // ====================================================
+      // 2-story tower at x=17..19, z=5..7
+      ...makeWallX(17, 1, 5, 3, 2, '#5A6678'),
+      ...makeWallX(17, 1, 7, 3, 2, '#5A6678'),
+      ...makeWallZ(17, 1, 6, 1, 2, '#5A6678'),
+      ...makeWallZ(19, 1, 6, 1, 2, '#5A6678'),
+      // Door
+      { type: 'doorFrame', position: { x: 18, y: 1, z: 7 }, color: '#7A2A2A' },
+      // 1st floor ceiling / 2nd floor
+      ...makeFloor(17, 3, 5, 3, 3, '#3A3A3A'),
+      // 2nd floor walls (with windows facing missile)
+      ...makeWallZ(17, 4, 5, 3, 2, '#5A6678'), // back wall
+      ...makeWallX(17, 4, 7, 3, 2, '#5A6678'), // side
+      ...makeWallX(17, 4, 5, 3, 2, '#5A6678'), // side
+      // Big observation window facing missile (west side)
+      { type: 'windowFrame', position: { x: 17, y: 4, z: 5 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 17, y: 4, z: 6 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 17, y: 4, z: 7 }, color: '#4682B4' },
+      // Roof
+      ...makeFloor(17, 6, 5, 3, 3, '#2A2A2A'),
+      // Antenna on roof
+      { type: 'antenna', position: { x: 18, y: 7, z: 6 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 18, y: 8, z: 6 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 3 } },
+      // Satellite dish on roof
+      { type: 'cone', position: { x: 17, y: 7, z: 5 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 17, y: 8, z: 5 }, color: '#E0E0E0' },
+
+      // Inside 2nd floor: control panels and monitors
+      { type: 'controlPanel', position: { x: 18, y: 4, z: 5 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 17, y: 4, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      { type: 'monitor', position: { x: 19, y: 4, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      // Inside 1st floor: equipment
+      { type: 'fuseBox', position: { x: 17, y: 1, z: 6 }, color: '#404040' },
+      { type: 'powerBox', position: { x: 19, y: 1, z: 6 }, color: '#2F4F4F' },
+
+      // ====================================================
+      // SPARE MISSILES (horizontal storage, east edge)
+      // ====================================================
+      // Rack pallet
+      { type: 'pallet', position: { x: 17, y: 1, z: 11 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 18, y: 1, z: 11 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 19, y: 1, z: 11 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 20, y: 1, z: 11 }, color: '#A0522D' },
+      // Missile body laid on its side (using pipeX cylinders)
+      { type: 'pipeX', position: { x: 17, y: 1, z: 11 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 18, y: 1, z: 11 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 19, y: 1, z: 11 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 20, y: 1, z: 11 }, color: '#C70039' },
+      // Second spare missile
+      { type: 'pallet', position: { x: 17, y: 1, z: 12 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 18, y: 1, z: 12 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 19, y: 1, z: 12 }, color: '#A0522D' },
+      { type: 'pallet', position: { x: 20, y: 1, z: 12 }, color: '#A0522D' },
+      { type: 'pipeX', position: { x: 17, y: 1, z: 12 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 18, y: 1, z: 12 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 19, y: 1, z: 12 }, color: '#F0F0F0' },
+      { type: 'pipeX', position: { x: 20, y: 1, z: 12 }, color: '#C70039' },
+
+      // Spare nose cones in a pile
+      { type: 'cone', position: { x: 16, y: 1, z: 11 }, color: '#C70039' },
+      { type: 'cone', position: { x: 16, y: 1, z: 12 }, color: '#C70039' },
+
+      // ====================================================
+      // PARTS / WORKSHOP DETAILS (around the bay edges)
+      // ====================================================
+      // Toolbox / spare engines pile
+      { type: 'crateLarge', position: { x: 5, y: 1, z: 11 }, color: '#3F4F5F' },
+      { type: 'crateLarge', position: { x: 5, y: 1, z: 12 }, color: '#3F4F5F' },
+      { type: 'crateLarge', position: { x: 6, y: 1, z: 11 }, color: '#3F4F5F' },
+      { type: 'crateLarge', position: { x: 6, y: 1, z: 12 }, color: '#3F4F5F' },
+      // Booster engines on pallets
+      { type: 'pallet', position: { x: 7, y: 1, z: 11 }, color: '#A0522D' },
+      { type: 'cone', position: { x: 7, y: 1, z: 11 }, color: '#1A1A1A' },
+      { type: 'pallet', position: { x: 7, y: 1, z: 12 }, color: '#A0522D' },
+      { type: 'cone', position: { x: 7, y: 1, z: 12 }, color: '#1A1A1A' },
+      // Gunpowder/propellant barrels
+      { type: 'gunpowderBarrel', position: { x: 4, y: 1, z: 11 }, color: '#1C1C1C' },
+      { type: 'gunpowderBarrel', position: { x: 4, y: 1, z: 12 }, color: '#1C1C1C' },
+      { type: 'explosiveBarrel', position: { x: 3, y: 1, z: 11 }, color: '#C70039' },
+
+      // ====================================================
+      // SAFETY & SIGNAGE
+      // ====================================================
+      { type: 'hazardSign', position: { x: 7, y: 1, z: 7 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 15, y: 1, z: 7 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 11, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'hazardSign', position: { x: 11, y: 1, z: 10 }, color: '#FFD700' },
+      // Bollards along walking path
+      { type: 'bollard', position: { x: 7, y: 1, z: 11 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 15, y: 1, z: 11 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 7, y: 1, z: 2 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 15, y: 1, z: 2 }, color: '#FFD700' },
+
+      // ====================================================
+      // LIGHTING
+      // ====================================================
+      // Spotlights on top of gantry corners
+      { type: 'spotlight', position: { x: 8, y: 12, z: 4 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.5, radius: 10 } },
+      { type: 'spotlight', position: { x: 14, y: 12, z: 4 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.5, radius: 10 } },
+      { type: 'spotlight', position: { x: 8, y: 12, z: 10 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.5, radius: 10 } },
+      { type: 'spotlight', position: { x: 14, y: 12, z: 10 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.5, radius: 10 } },
+      // Hanging fixtures at upper service level
+      { type: 'lightFixture', position: { x: 11, y: 8, z: 4 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      { type: 'lightFixture', position: { x: 11, y: 8, z: 10 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      // Aviation warning lights on top of missile gantry
+      { type: 'bulb', position: { x: 8, y: 13, z: 4 }, color: '#FF0000', emissive: { enabled: true, color: '#FF0000', intensity: 2.0, radius: 4 } },
+      { type: 'bulb', position: { x: 14, y: 13, z: 10 }, color: '#FF0000', emissive: { enabled: true, color: '#FF0000', intensity: 2.0, radius: 4 } },
+    ]
+  },
+
+  // =====================
+  // STANDALONE FACILITIES (no roofs, open-air)
+  // =====================
+  radarStation: {
+    name: 'Radar Station',
+    category: 'ammo',
+    description: 'Tall radar dish on a truss tower with control bunker below, antenna farm and warning lights',
+    blocks: [
+      // === GROUND PAD ===
+      ...makeFloor(0, 0, 0, 14, 12, '#5A5A5A'),
+      ...makeRow(0, 0, 0, 14, 'X', 'panel', '#FFD700'),
+      ...makeRow(0, 0, 11, 14, 'X', 'panel', '#FFD700'),
+
+      // === ROOFLESS CONTROL BUNKER (4 walls, no top) ===
+      ...makeWallX(2, 1, 3, 5, 3, '#5A6678'),
+      ...makeWallX(2, 1, 7, 5, 3, '#5A6678'),
+      ...makeWallZ(2, 1, 4, 3, 3, '#5A6678'),
+      ...makeWallZ(6, 1, 4, 3, 3, '#5A6678'),
+      // Door (front gap)
+      { type: 'doorFrame', position: { x: 4, y: 1, z: 3 }, color: '#7A2A2A' },
+      { type: 'doorFrame', position: { x: 4, y: 2, z: 3 }, color: '#7A2A2A' },
+      // Observation windows
+      { type: 'windowFrame', position: { x: 2, y: 2, z: 5 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 6, y: 2, z: 5 }, color: '#4682B4' },
+      { type: 'windowFrame', position: { x: 4, y: 3, z: 7 }, color: '#4682B4' },
+      // Inside (no roof, open to sky)
+      { type: 'controlPanel', position: { x: 3, y: 1, z: 6 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 4, y: 1, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      { type: 'monitor', position: { x: 5, y: 1, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      { type: 'cabinet', position: { x: 3, y: 1, z: 4 }, color: '#3F4F5F' },
+      { type: 'cabinet', position: { x: 5, y: 1, z: 4 }, color: '#3F4F5F' },
+
+      // === RADAR TOWER (4 truss columns) ===
+      // 4 corner pillars rising 7 high
+      { type: 'pillar', position: { x: 8, y: 1, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 2, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 3, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 4, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 5, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 6, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 7, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 1, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 2, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 3, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 4, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 5, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 6, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 7, z: 4 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 1, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 2, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 3, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 4, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 5, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 6, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 8, y: 7, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 1, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 2, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 3, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 4, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 5, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 6, z: 8 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 7, z: 8 }, color: '#404040' },
+
+      // X-cross truss bracing between pillars (multiple levels)
+      { type: 'truss', position: { x: 9, y: 2, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 2, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 9, y: 4, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 4, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 9, y: 6, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 6, z: 4 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 9, y: 2, z: 8 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 2, z: 8 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 9, y: 4, z: 8 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 4, z: 8 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 9, y: 6, z: 8 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 11, y: 6, z: 8 }, color: '#5A5A5A' },
+      // Side bracing (adjacent to pillars)
+      { type: 'truss', position: { x: 8, y: 3, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 8, y: 3, z: 7 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 12, y: 3, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 12, y: 3, z: 7 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 8, y: 5, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 8, y: 5, z: 7 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 12, y: 5, z: 5 }, color: '#5A5A5A' },
+      { type: 'truss', position: { x: 12, y: 5, z: 7 }, color: '#5A5A5A' },
+
+      // Top deck/platform
+      ...makeFloor(8, 8, 4, 5, 5, '#3A3A3A'),
+      // Railings around deck
+      { type: 'railing', position: { x: 8, y: 9, z: 4 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 9, y: 9, z: 4 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 9, z: 4 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 12, y: 9, z: 4 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 8, y: 9, z: 8 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 9, y: 9, z: 8 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 11, y: 9, z: 8 }, color: '#5A5A5A' },
+      { type: 'railing', position: { x: 12, y: 9, z: 8 }, color: '#5A5A5A' },
+      { type: 'railingZ', position: { x: 8, y: 9, z: 5 }, color: '#5A5A5A' },
+      { type: 'railingZ', position: { x: 8, y: 9, z: 7 }, color: '#5A5A5A' },
+      { type: 'railingZ', position: { x: 12, y: 9, z: 5 }, color: '#5A5A5A' },
+      { type: 'railingZ', position: { x: 12, y: 9, z: 7 }, color: '#5A5A5A' },
+
+      // === MAIN RADAR DISH (huge bowl) ===
+      // Pivot/mount cone
+      { type: 'cone', position: { x: 10, y: 9, z: 6 }, color: '#5A5A5A' },
+      // Big silver dish
+      { type: 'bowl', position: { x: 10, y: 10, z: 6 }, color: '#D0D0D0' },
+      { type: 'bowl', position: { x: 10, y: 11, z: 6 }, color: '#E0E0E0' },
+      // Feed horn at center
+      { type: 'antenna', position: { x: 10, y: 11, z: 6 }, color: '#1A1A1A' },
+      // Counterweight balancing arm
+      { type: 'beamX', position: { x: 9, y: 9, z: 6 }, color: '#404040' },
+      { type: 'cube', position: { x: 9, y: 9, z: 6 }, color: '#1A1A1A' },
+
+      // Side dishes (smaller, on edges of platform)
+      { type: 'cone', position: { x: 8, y: 9, z: 6 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 8, y: 10, z: 6 }, color: '#C0C0C0' },
+      { type: 'antenna', position: { x: 8, y: 10, z: 6 }, color: '#1A1A1A' },
+      { type: 'cone', position: { x: 12, y: 9, z: 6 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 12, y: 10, z: 6 }, color: '#C0C0C0' },
+      { type: 'antenna', position: { x: 12, y: 10, z: 6 }, color: '#1A1A1A' },
+
+      // Warning beacons on top
+      { type: 'bulb', position: { x: 10, y: 12, z: 6 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 2.0, radius: 5 } },
+      { type: 'bulb', position: { x: 9, y: 9, z: 4 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+      { type: 'bulb', position: { x: 11, y: 9, z: 8 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+
+      // === ACCESS LADDER UP THE TOWER ===
+      { type: 'ladder', position: { x: 8, y: 1, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 2, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 3, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 4, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 5, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 6, z: 5 }, color: '#FFD700' },
+      { type: 'ladder', position: { x: 8, y: 7, z: 5 }, color: '#FFD700' },
+
+      // === GROUND-LEVEL DETAILS ===
+      // Cable runs leading from bunker to tower
+      { type: 'cableX', position: { x: 7, y: 1, z: 5 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 7, y: 1, z: 6 }, color: '#1A1A1A' },
+      // Generator
+      { type: 'transformer', position: { x: 1, y: 1, z: 9 }, color: '#3F4F5F' },
+      { type: 'fuseBox', position: { x: 2, y: 1, z: 9 }, color: '#404040' },
+      { type: 'cableX', position: { x: 1, y: 2, z: 9 }, color: '#1A1A1A' },
+      // Hazard signs
+      { type: 'hazardSign', position: { x: 7, y: 1, z: 1 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 13, y: 1, z: 1 }, color: '#FF4500' },
+      // Fuel tank for generator
+      { type: 'oilTank', position: { x: 1, y: 1, z: 10 }, color: '#7A2A2A' },
+      // Bollards
+      { type: 'bollard', position: { x: 8, y: 1, z: 2 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 12, y: 1, z: 2 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 8, y: 1, z: 10 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 12, y: 1, z: 10 }, color: '#FFD700' },
+      // Spotlights
+      { type: 'spotlight', position: { x: 1, y: 1, z: 1 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      { type: 'spotlight', position: { x: 13, y: 1, z: 11 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+    ]
+  },
+
+  energyNode: {
+    name: 'Energy Node',
+    category: 'ammo',
+    description: 'Power core with capacitor banks, transformers and emissive crystal energy spire — open-air',
+    blocks: [
+      // === GROUND PAD (octagonal-styled) ===
+      ...makeFloor(0, 0, 0, 14, 14, '#3A3A3A'),
+      // Hexagonal/circular highlight pattern using panels
+      { type: 'panel', position: { x: 6, y: 0, z: 5 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 7, y: 0, z: 5 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 5, y: 0, z: 6 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 8, y: 0, z: 6 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 5, y: 0, z: 7 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 8, y: 0, z: 7 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 6, y: 0, z: 8 }, color: '#FFAA00' },
+      { type: 'panel', position: { x: 7, y: 0, z: 8 }, color: '#FFAA00' },
+
+      // === CENTRAL CORE PLATFORM ===
+      { type: 'octagon', position: { x: 6, y: 1, z: 6 }, color: '#1A1A2A' },
+      { type: 'octagon', position: { x: 7, y: 1, z: 6 }, color: '#1A1A2A' },
+      { type: 'octagon', position: { x: 6, y: 1, z: 7 }, color: '#1A1A2A' },
+      { type: 'octagon', position: { x: 7, y: 1, z: 7 }, color: '#1A1A2A' },
+      // Inner core ring (raised)
+      { type: 'cylinder', position: { x: 6, y: 2, z: 6 }, color: '#2A2A3A' },
+      { type: 'cylinder', position: { x: 7, y: 2, z: 6 }, color: '#2A2A3A' },
+      { type: 'cylinder', position: { x: 6, y: 2, z: 7 }, color: '#2A2A3A' },
+      { type: 'cylinder', position: { x: 7, y: 2, z: 7 }, color: '#2A2A3A' },
+
+      // === STACKED ENERGY ORBS (emissive, vertical) ===
+      { type: 'sphere', position: { x: 6, y: 3, z: 6 }, color: '#00FFFF', emissive: { enabled: true, color: '#00DDFF', intensity: 2.5, radius: 7 } },
+      { type: 'sphere', position: { x: 7, y: 3, z: 7 }, color: '#FF00FF', emissive: { enabled: true, color: '#DD00FF', intensity: 2.5, radius: 7 } },
+      { type: 'sphere', position: { x: 7, y: 3, z: 6 }, color: '#FFFF00', emissive: { enabled: true, color: '#FFDD00', intensity: 2.5, radius: 7 } },
+      { type: 'sphere', position: { x: 6, y: 3, z: 7 }, color: '#00FF00', emissive: { enabled: true, color: '#00DD00', intensity: 2.5, radius: 7 } },
+      // Crystal energy spire above orbs (multi-color stack)
+      { type: 'crystal', position: { x: 6, y: 4, z: 6 }, color: '#00FFAA', emissive: { enabled: true, color: '#00FFAA', intensity: 2.0, radius: 5 } },
+      { type: 'crystalSpike', position: { x: 7, y: 4, z: 7 }, color: '#FF66FF', emissive: { enabled: true, color: '#FF66FF', intensity: 2.0, radius: 5 } },
+      { type: 'crystalLarge', position: { x: 6, y: 5, z: 6 }, color: '#00CCFF', emissive: { enabled: true, color: '#00CCFF', intensity: 2.5, radius: 6 } },
+      { type: 'crystalSpike', position: { x: 6, y: 6, z: 6 }, color: '#FFFFFF', emissive: { enabled: true, color: '#FFFFFF', intensity: 3.0, radius: 8 } },
+
+      // === CAPACITOR BANKS (around the core, 8 cylinders) ===
+      { type: 'cylinder', position: { x: 5, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 5, y: 2, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 5, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 5, y: 2, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 8, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 8, y: 2, z: 6 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 8, y: 1, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 8, y: 2, z: 7 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 6, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 7, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 6, y: 1, z: 8 }, color: '#5A5A5A' },
+      { type: 'cylinder', position: { x: 7, y: 1, z: 8 }, color: '#5A5A5A' },
+      // Capacitor warning glow on top
+      { type: 'bulb', position: { x: 5, y: 3, z: 6 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.0, radius: 3 } },
+      { type: 'bulb', position: { x: 5, y: 3, z: 7 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.0, radius: 3 } },
+      { type: 'bulb', position: { x: 8, y: 3, z: 6 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.0, radius: 3 } },
+      { type: 'bulb', position: { x: 8, y: 3, z: 7 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.0, radius: 3 } },
+
+      // === 4 LIGHTNING ROD TOWERS (corners of the pad) ===
+      // NW
+      { type: 'pillarRound', position: { x: 2, y: 1, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 2, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 3, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 4, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound2', position: { x: 2, y: 5, z: 2 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 2, y: 6, z: 2 }, color: '#C0C0C0' },
+      // Cable arc to core
+      { type: 'cableY', position: { x: 2, y: 7, z: 2 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 1.5, radius: 3 } },
+      // NE
+      { type: 'pillarRound', position: { x: 11, y: 1, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 2, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 3, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 4, z: 2 }, color: '#5A5A5A' },
+      { type: 'pillarRound2', position: { x: 11, y: 5, z: 2 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 11, y: 6, z: 2 }, color: '#C0C0C0' },
+      { type: 'cableY', position: { x: 11, y: 7, z: 2 }, color: '#FF00FF', emissive: { enabled: true, color: '#FF00FF', intensity: 1.5, radius: 3 } },
+      // SW
+      { type: 'pillarRound', position: { x: 2, y: 1, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 2, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 3, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 2, y: 4, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound2', position: { x: 2, y: 5, z: 11 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 2, y: 6, z: 11 }, color: '#C0C0C0' },
+      { type: 'cableY', position: { x: 2, y: 7, z: 11 }, color: '#FFFF00', emissive: { enabled: true, color: '#FFFF00', intensity: 1.5, radius: 3 } },
+      // SE
+      { type: 'pillarRound', position: { x: 11, y: 1, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 2, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 3, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound', position: { x: 11, y: 4, z: 11 }, color: '#5A5A5A' },
+      { type: 'pillarRound2', position: { x: 11, y: 5, z: 11 }, color: '#C0C0C0' },
+      { type: 'pillarRound2', position: { x: 11, y: 6, z: 11 }, color: '#C0C0C0' },
+      { type: 'cableY', position: { x: 11, y: 7, z: 11 }, color: '#00FF00', emissive: { enabled: true, color: '#00FF00', intensity: 1.5, radius: 3 } },
+
+      // === TRANSFORMERS (around perimeter) ===
+      { type: 'transformer', position: { x: 4, y: 1, z: 1 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 9, y: 1, z: 1 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 4, y: 1, z: 12 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 9, y: 1, z: 12 }, color: '#3F4F5F' },
+      // Cable runs along ground
+      ...makeRow(4, 1, 0, 6, 'X', 'cableX', '#1A1A1A'),
+      ...makeRow(4, 1, 13, 6, 'X', 'cableX', '#1A1A1A'),
+
+      // === COOLING TANKS ===
+      { type: 'oilTank', position: { x: 1, y: 1, z: 6 }, color: '#4682B4' },
+      { type: 'dome', position: { x: 1, y: 2, z: 6 }, color: '#4682B4' },
+      { type: 'oilTank', position: { x: 12, y: 1, z: 6 }, color: '#4682B4' },
+      { type: 'dome', position: { x: 12, y: 2, z: 6 }, color: '#4682B4' },
+      // Pipes between tanks and core
+      { type: 'pipeX', position: { x: 2, y: 1, z: 6 }, color: '#909090' },
+      { type: 'pipeX', position: { x: 3, y: 1, z: 6 }, color: '#909090' },
+      { type: 'valve', position: { x: 3, y: 1, z: 6 }, color: '#B22222' },
+
+      // === GROUND CONTROL ===
+      { type: 'controlPanel', position: { x: 6, y: 1, z: 12 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 7, y: 1, z: 12 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.6, radius: 2 } },
+      { type: 'fuseBox', position: { x: 5, y: 1, z: 12 }, color: '#404040' },
+      { type: 'powerBox', position: { x: 8, y: 1, z: 12 }, color: '#2F4F4F' },
+
+      // === HAZARD SIGNAGE & FENCING ===
+      { type: 'hazardSign', position: { x: 1, y: 1, z: 1 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 12, y: 1, z: 1 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 1, y: 1, z: 12 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 12, y: 1, z: 12 }, color: '#FF4500' },
+      // Bollards
+      { type: 'bollard', position: { x: 4, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 9, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 4, y: 1, z: 9 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 9, y: 1, z: 9 }, color: '#FFD700' },
+    ]
+  },
+
+  antennaArray: {
+    name: 'Antenna Array',
+    category: 'ammo',
+    description: 'Tall communication antenna array — multiple spires of varying heights with warning lights',
+    blocks: [
+      // === GROUND PAD ===
+      ...makeFloor(0, 0, 0, 14, 10, '#5A5A5A'),
+
+      // === SMALL OPEN BUNKER (no roof) for control ===
+      ...makeWallX(1, 1, 1, 4, 2, '#5A6678'),
+      ...makeWallZ(1, 1, 2, 1, 2, '#5A6678'),
+      ...makeWallZ(4, 1, 2, 1, 2, '#5A6678'),
+      // Door gap (no door for open bunker)
+      { type: 'doorFrame', position: { x: 2, y: 1, z: 3 }, color: '#7A2A2A' },
+      // Inside equipment
+      { type: 'controlPanel', position: { x: 2, y: 1, z: 2 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 3, y: 1, z: 2 }, color: '#00FFFF', emissive: { enabled: true, color: '#00FFFF', intensity: 0.5, radius: 2 } },
+      { type: 'fuseBox', position: { x: 2, y: 2, z: 1 }, color: '#404040' },
+
+      // === MAIN ANTENNA (tallest, 10 high) ===
+      { type: 'pillar', position: { x: 7, y: 1, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 2, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 3, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 4, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 5, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 6, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 7, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 8, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 9, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 7, y: 10, z: 5 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 7, y: 11, z: 5 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 7, y: 12, z: 5 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 2.5, radius: 6 } },
+      // Cross arms (signal repeaters mid-tower)
+      { type: 'beamX', position: { x: 6, y: 6, z: 5 }, color: '#5A5A5A' },
+      { type: 'beamX', position: { x: 8, y: 6, z: 5 }, color: '#5A5A5A' },
+      { type: 'beamX', position: { x: 6, y: 8, z: 5 }, color: '#5A5A5A' },
+      { type: 'beamX', position: { x: 8, y: 8, z: 5 }, color: '#5A5A5A' },
+      // Lights at the cross arm tips
+      { type: 'bulb', position: { x: 6, y: 6, z: 5 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+      { type: 'bulb', position: { x: 8, y: 6, z: 5 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+      // Guy wires (cables down to ground)
+      { type: 'cableY', position: { x: 7, y: 9, z: 4 }, color: '#5A5A5A' },
+      { type: 'cableY', position: { x: 7, y: 9, z: 6 }, color: '#5A5A5A' },
+
+      // === MEDIUM ANTENNA #1 (left side, 7 high) ===
+      { type: 'pillar', position: { x: 4, y: 1, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 2, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 3, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 4, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 5, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 6, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 4, y: 7, z: 7 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 4, y: 8, z: 7 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 4, y: 9, z: 7 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 4 } },
+
+      // === MEDIUM ANTENNA #2 (right side, 8 high) ===
+      { type: 'pillar', position: { x: 10, y: 1, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 2, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 3, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 4, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 5, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 6, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 7, z: 7 }, color: '#404040' },
+      { type: 'pillar', position: { x: 10, y: 8, z: 7 }, color: '#5A5A5A' },
+      { type: 'antenna', position: { x: 10, y: 9, z: 7 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 10, y: 10, z: 7 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.5, radius: 4 } },
+
+      // === SHORT ANTENNAS (5 high) ===
+      { type: 'pillar', position: { x: 2, y: 1, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 2, y: 2, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 2, y: 3, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 2, y: 4, z: 5 }, color: '#404040' },
+      { type: 'antenna', position: { x: 2, y: 5, z: 5 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 2, y: 6, z: 5 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+
+      { type: 'pillar', position: { x: 12, y: 1, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 2, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 3, z: 5 }, color: '#404040' },
+      { type: 'pillar', position: { x: 12, y: 4, z: 5 }, color: '#404040' },
+      { type: 'antenna', position: { x: 12, y: 5, z: 5 }, color: '#1A1A1A' },
+      { type: 'bulb', position: { x: 12, y: 6, z: 5 }, color: '#FF0000', emissive: { enabled: true, color: '#FF2222', intensity: 1.0, radius: 3 } },
+
+      // === SATELLITE DISH (small, ground-mounted) ===
+      { type: 'pillar', position: { x: 7, y: 1, z: 1 }, color: '#5A5A5A' },
+      { type: 'cone', position: { x: 7, y: 2, z: 1 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 7, y: 3, z: 1 }, color: '#E0E0E0' },
+      { type: 'antenna', position: { x: 7, y: 3, z: 1 }, color: '#1A1A1A' },
+
+      // === ANOTHER DISH ===
+      { type: 'pillar', position: { x: 7, y: 1, z: 9 }, color: '#5A5A5A' },
+      { type: 'cone', position: { x: 7, y: 2, z: 9 }, color: '#5A5A5A' },
+      { type: 'bowl', position: { x: 7, y: 3, z: 9 }, color: '#D0D0D0' },
+      { type: 'antenna', position: { x: 7, y: 3, z: 9 }, color: '#1A1A1A' },
+
+      // === TRANSFORMERS / POWER ===
+      { type: 'transformer', position: { x: 1, y: 1, z: 8 }, color: '#3F4F5F' },
+      { type: 'transformer', position: { x: 12, y: 1, z: 1 }, color: '#3F4F5F' },
+      { type: 'cableX', position: { x: 6, y: 1, z: 5 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 8, y: 1, z: 5 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 5, y: 1, z: 7 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 9, y: 1, z: 7 }, color: '#1A1A1A' },
+
+      // === HAZARD & DETAILS ===
+      { type: 'hazardSign', position: { x: 1, y: 1, z: 5 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 13, y: 1, z: 5 }, color: '#FF4500' },
+      { type: 'spotlight', position: { x: 1, y: 1, z: 1 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      { type: 'spotlight', position: { x: 13, y: 1, z: 9 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      // Fence around outer perimeter
+      { type: 'fence', position: { x: 0, y: 1, z: 0 }, color: '#3A3A3A' },
+      { type: 'fence', position: { x: 6, y: 1, z: 0 }, color: '#3A3A3A' },
+      { type: 'fence', position: { x: 13, y: 1, z: 0 }, color: '#3A3A3A' },
+      { type: 'fence', position: { x: 0, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'fence', position: { x: 6, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'fence', position: { x: 13, y: 1, z: 9 }, color: '#3A3A3A' },
+    ]
+  },
+
+  ammoFactoryOpen: {
+    name: 'Ammo Factory (Open)',
+    category: 'ammo',
+    description: 'Roofless ammunition assembly line under steel framework — visible from above',
+    blocks: [
+      // === FLOOR ===
+      ...makeFloor(0, 0, 0, 14, 10, '#4A4A4A'),
+      // Drainage
+      { type: 'grate', position: { x: 5, y: 0, z: 5 }, color: '#2A2A2A' },
+      { type: 'grate', position: { x: 8, y: 0, z: 5 }, color: '#2A2A2A' },
+      // Yellow safety lines
+      ...makeRow(0, 0, 0, 14, 'X', 'panel', '#FFD700'),
+      ...makeRow(0, 0, 9, 14, 'X', 'panel', '#FFD700'),
+
+      // === STEEL FRAME (open frame, no roof) ===
+      // Corner I-beam columns
+      { type: 'iBeam', position: { x: 0, y: 1, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 2, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 3, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 4, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 1, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 2, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 3, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 4, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 1, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 2, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 3, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 0, y: 4, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 1, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 2, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 3, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 13, y: 4, z: 8 }, color: '#7A2A2A' },
+      // Mid-span columns
+      { type: 'iBeam', position: { x: 7, y: 1, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 2, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 3, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 4, z: 1 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 1, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 2, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 3, z: 8 }, color: '#7A2A2A' },
+      { type: 'iBeam', position: { x: 7, y: 4, z: 8 }, color: '#7A2A2A' },
+      // Top crossbeams (gantry rails — not a roof, just open beams)
+      ...makeRow(1, 5, 1, 12, 'X', 'beamX', '#404040'),
+      ...makeRow(1, 5, 8, 12, 'X', 'beamX', '#404040'),
+      ...makeRow(0, 5, 2, 6, 'Z', 'beamZ', '#404040'),
+      ...makeRow(7, 5, 2, 6, 'Z', 'beamZ', '#404040'),
+      ...makeRow(13, 5, 2, 6, 'Z', 'beamZ', '#404040'),
+
+      // === ASSEMBLY LINE 1 (front) ===
+      // Brass hopper
+      { type: 'pillar', position: { x: 1, y: 1, z: 3 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 1, y: 2, z: 3 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 1, y: 3, z: 3 }, color: '#707070' },
+      { type: 'shellCasing', position: { x: 1, y: 4, z: 3 }, color: '#DAA520' },
+      // Stamper press
+      { type: 'stamperPress', position: { x: 2, y: 1, z: 3 }, color: '#3A3A3A' },
+      // Conveyor belt run with cartridges riding
+      { type: 'conveyorAmmo', position: { x: 3, y: 1, z: 3 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 4, y: 1, z: 3 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 5, y: 1, z: 3 }, color: '#2A2A2A' },
+      { type: 'conveyorAmmo', position: { x: 6, y: 1, z: 3 }, color: '#2A2A2A' },
+      // Robotic arms over the line
+      { type: 'assemblyArm', position: { x: 4, y: 1, z: 2 }, color: '#FFA500' },
+      { type: 'assemblyArm', position: { x: 5, y: 1, z: 4 }, color: '#FFA500' },
+      // Powder feed
+      { type: 'pillar', position: { x: 5, y: 1, z: 4 }, color: '#5A5A5A' },
+      { type: 'gunpowderBarrel', position: { x: 5, y: 2, z: 4 }, color: '#1C1C1C' },
+      { type: 'pipeY', position: { x: 5, y: 2, z: 3 }, color: '#808080' },
+      { type: 'valve', position: { x: 5, y: 2, z: 3 }, color: '#B22222' },
+      // Output crates
+      { type: 'cartridgeBox', position: { x: 8, y: 1, z: 3 }, color: '#8B4513' },
+      { type: 'pallet', position: { x: 9, y: 1, z: 3 }, color: '#A0522D' },
+      { type: 'ammoCrate', position: { x: 9, y: 1, z: 3 }, color: '#556B2F' },
+      { type: 'ammoCrate', position: { x: 9, y: 2, z: 3 }, color: '#4F5F40' },
+      { type: 'ammoCan', position: { x: 10, y: 1, z: 3 }, color: '#3F4A2A' },
+      { type: 'ammoCan', position: { x: 11, y: 1, z: 3 }, color: '#3F4A2A' },
+
+      // === ASSEMBLY LINE 2 (back, shells) ===
+      { type: 'pillar', position: { x: 1, y: 1, z: 6 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 1, y: 2, z: 6 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 1, y: 3, z: 6 }, color: '#707070' },
+      { type: 'stamperPress', position: { x: 2, y: 1, z: 6 }, color: '#3A3A3A' },
+      { type: 'conveyor', position: { x: 3, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 4, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 5, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'mortarShell', position: { x: 4, y: 2, z: 6 }, color: '#3D4D2D' },
+      { type: 'conveyor', position: { x: 6, y: 1, z: 6 }, color: '#2A2A2A' },
+      { type: 'mortarShell', position: { x: 6, y: 2, z: 6 }, color: '#3D4D2D' },
+      { type: 'assemblyArm', position: { x: 6, y: 1, z: 5 }, color: '#FFA500' },
+      // Output: artillery shells on rack
+      { type: 'pallet', position: { x: 8, y: 1, z: 6 }, color: '#A0522D' },
+      { type: 'artilleryShell', position: { x: 8, y: 1, z: 6 }, color: '#4F5F40' },
+      { type: 'pallet', position: { x: 9, y: 1, z: 6 }, color: '#A0522D' },
+      { type: 'artilleryShell', position: { x: 9, y: 1, z: 6 }, color: '#4F5F40' },
+      { type: 'pallet', position: { x: 10, y: 1, z: 6 }, color: '#A0522D' },
+      { type: 'artilleryShell', position: { x: 10, y: 1, z: 6 }, color: '#4F5F40' },
+      { type: 'rocketShell', position: { x: 11, y: 1, z: 6 }, color: '#3F3F3F' },
+
+      // === CHAIN HOIST OVER LINE 1 (factory atmosphere) ===
+      { type: 'chain', position: { x: 4, y: 4, z: 3 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 4, y: 3, z: 3 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 4, z: 6 }, color: '#5A5A5A' },
+      { type: 'chain', position: { x: 9, y: 3, z: 6 }, color: '#5A5A5A' },
+
+      // === CONTROL & SAFETY ===
+      { type: 'controlPanel', position: { x: 12, y: 1, z: 3 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 12, y: 1, z: 4 }, color: '#1A1A1A' },
+      { type: 'controlPanel', position: { x: 12, y: 1, z: 6 }, color: '#2F4F4F' },
+      { type: 'fuseBox', position: { x: 12, y: 2, z: 3 }, color: '#404040' },
+      { type: 'powerBox', position: { x: 12, y: 2, z: 6 }, color: '#2F4F4F' },
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 5 }, color: '#FFD700' },
+      { type: 'hazardSign', position: { x: 13, y: 1, z: 5 }, color: '#FF4500' },
+      // Bin for scrap shells
+      { type: 'bin', position: { x: 0, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'shellCasing', position: { x: 0, y: 2, z: 5 }, color: '#B8860B' },
+
+      // === LIGHTING (hanging from gantry rails) ===
+      { type: 'lightFixture', position: { x: 4, y: 4, z: 1 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      { type: 'lightFixture', position: { x: 9, y: 4, z: 1 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      { type: 'lightFixture', position: { x: 4, y: 4, z: 8 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      { type: 'lightFixture', position: { x: 9, y: 4, z: 8 }, color: '#FFFF99', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 5 } },
+      { type: 'industrialFan', position: { x: 7, y: 3, z: 1 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 7, y: 3, z: 8 }, color: '#404040' },
+    ]
+  },
+
+  materialRefinery: {
+    name: 'Material Refinery',
+    category: 'ammo',
+    description: 'Open-air ore refinery: smelter with glowing furnace, smokestack, ingot conveyor, raw material yard',
+    blocks: [
+      // === GROUND PAD ===
+      ...makeFloor(0, 0, 0, 14, 12, '#4A4A4A'),
+      // Yellow stripes
+      ...makeRow(0, 0, 0, 14, 'X', 'panel', '#FFD700'),
+      ...makeRow(0, 0, 11, 14, 'X', 'panel', '#FFD700'),
+
+      // === MAIN SMELTER (3x3, brick, no roof) ===
+      // Brick walls (3 high)
+      ...makeWallX(4, 1, 4, 4, 3, '#8B4513'),
+      ...makeWallX(4, 1, 7, 4, 3, '#8B4513'),
+      ...makeWallZ(4, 1, 5, 2, 3, '#8B4513'),
+      ...makeWallZ(7, 1, 5, 2, 3, '#8B4513'),
+      // Furnace opening with arch
+      { type: 'archLow', position: { x: 5, y: 1, z: 4 }, color: '#1A1A1A' },
+      { type: 'archLow', position: { x: 6, y: 1, z: 4 }, color: '#1A1A1A' },
+      // Glowing molten interior (visible because no roof and front is open)
+      { type: 'cube', position: { x: 5, y: 1, z: 5 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 2.0, radius: 6 } },
+      { type: 'cube', position: { x: 6, y: 1, z: 5 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 2.0, radius: 6 } },
+      { type: 'cube', position: { x: 5, y: 1, z: 6 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 2.0, radius: 6 } },
+      { type: 'cube', position: { x: 6, y: 1, z: 6 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 2.0, radius: 6 } },
+      // Decorative band of slabs at top of brick wall
+      { type: 'slab', position: { x: 4, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 5, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 6, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 7, y: 4, z: 4 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 4, y: 4, z: 7 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 5, y: 4, z: 7 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 6, y: 4, z: 7 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 7, y: 4, z: 7 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 4, y: 4, z: 5 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 4, y: 4, z: 6 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 7, y: 4, z: 5 }, color: '#5A2A2A' },
+      { type: 'slab', position: { x: 7, y: 4, z: 6 }, color: '#5A2A2A' },
+
+      // === SMOKESTACK (rises from inside the smelter) ===
+      { type: 'chimney', position: { x: 5, y: 4, z: 5 }, color: '#3A3A3A' },
+      { type: 'chimney', position: { x: 5, y: 5, z: 5 }, color: '#3A3A3A' },
+      { type: 'chimney', position: { x: 5, y: 6, z: 5 }, color: '#2A2A2A' },
+      { type: 'chimney', position: { x: 5, y: 7, z: 5 }, color: '#1A1A1A' },
+      // Smoke (emissive cloud)
+      { type: 'sphere', position: { x: 5, y: 8, z: 5 }, color: '#5A5A5A', emissive: { enabled: true, color: '#404040', intensity: 0.4, radius: 3 } },
+      // Pipe outlet (steam vent)
+      { type: 'pipeY', position: { x: 6, y: 4, z: 6 }, color: '#909090' },
+      { type: 'pipeY', position: { x: 6, y: 5, z: 6 }, color: '#909090' },
+      { type: 'vent', position: { x: 6, y: 6, z: 6 }, color: '#606060' },
+
+      // === MATERIAL FEED FROM ABOVE (hopper on tower) ===
+      { type: 'pillar', position: { x: 1, y: 1, z: 5 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 1, y: 2, z: 5 }, color: '#5A5A5A' },
+      { type: 'pillar', position: { x: 1, y: 3, z: 5 }, color: '#5A5A5A' },
+      { type: 'hopper', position: { x: 1, y: 4, z: 5 }, color: '#707070' },
+      { type: 'rockPile', position: { x: 1, y: 5, z: 5 }, color: '#5A4A3A' },
+      // Conveyor feeding ore into hopper from outside
+      { type: 'conveyor', position: { x: 1, y: 1, z: 1 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 1, y: 1, z: 2 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 1, y: 1, z: 3 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 1, y: 1, z: 4 }, color: '#2A2A2A' },
+      { type: 'rockSmall', position: { x: 1, y: 2, z: 2 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 1, y: 2, z: 3 }, color: '#4A3A2A' },
+      // Pipe from hopper to smelter
+      { type: 'pipeX', position: { x: 2, y: 4, z: 5 }, color: '#909090' },
+      { type: 'pipeX', position: { x: 3, y: 4, z: 5 }, color: '#909090' },
+      { type: 'pipeElbowXY', position: { x: 4, y: 4, z: 5 }, color: '#909090' },
+
+      // === MOLTEN INGOT OUTPUT CONVEYOR (east-bound) ===
+      { type: 'conveyor', position: { x: 8, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 9, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 10, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 11, y: 1, z: 5 }, color: '#2A2A2A' },
+      { type: 'conveyor', position: { x: 12, y: 1, z: 5 }, color: '#2A2A2A' },
+      // Hot ingots (emissive)
+      { type: 'cube', position: { x: 8, y: 2, z: 5 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.5, radius: 3 } },
+      { type: 'cube', position: { x: 9, y: 2, z: 5 }, color: '#FF8800', emissive: { enabled: true, color: '#FF8800', intensity: 1.0, radius: 2 } },
+      { type: 'cube', position: { x: 10, y: 2, z: 5 }, color: '#DAA520' },
+      { type: 'cube', position: { x: 11, y: 2, z: 5 }, color: '#DAA520' },
+      { type: 'cube', position: { x: 12, y: 2, z: 5 }, color: '#B8860B' },
+
+      // === COOLING TANK (water for quenching ingots) ===
+      { type: 'oilTank', position: { x: 8, y: 1, z: 8 }, color: '#4682B4' },
+      { type: 'oilTank', position: { x: 8, y: 2, z: 8 }, color: '#5A92C4' },
+      { type: 'dome', position: { x: 8, y: 3, z: 8 }, color: '#4682B4' },
+      // Pipe from tank to conveyor
+      { type: 'pipeY', position: { x: 8, y: 3, z: 7 }, color: '#909090' },
+      { type: 'pipeZ', position: { x: 8, y: 3, z: 6 }, color: '#909090' },
+      { type: 'valve', position: { x: 8, y: 3, z: 7 }, color: '#B22222' },
+      // Steam from quenching
+      { type: 'sphere', position: { x: 9, y: 3, z: 7 }, color: '#D0D0D0', emissive: { enabled: true, color: '#A0A0A0', intensity: 0.4, radius: 2 } },
+
+      // === RAW MATERIAL YARD (left side, ore piles & sacks) ===
+      { type: 'rockPile', position: { x: 11, y: 1, z: 1 }, color: '#5A4A3A' },
+      { type: 'rockPile', position: { x: 11, y: 1, z: 2 }, color: '#4A3A2A' },
+      { type: 'rockPile', position: { x: 11, y: 1, z: 3 }, color: '#5A4A3A' },
+      { type: 'rockLarge', position: { x: 12, y: 1, z: 2 }, color: '#3A3A2A' },
+      { type: 'boulder', position: { x: 12, y: 1, z: 3 }, color: '#4A3A2A' },
+      { type: 'sack', position: { x: 12, y: 1, z: 1 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 13, y: 1, z: 1 }, color: '#8B7355' },
+      { type: 'sack', position: { x: 13, y: 1, z: 2 }, color: '#8B7355' },
+      // Crate of refined ingots stacked
+      { type: 'pallet', position: { x: 12, y: 1, z: 8 }, color: '#A0522D' },
+      { type: 'crateLarge', position: { x: 12, y: 1, z: 8 }, color: '#5A4A2A' },
+      { type: 'crateLarge', position: { x: 12, y: 2, z: 8 }, color: '#5A4A2A' },
+      { type: 'pallet', position: { x: 12, y: 1, z: 9 }, color: '#A0522D' },
+      { type: 'crateLarge', position: { x: 12, y: 1, z: 9 }, color: '#5A4A2A' },
+      { type: 'pallet', position: { x: 13, y: 1, z: 8 }, color: '#A0522D' },
+      { type: 'cube', position: { x: 13, y: 1, z: 8 }, color: '#DAA520' },
+      { type: 'cube', position: { x: 13, y: 2, z: 8 }, color: '#DAA520' },
+      { type: 'cube', position: { x: 13, y: 1, z: 9 }, color: '#B8860B' },
+
+      // === CONTROL OPERATOR STATION ===
+      { type: 'platform', position: { x: 0, y: 1, z: 9 }, color: '#3A3A3A' },
+      { type: 'controlPanel', position: { x: 1, y: 1, z: 9 }, color: '#2F4F4F' },
+      { type: 'monitor', position: { x: 2, y: 1, z: 9 }, color: '#FF6600', emissive: { enabled: true, color: '#FF6600', intensity: 0.5, radius: 2 } },
+      { type: 'fuseBox', position: { x: 0, y: 2, z: 9 }, color: '#404040' },
+      { type: 'cableX', position: { x: 1, y: 2, z: 9 }, color: '#1A1A1A' },
+      { type: 'cableX', position: { x: 2, y: 2, z: 9 }, color: '#1A1A1A' },
+
+      // === HAZARD & DETAILS ===
+      { type: 'hazardSign', position: { x: 0, y: 1, z: 5 }, color: '#FF4500' },
+      { type: 'hazardSign', position: { x: 13, y: 1, z: 5 }, color: '#FF4500' },
+      { type: 'sign', position: { x: 7, y: 1, z: 1 }, color: '#FFD700' },
+      // Fire extinguisher
+      { type: 'pillar2', position: { x: 0, y: 1, z: 4 }, color: '#3A3A3A' },
+      { type: 'cylinder', position: { x: 0, y: 1, z: 4 }, color: '#C70039' },
+      // Bollards
+      { type: 'bollard', position: { x: 3, y: 1, z: 4 }, color: '#FFD700' },
+      { type: 'bollard', position: { x: 8, y: 1, z: 4 }, color: '#FFD700' },
+      // Industrial fan
+      { type: 'industrialFan', position: { x: 7, y: 2, z: 1 }, color: '#404040' },
+      { type: 'industrialFan', position: { x: 7, y: 2, z: 8 }, color: '#404040' },
+      // Spotlight
+      { type: 'spotlight', position: { x: 1, y: 1, z: 1 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+      { type: 'spotlight', position: { x: 13, y: 1, z: 11 }, color: '#FFFFAA', emissive: { enabled: true, color: '#FFFFAA', intensity: 1.0, radius: 6 } },
+    ]
+  },
+
+  // =====================
+  // RUINS & HUTS
+  // =====================
+  decayedTenement: {
+    name: 'Decayed Tenement',
+    category: 'ruins',
+    description: 'Abandoned urban tenement with partially collapsed floors, broken windows, graffiti and rubble',
+    blocks: [
+      // === STREET / SIDEWALK ===
+      ...makeFloor(0, 0, 0, 9, 9, '#4A4A4A'),
+      // Cracks
+      { type: 'panel', position: { x: 1, y: 0, z: 5 }, color: '#2A2A2A' },
+      { type: 'panel', position: { x: 7, y: 0, z: 3 }, color: '#2A2A2A' },
+      { type: 'panel', position: { x: 4, y: 0, z: 8 }, color: '#2A2A2A' },
+      // Broken curb
+      { type: 'step', position: { x: 0, y: 0, z: 3 }, color: '#5A5A5A' },
+      { type: 'step', position: { x: 0, y: 0, z: 4 }, color: '#5A5A5A' },
+
+      // === GROUND FLOOR (intact, faded brick #7A6655) ===
+      // Front wall (z=2) with broken doorway
+      { type: 'cube', position: { x: 2, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 3, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'doorFrame', position: { x: 4, y: 1, z: 2 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 5, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 6, y: 1, z: 2 }, color: '#5A4A3A' }, // darker decay
+      // Back wall (z=6)
+      ...makeRow(2, 1, 6, 5, 'X', 'cube', '#7A6655'),
+      // Left wall (x=2)
+      { type: 'cube', position: { x: 2, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 2, y: 1, z: 4 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 2, y: 1, z: 5 }, color: '#7A6655' },
+      // Right wall (x=6)
+      { type: 'cube', position: { x: 6, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 6, y: 1, z: 4 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 6, y: 1, z: 5 }, color: '#5A4A3A' },
+
+      // === 2ND FLOOR (some windows broken) ===
+      // Front wall
+      { type: 'cube', position: { x: 2, y: 2, z: 2 }, color: '#7A6655' },
+      { type: 'windowFrame', position: { x: 3, y: 2, z: 2 }, color: '#1A1A1A' }, // broken (no glass)
+      { type: 'cube', position: { x: 4, y: 2, z: 2 }, color: '#7A6655' },
+      { type: 'windowFrame', position: { x: 5, y: 2, z: 2 }, color: '#3F4F5F' }, // intact
+      { type: 'cube', position: { x: 6, y: 2, z: 2 }, color: '#7A6655' },
+      // Back wall
+      { type: 'cube', position: { x: 2, y: 2, z: 6 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 3, y: 2, z: 6 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 4, y: 2, z: 6 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 5, y: 2, z: 6 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 6, y: 2, z: 6 }, color: '#7A6655' },
+      // Left wall (with missing chunk)
+      { type: 'cube', position: { x: 2, y: 2, z: 3 }, color: '#7A6655' },
+      // gap at z=4 (collapse)
+      { type: 'cube', position: { x: 2, y: 2, z: 5 }, color: '#7A6655' },
+      // Right wall (intact)
+      ...makeRow(6, 2, 3, 3, 'Z', 'cube', '#7A6655'),
+
+      // 2nd floor interior floor (partial - center missing)
+      { type: 'cube', position: { x: 3, y: 2, z: 3 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 5, y: 2, z: 3 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 3, y: 2, z: 5 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 5, y: 2, z: 5 }, color: '#5A4A3A' },
+      // Hole in floor (broken - leave empty)
+
+      // === 3RD FLOOR (partially collapsed) ===
+      // Front wall - missing right side
+      { type: 'cube', position: { x: 2, y: 3, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 3, y: 3, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 4, y: 3, z: 2 }, color: '#5A4A3A' },
+      // gap (collapsed)
+      // Back wall
+      { type: 'cube', position: { x: 2, y: 3, z: 6 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 3, y: 3, z: 6 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 4, y: 3, z: 6 }, color: '#5A4A3A' },
+      // Left wall
+      { type: 'cube', position: { x: 2, y: 3, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 2, y: 3, z: 4 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 2, y: 3, z: 5 }, color: '#5A4A3A' },
+      // Exposed I-beams from collapse
+      { type: 'iBeam', position: { x: 5, y: 3, z: 3 }, color: '#3A3A3A' },
+      { type: 'iBeam', position: { x: 5, y: 3, z: 5 }, color: '#3A3A3A' },
+
+      // === 4TH FLOOR (mostly gone — only fragments remain) ===
+      { type: 'cube', position: { x: 2, y: 4, z: 2 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 2, y: 4, z: 3 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 2, y: 4, z: 6 }, color: '#5A4A3A' },
+      { type: 'iBeam', position: { x: 3, y: 4, z: 2 }, color: '#3A3A3A' },
+      // Lonely remnant chunk
+      { type: 'cube', position: { x: 2, y: 5, z: 2 }, color: '#5A4A3A' },
+
+      // === EXPOSED REBAR / TWISTED METAL on top ===
+      { type: 'pillar2', position: { x: 4, y: 4, z: 4 }, color: '#3A3A3A' },
+      { type: 'pillar2', position: { x: 5, y: 4, z: 5 }, color: '#3A3A3A' },
+      { type: 'pillarRound2', position: { x: 4, y: 5, z: 4 }, color: '#5A4A3A' },
+
+      // === GRAFFITI (colored panels on walls) ===
+      { type: 'panel', position: { x: 3, y: 1, z: 2 }, color: '#FF00FF' }, // pink tag
+      { type: 'panel', position: { x: 5, y: 1, z: 2 }, color: '#00FF00' }, // green tag
+      { type: 'panel', position: { x: 2, y: 1, z: 4 }, color: '#FFFF00' }, // yellow tag
+
+      // === BROKEN WINDOWS (boarded up) ===
+      { type: 'panel', position: { x: 4, y: 1, z: 6 }, color: '#5A4A3A' },
+      { type: 'panel', position: { x: 5, y: 2, z: 6 }, color: '#5A4A3A' },
+
+      // === RUBBLE PILE (in front from collapse) ===
+      { type: 'rockPile', position: { x: 7, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'rockPile', position: { x: 7, y: 1, z: 3 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 8, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 7, y: 1, z: 4 }, color: '#7A6655' },
+      { type: 'rockSmall', position: { x: 7, y: 2, z: 4 }, color: '#5A4A3A' },
+      // Broken brick chunks (small cubes)
+      { type: 'quarter', position: { x: 8, y: 1, z: 5 }, color: '#7A6655' },
+      { type: 'quarter', position: { x: 7, y: 1, z: 6 }, color: '#5A4A3A' },
+
+      // === ABANDONED OBJECTS ===
+      // Dumpster
+      { type: 'dumpster', position: { x: 1, y: 1, z: 1 }, color: '#3A5A3A' },
+      // Trash can
+      { type: 'bin', position: { x: 1, y: 1, z: 7 }, color: '#3A3A3A' },
+      // Barrel fire (homeless camp)
+      { type: 'oilBarrel', position: { x: 8, y: 1, z: 7 }, color: '#5A2A2A' },
+      { type: 'sphere', position: { x: 8, y: 2, z: 7 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 1.5, radius: 4 } },
+      // Cardboard box
+      { type: 'cardboardBox', position: { x: 1, y: 1, z: 8 }, color: '#A0826D' },
+      { type: 'cardboardBox', position: { x: 2, y: 1, z: 8 }, color: '#8B7355' },
+
+      // === VINES & GROWTH (nature reclaiming) ===
+      { type: 'vine', position: { x: 6, y: 2, z: 6 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 2, y: 3, z: 4 }, color: '#3A5A2A' },
+      { type: 'moss', position: { x: 7, y: 1, z: 5 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 6, y: 1, z: 6 }, color: '#5A7A3A' },
+      { type: 'bush', position: { x: 8, y: 1, z: 4 }, color: '#3A5A2A' },
+
+      // === STREET LAMP (broken, hanging) ===
+      { type: 'pillar2', position: { x: 0, y: 1, z: 1 }, color: '#3A3A3A' },
+      { type: 'pillar2', position: { x: 0, y: 2, z: 1 }, color: '#3A3A3A' },
+      { type: 'pillar2', position: { x: 0, y: 3, z: 1 }, color: '#3A3A3A' },
+      { type: 'lightFixture', position: { x: 0, y: 4, z: 1 }, color: '#3A3A3A' }, // broken, not emissive
+
+      // === STREET DEBRIS ===
+      { type: 'trafficCone', position: { x: 4, y: 1, z: 0 }, color: '#FF4500' },
+      { type: 'crate', position: { x: 1, y: 1, z: 5 }, color: '#5A4A3A' },
+    ]
+  },
+
+  ancientTemple: {
+    name: 'Ancient Temple Ruins',
+    category: 'ruins',
+    description: 'Classical stone temple in ruin — broken columns, fallen pediment, overgrown with moss and vines',
+    blocks: [
+      // === GROUND (dirt/grass) ===
+      ...makeFloor(0, 0, 0, 11, 9, '#5A6A3A'),
+      // Stone path
+      ...makeRow(2, 0, 4, 7, 'X', 'panel', '#A09080'),
+
+      // === STONE STEPS UP TO TEMPLE (south side) ===
+      ...makeRow(3, 1, 1, 5, 'X', 'stairs', '#A09080'),
+      ...makeRow(3, 1, 2, 5, 'X', 'cube', '#A09080'),
+
+      // === TEMPLE PODIUM (raised stone base) ===
+      ...makeFloor(3, 1, 3, 5, 5, '#A09080'),
+      ...makeFloor(3, 2, 3, 5, 5, '#B0A090'),
+
+      // === COLUMN BASES (perimeter) ===
+      // 6 columns front (z=3), some intact, some broken
+      { type: 'base', position: { x: 3, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'base', position: { x: 4, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'base', position: { x: 5, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'base', position: { x: 6, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'base', position: { x: 7, y: 3, z: 3 }, color: '#A09080' },
+      // Back (z=7)
+      { type: 'base', position: { x: 3, y: 3, z: 7 }, color: '#A09080' },
+      { type: 'base', position: { x: 4, y: 3, z: 7 }, color: '#A09080' },
+      { type: 'base', position: { x: 5, y: 3, z: 7 }, color: '#A09080' },
+      { type: 'base', position: { x: 6, y: 3, z: 7 }, color: '#A09080' },
+      { type: 'base', position: { x: 7, y: 3, z: 7 }, color: '#A09080' },
+
+      // === COLUMNS (some intact, some broken) ===
+      // Front column 1 - intact (3 segments + capital)
+      { type: 'column', position: { x: 3, y: 3, z: 3 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 3, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 3, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 3, y: 6, z: 3 }, color: '#A09080' },
+      // Front column 2 - broken at top (only 2 segments)
+      { type: 'column', position: { x: 4, y: 3, z: 3 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 4, z: 3 }, color: '#B0A090' },
+      // Top broken off
+      // Front column 3 - just stub
+      { type: 'column', position: { x: 5, y: 3, z: 3 }, color: '#A09080' },
+      // Front column 4 - intact
+      { type: 'column', position: { x: 6, y: 3, z: 3 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 6, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 6, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 6, y: 6, z: 3 }, color: '#A09080' },
+      // Front column 5 - broken (1 segment + capital fallen)
+      { type: 'column', position: { x: 7, y: 3, z: 3 }, color: '#D0C0B0' },
+
+      // Back columns (some intact)
+      { type: 'column', position: { x: 3, y: 3, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 3, y: 4, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 3, y: 5, z: 7 }, color: '#B0A090' },
+      // Capital missing
+      { type: 'column', position: { x: 5, y: 3, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 5, y: 4, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 5, y: 5, z: 7 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 5, y: 6, z: 7 }, color: '#A09080' },
+      { type: 'column', position: { x: 7, y: 3, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 7, y: 4, z: 7 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 7, y: 5, z: 7 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 7, y: 6, z: 7 }, color: '#A09080' },
+
+      // === FALLEN COLUMN (toppled on the ground) ===
+      { type: 'pipeX', position: { x: 4, y: 1, z: 1 }, color: '#D0C0B0' },
+      { type: 'pipeX', position: { x: 5, y: 1, z: 1 }, color: '#D0C0B0' },
+      { type: 'pipeX', position: { x: 6, y: 1, z: 1 }, color: '#B0A090' },
+      // Capital end
+      { type: 'cylinder', position: { x: 7, y: 1, z: 1 }, color: '#A09080' },
+
+      // Another fallen column on north side
+      { type: 'pipeX', position: { x: 8, y: 1, z: 5 }, color: '#D0C0B0' },
+      { type: 'pipeX', position: { x: 9, y: 1, z: 5 }, color: '#B0A090' },
+      { type: 'cylinder', position: { x: 10, y: 1, z: 5 }, color: '#A09080' },
+
+      // === REMAINING PEDIMENT FRAGMENT (over intact columns) ===
+      // Architrave (cross beam)
+      { type: 'beamX', position: { x: 3, y: 7, z: 3 }, color: '#A09080' },
+      // Triangular pediment (just one wedge fragment)
+      { type: 'wedge', position: { x: 3, y: 7, z: 3 }, color: '#B0A090' },
+      // Back side architrave
+      { type: 'beamX', position: { x: 5, y: 7, z: 7 }, color: '#A09080' },
+      { type: 'beamX', position: { x: 6, y: 7, z: 7 }, color: '#A09080' },
+      { type: 'beamX', position: { x: 7, y: 7, z: 7 }, color: '#A09080' },
+
+      // === FALLEN PEDIMENT PIECES on ground ===
+      { type: 'wedge', position: { x: 4, y: 1, z: 8 }, color: '#A09080' },
+      { type: 'wedge', position: { x: 5, y: 1, z: 8 }, color: '#B0A090' },
+
+      // === INNER SANCTUARY (small enclosed cell at center) ===
+      // Walls (low, partly ruined)
+      ...makeRow(4, 3, 4, 3, 'X', 'cube', '#B0A090'),
+      ...makeRow(4, 3, 6, 3, 'X', 'cube', '#B0A090'),
+      { type: 'cube', position: { x: 4, y: 3, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 6, y: 3, z: 5 }, color: '#A09080' },
+      // Stone altar in middle
+      { type: 'cube', position: { x: 5, y: 3, z: 5 }, color: '#A09080' },
+      { type: 'slabTop', position: { x: 5, y: 3, z: 5 }, color: '#D0C0B0' },
+
+      // === TOPPLED STATUE ===
+      { type: 'sphere', position: { x: 1, y: 1, z: 5 }, color: '#A09080' }, // head
+      { type: 'pipeX', position: { x: 2, y: 1, z: 5 }, color: '#A09080' }, // body
+      // Statue base
+      { type: 'cube', position: { x: 2, y: 1, z: 6 }, color: '#A09080' },
+
+      // === MOSS & VINES & OVERGROWTH ===
+      { type: 'moss', position: { x: 3, y: 3, z: 3 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 7, y: 3, z: 7 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 4, y: 1, z: 1 }, color: '#5A7A3A' },
+      { type: 'vine', position: { x: 3, y: 5, z: 3 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 6, y: 4, z: 3 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 7, y: 5, z: 7 }, color: '#3A5A2A' },
+      { type: 'grass', position: { x: 1, y: 1, z: 2 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 9, y: 1, z: 8 }, color: '#5A7A3A' },
+      { type: 'flower', position: { x: 0, y: 1, z: 5 }, color: '#FFAA00' },
+      { type: 'flower', position: { x: 10, y: 1, z: 2 }, color: '#FF66AA' },
+      { type: 'bush', position: { x: 1, y: 1, z: 8 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 9, y: 1, z: 1 }, color: '#3A5A2A' },
+
+      // === SCATTERED RUBBLE ===
+      { type: 'rockPile', position: { x: 8, y: 1, z: 2 }, color: '#A09080' },
+      { type: 'rockSmall', position: { x: 9, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'rockJagged', position: { x: 0, y: 1, z: 7 }, color: '#A09080' },
+      { type: 'pebbles', position: { x: 7, y: 1, z: 8 }, color: '#A09080' },
+
+      // === A LONE TREE growing through ruins ===
+      { type: 'logZ', position: { x: 9, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'logZ', position: { x: 9, y: 2, z: 7 }, color: '#5A4A3A' },
+      { type: 'sphere', position: { x: 9, y: 3, z: 7 }, color: '#3A5A2A' },
+    ]
+  },
+
+  hutVillage: {
+    name: 'Tribal Hut Village',
+    category: 'ruins',
+    description: 'Cluster of primitive thatched huts with totem pole, fire pit, and drying rack',
+    blocks: [
+      // === GROUND (dirt) ===
+      ...makeFloor(0, 0, 0, 14, 12, '#7A5A3A'),
+      // Patches of grass
+      { type: 'grass', position: { x: 1, y: 1, z: 1 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 12, y: 1, z: 11 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 1, y: 1, z: 11 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 12, y: 1, z: 1 }, color: '#5A7A3A' },
+
+      // ====================================================
+      // HUT 1 (large, central) - x=4..6, z=3..5
+      // ====================================================
+      // Stone foundation ring
+      { type: 'cube', position: { x: 4, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 5, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 6, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 4, y: 1, z: 5 }, color: '#7A6655' },
+      // doorway at (5,1,5) - skip
+      { type: 'cube', position: { x: 6, y: 1, z: 5 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 4, y: 1, z: 4 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 6, y: 1, z: 4 }, color: '#7A6655' },
+      // Doorway frame (open)
+      { type: 'gateOpen', position: { x: 5, y: 1, z: 5 }, color: '#5A4A3A' },
+      // Wood walls (2nd level - log style)
+      { type: 'logZ', position: { x: 4, y: 2, z: 3 }, color: '#8B6F47' },
+      { type: 'logX', position: { x: 5, y: 2, z: 3 }, color: '#8B6F47' },
+      { type: 'logZ', position: { x: 6, y: 2, z: 3 }, color: '#8B6F47' },
+      { type: 'logZ', position: { x: 4, y: 2, z: 4 }, color: '#A0826D' },
+      { type: 'logZ', position: { x: 6, y: 2, z: 4 }, color: '#A0826D' },
+      { type: 'logZ', position: { x: 4, y: 2, z: 5 }, color: '#8B6F47' },
+      { type: 'logX', position: { x: 5, y: 2, z: 5 }, color: '#8B6F47' },
+      { type: 'logZ', position: { x: 6, y: 2, z: 5 }, color: '#8B6F47' },
+      // Conical thatched roof
+      { type: 'wedge', position: { x: 4, y: 3, z: 3 }, color: '#A06840' },
+      { type: 'wedge', position: { x: 5, y: 3, z: 3 }, color: '#A06840' },
+      { type: 'wedge', position: { x: 6, y: 3, z: 3 }, color: '#A06840' },
+      { type: 'wedgeTop', position: { x: 4, y: 3, z: 5 }, color: '#A06840' },
+      { type: 'wedgeTop', position: { x: 5, y: 3, z: 5 }, color: '#A06840' },
+      { type: 'wedgeTop', position: { x: 6, y: 3, z: 5 }, color: '#A06840' },
+      // Roof peak (cone)
+      { type: 'cone', position: { x: 5, y: 4, z: 4 }, color: '#8B5A30' },
+      // Smoke hole (small cylinder at peak)
+      { type: 'sphere', position: { x: 5, y: 5, z: 4 }, color: '#5A5A5A', emissive: { enabled: true, color: '#404040', intensity: 0.4, radius: 2 } },
+
+      // ====================================================
+      // HUT 2 (smaller, west) - x=1..2, z=7..8
+      // ====================================================
+      { type: 'cube', position: { x: 1, y: 1, z: 7 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 2, y: 1, z: 7 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 1, y: 1, z: 8 }, color: '#7A6655' },
+      // Door
+      { type: 'logZ', position: { x: 1, y: 2, z: 7 }, color: '#A0826D' },
+      { type: 'logX', position: { x: 2, y: 2, z: 7 }, color: '#A0826D' },
+      { type: 'logZ', position: { x: 1, y: 2, z: 8 }, color: '#A0826D' },
+      // Conical roof
+      { type: 'cone', position: { x: 1, y: 3, z: 7 }, color: '#A06840' },
+      { type: 'cone', position: { x: 2, y: 3, z: 7 }, color: '#A06840' },
+      { type: 'cone', position: { x: 1, y: 3, z: 8 }, color: '#A06840' },
+      { type: 'cone', position: { x: 2, y: 3, z: 8 }, color: '#A06840' },
+
+      // ====================================================
+      // HUT 3 (small, east) - x=10..11, z=2..3
+      // ====================================================
+      { type: 'cube', position: { x: 10, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 11, y: 1, z: 2 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 10, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 11, y: 1, z: 3 }, color: '#7A6655' },
+      { type: 'logZ', position: { x: 10, y: 2, z: 2 }, color: '#A0826D' },
+      { type: 'logX', position: { x: 11, y: 2, z: 2 }, color: '#A0826D' },
+      { type: 'logZ', position: { x: 10, y: 2, z: 3 }, color: '#A0826D' },
+      { type: 'logZ', position: { x: 11, y: 2, z: 3 }, color: '#A0826D' },
+      { type: 'cone', position: { x: 10, y: 3, z: 2 }, color: '#A06840' },
+      { type: 'cone', position: { x: 11, y: 3, z: 2 }, color: '#A06840' },
+      { type: 'cone', position: { x: 10, y: 3, z: 3 }, color: '#A06840' },
+      { type: 'cone', position: { x: 11, y: 3, z: 3 }, color: '#A06840' },
+
+      // ====================================================
+      // HUT 4 (storage hut, west-back) - x=2..3, z=10
+      // ====================================================
+      { type: 'cube', position: { x: 2, y: 1, z: 10 }, color: '#7A6655' },
+      { type: 'cube', position: { x: 3, y: 1, z: 10 }, color: '#7A6655' },
+      { type: 'logX', position: { x: 2, y: 2, z: 10 }, color: '#A0826D' },
+      { type: 'logX', position: { x: 3, y: 2, z: 10 }, color: '#A0826D' },
+      { type: 'wedge', position: { x: 2, y: 3, z: 10 }, color: '#A06840' },
+      { type: 'wedge', position: { x: 3, y: 3, z: 10 }, color: '#A06840' },
+
+      // ====================================================
+      // CENTRAL FIRE PIT
+      // ====================================================
+      // Stone ring
+      { type: 'rockSmall', position: { x: 7, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 8, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 9, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 7, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 9, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 7, y: 1, z: 9 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 8, y: 1, z: 9 }, color: '#5A4A3A' },
+      { type: 'rockSmall', position: { x: 9, y: 1, z: 9 }, color: '#5A4A3A' },
+      // Logs in the center
+      { type: 'logX', position: { x: 8, y: 1, z: 8 }, color: '#5A4A3A' },
+      // Fire (emissive)
+      { type: 'cone', position: { x: 8, y: 2, z: 8 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 2.5, radius: 6 } },
+      { type: 'sphere', position: { x: 8, y: 3, z: 8 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 2.0, radius: 4 } },
+
+      // ====================================================
+      // TOTEM POLE (center of village)
+      // ====================================================
+      { type: 'logZ', position: { x: 6, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'logZ', position: { x: 6, y: 2, z: 8 }, color: '#5A4A3A' },
+      { type: 'cube', position: { x: 6, y: 3, z: 8 }, color: '#C70039' }, // red carved face
+      { type: 'cube', position: { x: 6, y: 4, z: 8 }, color: '#FFAA00' }, // yellow face
+      { type: 'cube', position: { x: 6, y: 5, z: 8 }, color: '#3A5A2A' }, // green face
+      // Wings/arms on top
+      { type: 'beamX', position: { x: 6, y: 6, z: 8 }, color: '#5A4A3A' },
+      // Crown/feathers (cones)
+      { type: 'cone', position: { x: 6, y: 6, z: 8 }, color: '#FFFFFF' },
+      { type: 'cone', position: { x: 5, y: 6, z: 8 }, color: '#C70039' },
+      { type: 'cone', position: { x: 7, y: 6, z: 8 }, color: '#FFAA00' },
+
+      // ====================================================
+      // DRYING RACK (with hides)
+      // ====================================================
+      { type: 'pillar', position: { x: 11, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'pillar', position: { x: 11, y: 2, z: 8 }, color: '#5A4A3A' },
+      { type: 'pillar', position: { x: 12, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'pillar', position: { x: 12, y: 2, z: 8 }, color: '#5A4A3A' },
+      { type: 'beamX', position: { x: 11, y: 3, z: 8 }, color: '#5A4A3A' },
+      { type: 'beamX', position: { x: 12, y: 3, z: 8 }, color: '#5A4A3A' },
+      // Hides hanging
+      { type: 'tarp', position: { x: 11, y: 2, z: 8 }, color: '#A0826D' },
+      { type: 'tarp', position: { x: 12, y: 2, z: 8 }, color: '#8B6F47' },
+
+      // ====================================================
+      // PALISADE (defensive log fence around perimeter)
+      // ====================================================
+      // Front (south)
+      { type: 'fencePost', position: { x: 0, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 1, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 2, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fencePost', position: { x: 3, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 4, y: 1, z: 0 }, color: '#5A4A3A' },
+      // Gate gap at x=5,6
+      { type: 'gateDouble', position: { x: 6, y: 1, z: 0 }, color: '#8B6F47' },
+      { type: 'fence', position: { x: 8, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 9, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fencePost', position: { x: 10, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 11, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 12, y: 1, z: 0 }, color: '#5A4A3A' },
+      { type: 'fencePost', position: { x: 13, y: 1, z: 0 }, color: '#5A4A3A' },
+
+      // ====================================================
+      // BARRELS / POTS / BASKETS
+      // ====================================================
+      { type: 'barrel', position: { x: 4, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'barrel', position: { x: 5, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'planter', position: { x: 7, y: 1, z: 5 }, color: '#7A6655' },
+      { type: 'planter', position: { x: 9, y: 1, z: 5 }, color: '#7A6655' },
+      { type: 'sack', position: { x: 3, y: 1, z: 8 }, color: '#A0826D' },
+      { type: 'sack', position: { x: 12, y: 1, z: 5 }, color: '#A0826D' },
+
+      // ====================================================
+      // FIREWOOD STACK
+      // ====================================================
+      { type: 'logX', position: { x: 0, y: 1, z: 4 }, color: '#5A4A3A' },
+      { type: 'logX', position: { x: 0, y: 2, z: 4 }, color: '#5A4A3A' },
+      { type: 'logX', position: { x: 0, y: 1, z: 5 }, color: '#5A4A3A' },
+
+      // ====================================================
+      // VEGETATION
+      // ====================================================
+      { type: 'bush', position: { x: 13, y: 1, z: 6 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 0, y: 1, z: 6 }, color: '#3A5A2A' },
+      { type: 'flower', position: { x: 13, y: 1, z: 9 }, color: '#FFAA00' },
+      { type: 'flower', position: { x: 13, y: 1, z: 11 }, color: '#FF66AA' },
+      { type: 'mushroom', position: { x: 0, y: 1, z: 9 }, color: '#C70039' },
+      // Tree (single)
+      { type: 'logZ', position: { x: 13, y: 1, z: 4 }, color: '#5A4A3A' },
+      { type: 'logZ', position: { x: 13, y: 2, z: 4 }, color: '#5A4A3A' },
+      { type: 'sphere', position: { x: 13, y: 3, z: 4 }, color: '#3A5A2A' },
+      { type: 'sphere', position: { x: 13, y: 4, z: 4 }, color: '#5A7A3A' },
+    ]
+  },
+
+  triumphalArch: {
+    name: 'Triumphal Arch',
+    category: 'ruins',
+    description: 'Monumental Roman-style triple arch with columns, decorative pediment, statues and bronze gates',
+    blocks: [
+      // === GROUND ===
+      ...makeFloor(0, 0, 0, 13, 8, '#A09080'),
+      // Stone path
+      ...makeRow(0, 0, 4, 13, 'X', 'panel', '#B0A090'),
+
+      // ====================================================
+      // BASE / STYLOBATE (raised platform under arch)
+      // ====================================================
+      ...makeFloor(0, 1, 2, 13, 5, '#B0A090'),
+      ...makeRow(0, 2, 2, 13, 'X', 'cube', '#A09080'),
+      ...makeRow(0, 2, 6, 13, 'X', 'cube', '#A09080'),
+
+      // ====================================================
+      // SIDE COLUMNS (decorative, not structural)
+      // ====================================================
+      // Front facing columns (z=2)
+      { type: 'base', position: { x: 1, y: 2, z: 2 }, color: '#A09080' },
+      { type: 'column', position: { x: 1, y: 2, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 3, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 4, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 5, z: 2 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 1, y: 6, z: 2 }, color: '#A09080' },
+
+      { type: 'base', position: { x: 4, y: 2, z: 2 }, color: '#A09080' },
+      { type: 'column', position: { x: 4, y: 2, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 3, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 4, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 5, z: 2 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 4, y: 6, z: 2 }, color: '#A09080' },
+
+      { type: 'base', position: { x: 8, y: 2, z: 2 }, color: '#A09080' },
+      { type: 'column', position: { x: 8, y: 2, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 3, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 4, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 5, z: 2 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 8, y: 6, z: 2 }, color: '#A09080' },
+
+      { type: 'base', position: { x: 11, y: 2, z: 2 }, color: '#A09080' },
+      { type: 'column', position: { x: 11, y: 2, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 3, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 4, z: 2 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 5, z: 2 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 11, y: 6, z: 2 }, color: '#A09080' },
+
+      // Back facing columns (z=6) - mirror front
+      { type: 'base', position: { x: 1, y: 2, z: 6 }, color: '#A09080' },
+      { type: 'column', position: { x: 1, y: 2, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 3, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 4, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 1, y: 5, z: 6 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 1, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'column', position: { x: 4, y: 2, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 3, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 4, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 4, y: 5, z: 6 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 4, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'column', position: { x: 8, y: 2, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 3, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 4, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 8, y: 5, z: 6 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 8, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'column', position: { x: 11, y: 2, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 3, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 4, z: 6 }, color: '#D0C0B0' },
+      { type: 'column', position: { x: 11, y: 5, z: 6 }, color: '#D0C0B0' },
+      { type: 'capital', position: { x: 11, y: 6, z: 6 }, color: '#A09080' },
+
+      // ====================================================
+      // ARCH WALL / PASSAGE STRUCTURE
+      // ====================================================
+      // Main arch piers (large supports between arches)
+      { type: 'cube', position: { x: 0, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 3, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 3, z: 5 }, color: '#A09080' },
+
+      // Arch piers between large central arch and side arches
+      { type: 'cube', position: { x: 3, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 3, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 3, z: 5 }, color: '#A09080' },
+
+      { type: 'cube', position: { x: 9, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 9, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 9, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 9, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 9, y: 3, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 9, y: 3, z: 5 }, color: '#A09080' },
+
+      { type: 'cube', position: { x: 12, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 12, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 12, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 12, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 12, y: 3, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 12, y: 3, z: 5 }, color: '#A09080' },
+
+      // === SMALL SIDE ARCHES (left & right) ===
+      { type: 'arch', position: { x: 1, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 1, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 1, y: 4, z: 5 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 2, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 2, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 2, y: 4, z: 5 }, color: '#B0A090' },
+
+      { type: 'arch', position: { x: 10, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 10, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 10, y: 4, z: 5 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 11, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 11, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 11, y: 4, z: 5 }, color: '#B0A090' },
+
+      // === BIG CENTRAL ARCH (taller) ===
+      { type: 'arch', position: { x: 4, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 4, y: 5, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 4, y: 5, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 5, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 5, y: 5, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 5, y: 5, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 6, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 6, y: 5, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 6, y: 5, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 7, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 7, y: 5, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 7, y: 5, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 5, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 5, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 5, z: 5 }, color: '#D0C0B0' },
+
+      // Central arch lower part (open passage)
+      { type: 'cube', position: { x: 4, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 4, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 4, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 3, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 4, y: 3, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 3, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 4, y: 4, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 4, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 4, y: 4, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 8, y: 4, z: 5 }, color: '#A09080' },
+
+      // === ENTABLATURE (band above all arches) ===
+      ...makeRow(0, 7, 2, 13, 'X', 'cube', '#D0C0B0'),
+      ...makeRow(0, 7, 6, 13, 'X', 'cube', '#D0C0B0'),
+      // Cornice molding
+      ...makeRow(0, 8, 2, 13, 'X', 'cornice', '#A09080'),
+      ...makeRow(0, 8, 6, 13, 'X', 'cornice', '#A09080'),
+      // Top wall
+      ...makeRow(0, 8, 3, 13, 'X', 'cube', '#B0A090'),
+      ...makeRow(0, 8, 4, 13, 'X', 'cube', '#B0A090'),
+      ...makeRow(0, 8, 5, 13, 'X', 'cube', '#B0A090'),
+
+      // === STATUES on top corners ===
+      { type: 'pillar', position: { x: 1, y: 9, z: 4 }, color: '#D0C0B0' },
+      { type: 'pillar', position: { x: 1, y: 10, z: 4 }, color: '#D0C0B0' },
+      { type: 'sphere', position: { x: 1, y: 11, z: 4 }, color: '#D0C0B0' }, // head
+
+      { type: 'pillar', position: { x: 11, y: 9, z: 4 }, color: '#D0C0B0' },
+      { type: 'pillar', position: { x: 11, y: 10, z: 4 }, color: '#D0C0B0' },
+      { type: 'sphere', position: { x: 11, y: 11, z: 4 }, color: '#D0C0B0' },
+
+      // === CENTRAL CROWNING STATUE / QUADRIGA ===
+      { type: 'cube', position: { x: 5, y: 9, z: 4 }, color: '#A09080' }, // base
+      { type: 'cube', position: { x: 6, y: 9, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 7, y: 9, z: 4 }, color: '#A09080' },
+      // Horse statues (stylized as cubes + sphere heads)
+      { type: 'cube', position: { x: 5, y: 10, z: 4 }, color: '#B89968' }, // bronze
+      { type: 'cube', position: { x: 6, y: 10, z: 4 }, color: '#B89968' },
+      { type: 'cube', position: { x: 7, y: 10, z: 4 }, color: '#B89968' },
+      { type: 'sphere', position: { x: 5, y: 11, z: 4 }, color: '#B89968' },
+      { type: 'sphere', position: { x: 7, y: 11, z: 4 }, color: '#B89968' },
+      // Charioteer center
+      { type: 'pillarRound', position: { x: 6, y: 11, z: 4 }, color: '#B89968' },
+
+      // === BRONZE GATES (under main arch) ===
+      { type: 'gateDouble', position: { x: 5, y: 2, z: 4 }, color: '#7A5A30' },
+      { type: 'gateDouble', position: { x: 7, y: 2, z: 4 }, color: '#7A5A30' },
+      { type: 'gate', position: { x: 6, y: 2, z: 4 }, color: '#7A5A30' },
+      { type: 'gate', position: { x: 6, y: 3, z: 4 }, color: '#7A5A30' },
+
+      // === DECORATIVE FRIEZE (between columns y=6) ===
+      { type: 'cube', position: { x: 5, y: 6, z: 2 }, color: '#A09080' },
+      { type: 'cube', position: { x: 6, y: 6, z: 2 }, color: '#A09080' },
+      { type: 'cube', position: { x: 7, y: 6, z: 2 }, color: '#A09080' },
+      // Inscription details
+      { type: 'panel', position: { x: 5, y: 6, z: 2 }, color: '#5A4A3A' },
+      { type: 'panel', position: { x: 6, y: 6, z: 2 }, color: '#5A4A3A' },
+      { type: 'panel', position: { x: 7, y: 6, z: 2 }, color: '#5A4A3A' },
+
+      // === STEPS LEADING UP (front and back) ===
+      ...makeRow(0, 1, 1, 13, 'X', 'stairs', '#A09080'),
+      ...makeRow(0, 1, 7, 13, 'X', 'stairs', '#A09080'),
+
+      // === DETAILS / WEATHERING ===
+      { type: 'moss', position: { x: 0, y: 2, z: 3 }, color: '#5A7A3A' },
+      { type: 'vine', position: { x: 0, y: 4, z: 4 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 12, y: 4, z: 4 }, color: '#3A5A2A' },
+      { type: 'flower', position: { x: 0, y: 1, z: 0 }, color: '#FFAA00' },
+      { type: 'bush', position: { x: 12, y: 1, z: 0 }, color: '#3A5A2A' },
+    ]
+  },
+
+  aqueductRuin: {
+    name: 'Aqueduct Ruin',
+    category: 'ruins',
+    description: 'Roman-style stone aqueduct in partial ruin — row of arches carrying a water channel, overgrown',
+    blocks: [
+      // === GROUND (grass with stone scatter) ===
+      ...makeFloor(0, 0, 0, 22, 8, '#5A6A3A'),
+      // Stone path beneath aqueduct
+      ...makeRow(0, 0, 4, 22, 'X', 'panel', '#A09080'),
+
+      // ====================================================
+      // PIER 1 (intact, leftmost) - x=0..1, z=3..5
+      // ====================================================
+      { type: 'cube', position: { x: 0, y: 1, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 1, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 1, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 1, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 2, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 2, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 1, y: 2, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 0, y: 3, z: 3 }, color: '#B0A090' },
+      { type: 'cube', position: { x: 0, y: 3, z: 4 }, color: '#B0A090' },
+      { type: 'cube', position: { x: 0, y: 3, z: 5 }, color: '#B0A090' },
+      { type: 'cube', position: { x: 1, y: 3, z: 3 }, color: '#B0A090' },
+      { type: 'cube', position: { x: 1, y: 3, z: 4 }, color: '#B0A090' },
+      { type: 'cube', position: { x: 1, y: 3, z: 5 }, color: '#B0A090' },
+
+      // ====================================================
+      // PIER 2 - x=5..6
+      // ====================================================
+      ...makeRow(5, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(6, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(5, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(6, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(5, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+      ...makeRow(6, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+
+      // ====================================================
+      // PIER 3 - x=10..11
+      // ====================================================
+      ...makeRow(10, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(11, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(10, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(11, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(10, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+      ...makeRow(11, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+
+      // ====================================================
+      // PIER 4 (PARTIALLY COLLAPSED) - x=15..16
+      // ====================================================
+      ...makeRow(15, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      // Right side broken
+      { type: 'cube', position: { x: 16, y: 1, z: 3 }, color: '#A09080' },
+      { type: 'cube', position: { x: 16, y: 1, z: 5 }, color: '#A09080' },
+      // Middle gone (rubble below)
+      { type: 'rockPile', position: { x: 16, y: 1, z: 4 }, color: '#A09080' },
+      ...makeRow(15, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      { type: 'cube', position: { x: 16, y: 2, z: 3 }, color: '#5A4A3A' },
+      // Top crumbled
+      { type: 'cube', position: { x: 15, y: 3, z: 3 }, color: '#5A4A3A' },
+      // Rest collapsed
+
+      // ====================================================
+      // PIER 5 (rightmost, intact) - x=20..21
+      // ====================================================
+      ...makeRow(20, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(21, 1, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(20, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(21, 2, 3, 3, 'Z', 'cube', '#A09080'),
+      ...makeRow(20, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+      ...makeRow(21, 3, 3, 3, 'Z', 'cube', '#B0A090'),
+
+      // ====================================================
+      // ARCHES (between piers, lower tier)
+      // ====================================================
+      // Arch 1: x=2..4 between piers 1 & 2
+      { type: 'arch', position: { x: 2, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 2, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 2, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 3, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 3, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 3, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 4, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 4, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 4, y: 4, z: 5 }, color: '#D0C0B0' },
+
+      // Arch 2: x=7..9
+      { type: 'arch', position: { x: 7, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 7, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 7, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 8, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 9, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 9, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 9, y: 4, z: 5 }, color: '#D0C0B0' },
+
+      // Arch 3: x=12..14
+      { type: 'arch', position: { x: 12, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 12, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 12, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 13, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 13, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 13, y: 4, z: 5 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 14, y: 4, z: 3 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 14, y: 4, z: 4 }, color: '#D0C0B0' },
+      { type: 'arch', position: { x: 14, y: 4, z: 5 }, color: '#D0C0B0' },
+
+      // Arch 4 (between collapsed pier 4 and pier 5): partially collapsed
+      { type: 'arch', position: { x: 17, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 17, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 17, y: 4, z: 5 }, color: '#B0A090' },
+      // Middle of arch broken (gap at x=18)
+      { type: 'arch', position: { x: 19, y: 4, z: 3 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 19, y: 4, z: 4 }, color: '#B0A090' },
+      { type: 'arch', position: { x: 19, y: 4, z: 5 }, color: '#B0A090' },
+
+      // ====================================================
+      // UPPER WALKWAY / CHANNEL ON TOP
+      // ====================================================
+      // Top span (intact section: x=0..14)
+      ...makeRow(0, 5, 3, 15, 'X', 'cube', '#B0A090'),
+      ...makeRow(0, 5, 5, 15, 'X', 'cube', '#B0A090'),
+      // Water channel in middle (channel block)
+      ...makeRow(0, 5, 4, 15, 'X', 'channel', '#4682B4'),
+      // Water (flowing, slightly emissive blue)
+      { type: 'panel', position: { x: 0, y: 5, z: 4 }, color: '#4682B4', emissive: { enabled: true, color: '#4682B4', intensity: 0.4, radius: 1 } },
+      { type: 'panel', position: { x: 5, y: 5, z: 4 }, color: '#4682B4', emissive: { enabled: true, color: '#4682B4', intensity: 0.4, radius: 1 } },
+      { type: 'panel', position: { x: 10, y: 5, z: 4 }, color: '#4682B4', emissive: { enabled: true, color: '#4682B4', intensity: 0.4, radius: 1 } },
+
+      // Top span partial (x=20..21 right section)
+      ...makeRow(20, 5, 3, 2, 'X', 'cube', '#B0A090'),
+      ...makeRow(20, 5, 3, 2, 'X', 'cube', '#B0A090'),
+      ...makeRow(20, 5, 5, 2, 'X', 'cube', '#B0A090'),
+      ...makeRow(20, 5, 4, 2, 'X', 'channel', '#4682B4'),
+
+      // Gap in upper walkway (x=15..19) due to collapsed pier
+      // Show some fallen channel pieces
+      { type: 'channelEnd', position: { x: 14, y: 5, z: 4 }, color: '#4682B4' },
+      { type: 'channelEnd', position: { x: 20, y: 5, z: 4 }, color: '#4682B4' },
+
+      // === RUBBLE FROM COLLAPSE (under broken arch) ===
+      { type: 'rockPile', position: { x: 17, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'rockPile', position: { x: 18, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'rockSmall', position: { x: 18, y: 1, z: 3 }, color: '#A09080' },
+      { type: 'rockSmall', position: { x: 18, y: 1, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 18, y: 1, z: 4 }, color: '#A09080' },
+      { type: 'rockJagged', position: { x: 18, y: 2, z: 4 }, color: '#5A4A3A' },
+      { type: 'pebbles', position: { x: 17, y: 1, z: 6 }, color: '#A09080' },
+
+      // === RAILING ALONG TOP CHANNEL ===
+      { type: 'railing', position: { x: 0, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'railing', position: { x: 5, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'railing', position: { x: 10, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'railing', position: { x: 14, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'railing', position: { x: 0, y: 6, z: 5 }, color: '#A09080' },
+      { type: 'railing', position: { x: 5, y: 6, z: 5 }, color: '#A09080' },
+      { type: 'railing', position: { x: 10, y: 6, z: 5 }, color: '#A09080' },
+      { type: 'railing', position: { x: 14, y: 6, z: 5 }, color: '#A09080' },
+
+      // ====================================================
+      // OVERGROWTH & DETAILS
+      // ====================================================
+      // Vines hanging off arches
+      { type: 'vine', position: { x: 3, y: 4, z: 3 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 8, y: 4, z: 5 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 13, y: 4, z: 3 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 17, y: 3, z: 5 }, color: '#3A5A2A' },
+      // Moss
+      { type: 'moss', position: { x: 0, y: 1, z: 3 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 5, y: 1, z: 5 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 21, y: 1, z: 3 }, color: '#5A7A3A' },
+      { type: 'moss', position: { x: 18, y: 1, z: 4 }, color: '#5A7A3A' },
+      // Bushes near piers
+      { type: 'bush', position: { x: 0, y: 1, z: 7 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 21, y: 1, z: 7 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 11, y: 1, z: 0 }, color: '#3A5A2A' },
+      // Grass tufts
+      { type: 'grass', position: { x: 3, y: 1, z: 1 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 9, y: 1, z: 7 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 16, y: 1, z: 1 }, color: '#5A7A3A' },
+      // Flowers
+      { type: 'flower', position: { x: 4, y: 1, z: 0 }, color: '#FFAA00' },
+      { type: 'flower', position: { x: 14, y: 1, z: 7 }, color: '#FF66AA' },
+      // Tree sprouting from a collapsed pier
+      { type: 'logZ', position: { x: 18, y: 2, z: 7 }, color: '#5A4A3A' },
+      { type: 'logZ', position: { x: 18, y: 3, z: 7 }, color: '#5A4A3A' },
+      { type: 'sphere', position: { x: 18, y: 4, z: 7 }, color: '#3A5A2A' },
     ]
   }
 };

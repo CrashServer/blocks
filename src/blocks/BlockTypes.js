@@ -398,6 +398,31 @@ export const BLOCK_HEIGHT_MULTIPLIERS = {
   xenoSpire: 1,
   organicGrowth: 0.75,
   bioReactor: 1,
+
+  // Munitions / Ammo
+  bullet: 1,
+  bulletTip: 0.5,
+  shellCasing: 0.75,
+  cartridgeBox: 0.5,
+  magazine: 1,
+  magazineDrum: 1,
+  ammoCan: 0.75,
+  ammoCrate: 1,
+  gunpowderBarrel: 1,
+  artilleryShell: 1,
+  mortarShell: 1,
+  rocketShell: 1,
+  grenade: 0.75,
+  explosiveBarrel: 1,
+  primerBox: 0.25,
+
+  // Factory Machinery
+  assemblyArm: 1,
+  stamperPress: 1,
+  industrialFan: 1,
+  controlPanel: 0.75,
+  hazardSign: 1,
+  conveyorAmmo: 0.5,
 };
 
 // Y offset for positioning (for blocks that don't start at their gridPosition.y)
@@ -987,6 +1012,31 @@ export const GEOMETRY_CREATORS = {
   xenoSpire: (d) => createXenoSpire(d.w, d.h, d.d),
   organicGrowth: (d) => createOrganicGrowth(d.w, d.h, d.d),
   bioReactor: (d) => createBioReactor(d.w, d.h, d.d),
+
+  // === MUNITIONS / AMMO ===
+  bullet: (d) => createBullet(d.w, d.h, d.d),
+  bulletTip: (d) => createBulletTip(d.w, d.h, d.d),
+  shellCasing: (d) => createShellCasing(d.w, d.h, d.d),
+  cartridgeBox: (d) => createCartridgeBox(d.w, d.h, d.d),
+  magazine: (d) => createMagazine(d.w, d.h, d.d),
+  magazineDrum: (d) => createMagazineDrum(d.w, d.h, d.d),
+  ammoCan: (d) => createAmmoCan(d.w, d.h, d.d),
+  ammoCrate: (d) => createAmmoCrate(d.w, d.h, d.d),
+  gunpowderBarrel: (d) => createGunpowderBarrel(d.w, d.h, d.d),
+  artilleryShell: (d) => createArtilleryShell(d.w, d.h, d.d),
+  mortarShell: (d) => createMortarShell(d.w, d.h, d.d),
+  rocketShell: (d) => createRocketShell(d.w, d.h, d.d),
+  grenade: (d) => createGrenade(d.w, d.h, d.d),
+  explosiveBarrel: (d) => createExplosiveBarrel(d.w, d.h, d.d),
+  primerBox: (d) => createPrimerBox(d.w, d.h, d.d),
+
+  // === FACTORY MACHINERY ===
+  assemblyArm: (d) => createAssemblyArm(d.w, d.h, d.d),
+  stamperPress: (d) => createStamperPress(d.w, d.h, d.d),
+  industrialFan: (d) => createIndustrialFan(d.w, d.h, d.d),
+  controlPanel: (d) => createControlPanel(d.w, d.h, d.d),
+  hazardSign: (d) => createHazardSign(d.w, d.h, d.d),
+  conveyorAmmo: (d) => createConveyorAmmo(d.w, d.h, d.d),
 };
 
 // Helper: Create wedge/ramp geometry with material groups for per-face painting
@@ -6664,5 +6714,670 @@ function createBioReactor(w, h, d) {
     parts.push(tendril);
   }
   return mergeGeometries(parts, false) || parts[0];
+}
+
+// =====================
+// MUNITIONS / AMMO
+// =====================
+
+// Full upright cartridge: brass casing + projectile tip
+function createBullet(w, h, d) {
+  const r = Math.min(w, d) * 0.18;
+  const parts = [];
+  // Casing
+  const casing = new THREE.CylinderGeometry(r, r, h * 0.55, 12);
+  casing.translate(0, -h * 0.2, 0);
+  parts.push(casing);
+  // Extractor rim
+  const rim = new THREE.TorusGeometry(r, r * 0.08, 6, 12);
+  rim.rotateX(Math.PI / 2);
+  rim.translate(0, -h * 0.45, 0);
+  parts.push(rim);
+  // Shoulder taper
+  const shoulder = new THREE.CylinderGeometry(r * 0.85, r, h * 0.08, 12);
+  shoulder.translate(0, h * 0.1, 0);
+  parts.push(shoulder);
+  // Bullet body (above shoulder)
+  const body = new THREE.CylinderGeometry(r * 0.85, r * 0.85, h * 0.2, 12);
+  body.translate(0, h * 0.24, 0);
+  parts.push(body);
+  // Tip
+  const tip = new THREE.ConeGeometry(r * 0.85, h * 0.18, 12);
+  tip.translate(0, h * 0.43, 0);
+  parts.push(tip);
+  return safeMergeGeometries(parts);
+}
+
+// Just the projectile (lead/copper, no casing)
+function createBulletTip(w, h, d) {
+  const r = Math.min(w, d) * 0.2;
+  const parts = [];
+  const body = new THREE.CylinderGeometry(r, r, h * 0.4, 12);
+  body.translate(0, -h * 0.1, 0);
+  parts.push(body);
+  const tip = new THREE.ConeGeometry(r, h * 0.4, 12);
+  tip.translate(0, h * 0.3, 0);
+  parts.push(tip);
+  return safeMergeGeometries(parts);
+}
+
+// Empty spent shell (open top)
+function createShellCasing(w, h, d) {
+  const r = Math.min(w, d) * 0.18;
+  const parts = [];
+  // Hollow tube body
+  const body = new THREE.CylinderGeometry(r, r, h * 0.7, 12, 1, true);
+  body.translate(0, -h * 0.1, 0);
+  parts.push(body);
+  // Bottom cap (primer face)
+  const cap = new THREE.CylinderGeometry(r * 0.95, r * 0.95, h * 0.05, 12);
+  cap.translate(0, -h * 0.42, 0);
+  parts.push(cap);
+  // Extractor rim
+  const rim = new THREE.TorusGeometry(r, r * 0.08, 6, 12);
+  rim.rotateX(Math.PI / 2);
+  rim.translate(0, -h * 0.45, 0);
+  parts.push(rim);
+  // Primer
+  const primer = new THREE.CylinderGeometry(r * 0.35, r * 0.35, h * 0.04, 8);
+  primer.translate(0, -h * 0.43, 0);
+  parts.push(primer);
+  return safeMergeGeometries(parts);
+}
+
+// Open box of cartridges, tips visible (5x3 grid)
+function createCartridgeBox(w, h, d) {
+  const parts = [];
+  // Box body
+  const box = new THREE.BoxGeometry(w * 0.9, h * 0.5, d * 0.7);
+  box.translate(0, -h * 0.2, 0);
+  parts.push(box);
+  // Inner divider walls
+  const inner = new THREE.BoxGeometry(w * 0.85, h * 0.04, d * 0.65);
+  inner.translate(0, h * 0.05, 0);
+  parts.push(inner);
+  // Grid of bullet tips
+  const cols = 5, rows = 3;
+  const r = w * 0.06;
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const x = (i - (cols - 1) / 2) * w * 0.16;
+      const z = (j - (rows - 1) / 2) * d * 0.18;
+      const cyl = new THREE.CylinderGeometry(r, r, h * 0.25, 8);
+      cyl.translate(x, h * 0.1, z);
+      parts.push(cyl);
+      const tip = new THREE.ConeGeometry(r, h * 0.18, 8);
+      tip.translate(x, h * 0.3, z);
+      parts.push(tip);
+    }
+  }
+  return safeMergeGeometries(parts);
+}
+
+// Curved magazine clip (firearm magazine)
+function createMagazine(w, h, d) {
+  const parts = [];
+  // Stack of curved segments to give a banana-mag silhouette
+  const segments = 6;
+  for (let i = 0; i < segments; i++) {
+    const t = i / (segments - 1);
+    const yOffset = h * (-0.42 + t * 0.78);
+    const xCurve = Math.sin(t * Math.PI * 0.5) * w * 0.1;
+    const seg = new THREE.BoxGeometry(w * 0.22, h * 0.16, d * 0.4);
+    seg.translate(xCurve, yOffset, 0);
+    parts.push(seg);
+  }
+  // Floorplate
+  const floor = new THREE.BoxGeometry(w * 0.28, h * 0.06, d * 0.45);
+  floor.translate(0, -h * 0.45, 0);
+  parts.push(floor);
+  // Bullet tip peeking out top
+  const r = w * 0.045;
+  const tip = new THREE.ConeGeometry(r * 1.6, h * 0.1, 8);
+  tip.translate(w * 0.12, h * 0.42, 0);
+  parts.push(tip);
+  return safeMergeGeometries(parts);
+}
+
+// Drum magazine
+function createMagazineDrum(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.34;
+  // Drum (lying on its side, axis along Z)
+  const drum = new THREE.CylinderGeometry(r, r, h * 0.2, 16);
+  drum.rotateX(Math.PI / 2);
+  drum.translate(0, -h * 0.05, 0);
+  parts.push(drum);
+  // Center hub
+  const hub = new THREE.CylinderGeometry(r * 0.22, r * 0.22, h * 0.25, 8);
+  hub.rotateX(Math.PI / 2);
+  hub.translate(0, -h * 0.05, 0);
+  parts.push(hub);
+  // Spokes (cosmetic)
+  for (let i = 0; i < 6; i++) {
+    const spoke = new THREE.BoxGeometry(r * 1.5, h * 0.04, d * 0.04);
+    spoke.rotateZ((i * Math.PI) / 6);
+    spoke.translate(0, -h * 0.05, d * 0.11);
+    parts.push(spoke);
+  }
+  // Mag stem above drum
+  const stem = new THREE.BoxGeometry(w * 0.18, h * 0.3, d * 0.32);
+  stem.translate(0, h * 0.25, 0);
+  parts.push(stem);
+  // Tip peeking out
+  const tip = new THREE.ConeGeometry(w * 0.05, h * 0.1, 8);
+  tip.translate(0, h * 0.45, 0);
+  parts.push(tip);
+  return safeMergeGeometries(parts);
+}
+
+// Steel ammo can with handle and latch
+function createAmmoCan(w, h, d) {
+  const parts = [];
+  // Body
+  const body = new THREE.BoxGeometry(w * 0.85, h * 0.7, d * 0.55);
+  body.translate(0, -h * 0.1, 0);
+  parts.push(body);
+  // Lid lip
+  const lid = new THREE.BoxGeometry(w * 0.88, h * 0.06, d * 0.58);
+  lid.translate(0, h * 0.28, 0);
+  parts.push(lid);
+  // Top handle (folded)
+  const handleBar = new THREE.BoxGeometry(w * 0.4, h * 0.04, d * 0.04);
+  handleBar.translate(0, h * 0.4, 0);
+  parts.push(handleBar);
+  const handleL = new THREE.BoxGeometry(w * 0.04, h * 0.1, d * 0.04);
+  handleL.translate(-w * 0.18, h * 0.34, 0);
+  parts.push(handleL);
+  const handleR = handleL.clone();
+  handleR.translate(w * 0.36, 0, 0);
+  parts.push(handleR);
+  // Latch
+  const latch = new THREE.BoxGeometry(w * 0.1, h * 0.08, d * 0.05);
+  latch.translate(w * 0.4, h * 0.05, d * 0.28);
+  parts.push(latch);
+  // Caliber stencil indicator (raised plate)
+  const plate = new THREE.BoxGeometry(w * 0.4, h * 0.18, d * 0.02);
+  plate.translate(0, -h * 0.1, d * 0.28);
+  parts.push(plate);
+  return safeMergeGeometries(parts);
+}
+
+// Wooden military ammo crate w/ rope handles
+function createAmmoCrate(w, h, d) {
+  const parts = [];
+  // Body
+  const body = new THREE.BoxGeometry(w * 0.95, h * 0.85, d * 0.95);
+  body.translate(0, -h * 0.05, 0);
+  parts.push(body);
+  // Top plank slats
+  const slat1 = new THREE.BoxGeometry(w * 0.95, h * 0.05, d * 0.06);
+  slat1.translate(0, h * 0.4, d * 0.3);
+  parts.push(slat1);
+  const slat2 = slat1.clone();
+  slat2.translate(0, 0, -d * 0.6);
+  parts.push(slat2);
+  const slat3 = slat1.clone();
+  slat3.translate(0, 0, d * 0.3);
+  parts.push(slat3);
+  // Center band
+  const band = new THREE.BoxGeometry(w * 0.97, h * 0.07, d * 0.97);
+  band.translate(0, -h * 0.05, 0);
+  parts.push(band);
+  // Corner reinforcements
+  const corners = [[-1, -1], [1, -1], [-1, 1], [1, 1]];
+  corners.forEach(([cx, cz]) => {
+    const corner = new THREE.BoxGeometry(w * 0.08, h * 0.85, d * 0.08);
+    corner.translate(cx * w * 0.45, -h * 0.05, cz * d * 0.45);
+    parts.push(corner);
+  });
+  // Rope handles
+  const handle1 = new THREE.TorusGeometry(w * 0.1, w * 0.018, 6, 10);
+  handle1.rotateY(Math.PI / 2);
+  handle1.translate(w * 0.5, h * 0.05, 0);
+  parts.push(handle1);
+  const handle2 = handle1.clone();
+  handle2.translate(-w, 0, 0);
+  parts.push(handle2);
+  return safeMergeGeometries(parts);
+}
+
+// Gunpowder barrel with hazard X marker
+function createGunpowderBarrel(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.4;
+  const barrel = new THREE.CylinderGeometry(r * 0.95, r * 0.95, h * 0.9, 12);
+  parts.push(barrel);
+  // Top rim
+  const topRim = new THREE.TorusGeometry(r * 0.95, r * 0.05, 6, 12);
+  topRim.rotateX(Math.PI / 2);
+  topRim.translate(0, h * 0.42, 0);
+  parts.push(topRim);
+  // Bottom rim
+  const bottomRim = topRim.clone();
+  bottomRim.translate(0, -h * 0.84, 0);
+  parts.push(bottomRim);
+  // Mid stave bands
+  const mid = new THREE.TorusGeometry(r * 0.97, r * 0.04, 6, 12);
+  mid.rotateX(Math.PI / 2);
+  parts.push(mid);
+  // Cap with bung
+  const cap = new THREE.CylinderGeometry(r * 0.25, r * 0.25, h * 0.08, 8);
+  cap.translate(0, h * 0.48, 0);
+  parts.push(cap);
+  // Hazard X on side (two crossed slats)
+  const x1 = new THREE.BoxGeometry(w * 0.45, h * 0.04, d * 0.02);
+  x1.rotateZ(Math.PI / 4);
+  x1.translate(0, 0, d * 0.42);
+  parts.push(x1);
+  const x2 = new THREE.BoxGeometry(w * 0.45, h * 0.04, d * 0.02);
+  x2.rotateZ(-Math.PI / 4);
+  x2.translate(0, 0, d * 0.42);
+  parts.push(x2);
+  return safeMergeGeometries(parts);
+}
+
+// Large artillery shell standing upright
+function createArtilleryShell(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.3;
+  // Body (casing)
+  const body = new THREE.CylinderGeometry(r, r, h * 0.55, 16);
+  body.translate(0, -h * 0.15, 0);
+  parts.push(body);
+  // Driving band (copper ring)
+  const band = new THREE.TorusGeometry(r * 1.05, r * 0.07, 8, 16);
+  band.rotateX(Math.PI / 2);
+  band.translate(0, h * 0.1, 0);
+  parts.push(band);
+  // Ogive (pointed nose section)
+  const ogive = new THREE.CylinderGeometry(r * 0.15, r, h * 0.4, 16);
+  ogive.translate(0, h * 0.32, 0);
+  parts.push(ogive);
+  // Tip cap
+  const tip = new THREE.SphereGeometry(r * 0.18, 8, 6);
+  tip.translate(0, h * 0.5, 0);
+  parts.push(tip);
+  // Base
+  const base = new THREE.CylinderGeometry(r, r * 0.92, h * 0.06, 16);
+  base.translate(0, -h * 0.45, 0);
+  parts.push(base);
+  return safeMergeGeometries(parts);
+}
+
+// Mortar shell with stabilizing fins
+function createMortarShell(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.22;
+  // Body
+  const body = new THREE.CylinderGeometry(r, r, h * 0.5, 12);
+  body.translate(0, -h * 0.05, 0);
+  parts.push(body);
+  // Tip
+  const tip = new THREE.ConeGeometry(r, h * 0.3, 12);
+  tip.translate(0, h * 0.35, 0);
+  parts.push(tip);
+  // Tail tube (smaller diameter)
+  const tail = new THREE.CylinderGeometry(r * 0.4, r * 0.4, h * 0.25, 8);
+  tail.translate(0, -h * 0.4, 0);
+  parts.push(tail);
+  // Fins (4 plates around tail)
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI) / 2;
+    const fin = new THREE.BoxGeometry(d * 0.18, h * 0.22, w * 0.02);
+    fin.translate(d * 0.09, -h * 0.4, 0);
+    fin.rotateY(angle);
+    parts.push(fin);
+  }
+  // Fuse cap
+  const fuse = new THREE.CylinderGeometry(r * 0.18, r * 0.18, h * 0.08, 6);
+  fuse.translate(0, h * 0.54, 0);
+  parts.push(fuse);
+  return safeMergeGeometries(parts);
+}
+
+// Rocket / missile pointing up
+function createRocketShell(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.2;
+  // Body
+  const body = new THREE.CylinderGeometry(r, r, h * 0.65, 16);
+  body.translate(0, -h * 0.1, 0);
+  parts.push(body);
+  // Nose cone
+  const nose = new THREE.ConeGeometry(r, h * 0.3, 16);
+  nose.translate(0, h * 0.37, 0);
+  parts.push(nose);
+  // Fins (4)
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI) / 2;
+    const fin = new THREE.BoxGeometry(w * 0.22, h * 0.22, d * 0.02);
+    fin.translate(w * 0.12, -h * 0.32, 0);
+    fin.rotateY(angle);
+    parts.push(fin);
+  }
+  // Nozzle
+  const nozzle = new THREE.CylinderGeometry(r * 0.6, r * 0.85, h * 0.1, 12);
+  nozzle.translate(0, -h * 0.48, 0);
+  parts.push(nozzle);
+  // Mid band
+  const band = new THREE.TorusGeometry(r * 1.02, r * 0.05, 6, 12);
+  band.rotateX(Math.PI / 2);
+  band.translate(0, h * 0.1, 0);
+  parts.push(band);
+  return safeMergeGeometries(parts);
+}
+
+// Hand grenade (frag) with safety lever and pin
+function createGrenade(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.3;
+  // Body
+  const body = new THREE.SphereGeometry(r, 12, 8);
+  body.scale(1, 1.05, 1);
+  body.translate(0, -h * 0.05, 0);
+  parts.push(body);
+  // Texture grooves (decorative bands)
+  const band1 = new THREE.TorusGeometry(r * 1.01, r * 0.04, 4, 12);
+  band1.rotateX(Math.PI / 2);
+  band1.translate(0, -h * 0.05 + r * 0.4, 0);
+  parts.push(band1);
+  const band2 = new THREE.TorusGeometry(r * 1.01, r * 0.04, 4, 12);
+  band2.rotateX(Math.PI / 2);
+  band2.translate(0, -h * 0.05 - r * 0.4, 0);
+  parts.push(band2);
+  const vband = new THREE.TorusGeometry(r * 1.01, r * 0.04, 4, 12);
+  vband.translate(0, -h * 0.05, 0);
+  parts.push(vband);
+  // Top neck
+  const neck = new THREE.CylinderGeometry(r * 0.4, r * 0.45, h * 0.12, 8);
+  neck.translate(0, h * 0.27, 0);
+  parts.push(neck);
+  // Spoon / safety lever
+  const lever = new THREE.BoxGeometry(w * 0.05, h * 0.22, d * 0.18);
+  lever.translate(w * 0.16, h * 0.3, 0);
+  parts.push(lever);
+  // Pull pin ring
+  const ring = new THREE.TorusGeometry(w * 0.06, w * 0.015, 6, 8);
+  ring.rotateX(Math.PI / 2);
+  ring.translate(w * 0.13, h * 0.45, 0);
+  parts.push(ring);
+  return safeMergeGeometries(parts);
+}
+
+// Explosive barrel (bright warning, banded)
+function createExplosiveBarrel(w, h, d) {
+  const parts = [];
+  const r = Math.min(w, d) * 0.4;
+  const barrel = new THREE.CylinderGeometry(r * 0.95, r * 0.95, h * 0.9, 12);
+  parts.push(barrel);
+  // Banded rings
+  for (let i = 0; i < 3; i++) {
+    const band = new THREE.TorusGeometry(r * 0.97, r * 0.045, 6, 12);
+    band.rotateX(Math.PI / 2);
+    band.translate(0, h * (0.32 - i * 0.32), 0);
+    parts.push(band);
+  }
+  // Cap with bung
+  const cap = new THREE.CylinderGeometry(r * 0.35, r * 0.35, h * 0.06, 8);
+  cap.translate(0, h * 0.48, 0);
+  parts.push(cap);
+  // Trigger / detonator nub on top
+  const det = new THREE.CylinderGeometry(r * 0.12, r * 0.12, h * 0.1, 6);
+  det.translate(0, h * 0.55, 0);
+  parts.push(det);
+  return safeMergeGeometries(parts);
+}
+
+// Tray of primer caps (6x6 grid)
+function createPrimerBox(w, h, d) {
+  const parts = [];
+  // Tray base
+  const tray = new THREE.BoxGeometry(w * 0.9, h * 0.3, d * 0.9);
+  tray.translate(0, -h * 0.32, 0);
+  parts.push(tray);
+  // Tray rim
+  const rimT = new THREE.BoxGeometry(w * 0.9, h * 0.05, d * 0.04);
+  rimT.translate(0, -h * 0.12, d * 0.43);
+  parts.push(rimT);
+  const rimB = rimT.clone();
+  rimB.translate(0, 0, -d * 0.86);
+  parts.push(rimB);
+  const rimL = new THREE.BoxGeometry(w * 0.04, h * 0.05, d * 0.9);
+  rimL.translate(w * 0.43, -h * 0.12, 0);
+  parts.push(rimL);
+  const rimR = rimL.clone();
+  rimR.translate(-w * 0.86, 0, 0);
+  parts.push(rimR);
+  // Grid of primers
+  const cols = 6, rows = 6;
+  const r = w * 0.05;
+  for (let i = 0; i < cols; i++) {
+    for (let j = 0; j < rows; j++) {
+      const x = (i - (cols - 1) / 2) * w * 0.13;
+      const z = (j - (rows - 1) / 2) * d * 0.13;
+      const primer = new THREE.CylinderGeometry(r, r, h * 0.06, 8);
+      primer.translate(x, -h * 0.14, z);
+      parts.push(primer);
+    }
+  }
+  return safeMergeGeometries(parts);
+}
+
+// =====================
+// FACTORY MACHINERY
+// =====================
+
+// Robotic assembly arm with claw
+function createAssemblyArm(w, h, d) {
+  const parts = [];
+  // Base
+  const base = new THREE.CylinderGeometry(w * 0.28, w * 0.32, h * 0.15, 10);
+  base.translate(0, -h * 0.42, 0);
+  parts.push(base);
+  // Lower joint pillar
+  const joint1 = new THREE.CylinderGeometry(w * 0.14, w * 0.14, h * 0.32, 10);
+  joint1.translate(0, -h * 0.18, 0);
+  parts.push(joint1);
+  // Shoulder ball
+  const shoulder = new THREE.SphereGeometry(w * 0.18, 10, 6);
+  shoulder.translate(0, h * 0.0, 0);
+  parts.push(shoulder);
+  // Upper arm (angled out)
+  const upper = new THREE.CylinderGeometry(w * 0.1, w * 0.1, h * 0.4, 8);
+  upper.rotateZ(-Math.PI / 4);
+  upper.translate(w * 0.15, h * 0.18, 0);
+  parts.push(upper);
+  // Elbow
+  const elbow = new THREE.SphereGeometry(w * 0.13, 8, 6);
+  elbow.translate(w * 0.3, h * 0.34, 0);
+  parts.push(elbow);
+  // End effector mount
+  const tool = new THREE.BoxGeometry(w * 0.14, h * 0.1, d * 0.16);
+  tool.translate(w * 0.32, h * 0.42, 0);
+  parts.push(tool);
+  // Claws
+  const claw1 = new THREE.BoxGeometry(w * 0.04, h * 0.13, d * 0.04);
+  claw1.rotateZ(Math.PI / 12);
+  claw1.translate(w * 0.34, h * 0.5, d * 0.06);
+  parts.push(claw1);
+  const claw2 = new THREE.BoxGeometry(w * 0.04, h * 0.13, d * 0.04);
+  claw2.rotateZ(Math.PI / 12);
+  claw2.translate(w * 0.34, h * 0.5, -d * 0.06);
+  parts.push(claw2);
+  return safeMergeGeometries(parts);
+}
+
+// Heavy stamping press
+function createStamperPress(w, h, d) {
+  const parts = [];
+  // Anvil base
+  const base = new THREE.BoxGeometry(w * 0.85, h * 0.18, d * 0.7);
+  base.translate(0, -h * 0.41, 0);
+  parts.push(base);
+  // Vertical frame columns (2)
+  const col1 = new THREE.BoxGeometry(w * 0.12, h * 0.85, d * 0.18);
+  col1.translate(-w * 0.34, 0, 0);
+  parts.push(col1);
+  const col2 = col1.clone();
+  col2.translate(w * 0.68, 0, 0);
+  parts.push(col2);
+  // Top crown
+  const top = new THREE.BoxGeometry(w * 0.95, h * 0.16, d * 0.5);
+  top.translate(0, h * 0.42, 0);
+  parts.push(top);
+  // Hydraulic ram
+  const ram = new THREE.CylinderGeometry(w * 0.06, w * 0.06, h * 0.32, 8);
+  ram.translate(0, h * 0.18, 0);
+  parts.push(ram);
+  // Slider / die holder
+  const slider = new THREE.BoxGeometry(w * 0.55, h * 0.16, d * 0.5);
+  slider.translate(0, h * 0.0, 0);
+  parts.push(slider);
+  // Workpiece on anvil (a die plate)
+  const die = new THREE.BoxGeometry(w * 0.4, h * 0.05, d * 0.4);
+  die.translate(0, -h * 0.3, 0);
+  parts.push(die);
+  return safeMergeGeometries(parts);
+}
+
+// Industrial wall fan
+function createIndustrialFan(w, h, d) {
+  const parts = [];
+  // Frame
+  const top = new THREE.BoxGeometry(w * 0.95, h * 0.08, d * 0.18);
+  top.translate(0, h * 0.46, 0);
+  parts.push(top);
+  const bot = top.clone();
+  bot.translate(0, -h * 0.92, 0);
+  parts.push(bot);
+  const left = new THREE.BoxGeometry(w * 0.08, h * 0.95, d * 0.18);
+  left.translate(-w * 0.45, 0, 0);
+  parts.push(left);
+  const right = left.clone();
+  right.translate(w * 0.9, 0, 0);
+  parts.push(right);
+  // Hub
+  const hub = new THREE.CylinderGeometry(w * 0.08, w * 0.08, d * 0.18, 8);
+  hub.rotateX(Math.PI / 2);
+  parts.push(hub);
+  // Blades (4, slightly twisted look via box rotation)
+  const r = Math.min(w, h) * 0.4;
+  for (let i = 0; i < 4; i++) {
+    const blade = new THREE.BoxGeometry(r * 0.85, h * 0.06, d * 0.1);
+    blade.rotateZ((i * Math.PI) / 2 + Math.PI / 8);
+    parts.push(blade);
+  }
+  // Grill cross bars
+  const bar1 = new THREE.BoxGeometry(w * 0.85, h * 0.02, d * 0.02);
+  bar1.translate(0, 0, d * 0.08);
+  parts.push(bar1);
+  const bar2 = new THREE.BoxGeometry(w * 0.02, h * 0.85, d * 0.02);
+  bar2.translate(0, 0, d * 0.08);
+  parts.push(bar2);
+  return safeMergeGeometries(parts);
+}
+
+// Control panel with screens, buttons, levers
+function createControlPanel(w, h, d) {
+  const parts = [];
+  // Body
+  const body = new THREE.BoxGeometry(w, h * 0.7, d * 0.3);
+  body.translate(0, -h * 0.05, 0);
+  parts.push(body);
+  // Top angled face
+  const face = new THREE.BoxGeometry(w * 0.95, h * 0.06, d * 0.4);
+  face.rotateX(-Math.PI / 8);
+  face.translate(0, h * 0.32, -d * 0.05);
+  parts.push(face);
+  // Screens (3)
+  for (let i = -1; i <= 1; i++) {
+    const screen = new THREE.BoxGeometry(w * 0.25, h * 0.18, d * 0.04);
+    screen.translate(i * w * 0.3, h * 0.18, d * 0.13);
+    parts.push(screen);
+  }
+  // Buttons row
+  for (let i = 0; i < 6; i++) {
+    const button = new THREE.CylinderGeometry(w * 0.03, w * 0.03, d * 0.04, 8);
+    button.rotateX(Math.PI / 2);
+    button.translate(-w * 0.3 + i * w * 0.12, -h * 0.05, d * 0.13);
+    parts.push(button);
+  }
+  // Levers (2)
+  const lever1 = new THREE.BoxGeometry(w * 0.04, h * 0.2, d * 0.04);
+  lever1.translate(w * 0.36, -h * 0.05, d * 0.14);
+  parts.push(lever1);
+  const lever2 = lever1.clone();
+  lever2.translate(-w * 0.72, 0, 0);
+  parts.push(lever2);
+  // Status light
+  const light = new THREE.SphereGeometry(w * 0.04, 6, 4);
+  light.translate(0, h * 0.32, d * 0.1);
+  parts.push(light);
+  return safeMergeGeometries(parts);
+}
+
+// Triangular hazard sign on a post
+function createHazardSign(w, h, d) {
+  const parts = [];
+  // Post
+  const post = new THREE.BoxGeometry(w * 0.06, h * 0.7, d * 0.06);
+  post.translate(0, -h * 0.15, 0);
+  parts.push(post);
+  // Triangular sign (3-sided cylinder face)
+  const sign = new THREE.CylinderGeometry(w * 0.32, w * 0.32, d * 0.04, 3);
+  sign.rotateX(Math.PI / 2);
+  sign.translate(0, h * 0.25, 0);
+  parts.push(sign);
+  // Inner triangle (slightly smaller, offset front)
+  const inner = new THREE.CylinderGeometry(w * 0.24, w * 0.24, d * 0.02, 3);
+  inner.rotateX(Math.PI / 2);
+  inner.translate(0, h * 0.25, d * 0.03);
+  parts.push(inner);
+  // Exclamation mark - bar
+  const bar = new THREE.BoxGeometry(w * 0.04, h * 0.14, d * 0.025);
+  bar.translate(0, h * 0.27, d * 0.05);
+  parts.push(bar);
+  // Exclamation dot
+  const dot = new THREE.BoxGeometry(w * 0.04, h * 0.04, d * 0.025);
+  dot.translate(0, h * 0.16, d * 0.05);
+  parts.push(dot);
+  return safeMergeGeometries(parts);
+}
+
+// Conveyor with bullets/cartridges riding on it
+function createConveyorAmmo(w, h, d) {
+  const parts = [];
+  // Belt
+  const belt = new THREE.BoxGeometry(w, h * 0.1, d * 0.8);
+  belt.translate(0, h * 0.05, 0);
+  parts.push(belt);
+  // Side rails
+  const railL = new THREE.BoxGeometry(w, h * 0.06, d * 0.06);
+  railL.translate(0, h * 0.12, d * 0.42);
+  parts.push(railL);
+  const railR = railL.clone();
+  railR.translate(0, 0, -d * 0.84);
+  parts.push(railR);
+  // Rollers
+  const roller1 = new THREE.CylinderGeometry(h * 0.1, h * 0.1, d * 0.85, 8);
+  roller1.rotateX(Math.PI / 2);
+  roller1.translate(-w * 0.42, -h * 0.05, 0);
+  parts.push(roller1);
+  const roller2 = roller1.clone();
+  roller2.translate(w * 0.84, 0, 0);
+  parts.push(roller2);
+  // Bullets riding on belt
+  const r = Math.min(w, d) * 0.06;
+  for (let i = -1; i <= 1; i++) {
+    const x = i * w * 0.3;
+    const casing = new THREE.CylinderGeometry(r, r, h * 0.18, 8);
+    casing.translate(x, h * 0.22, 0);
+    parts.push(casing);
+    const tip = new THREE.ConeGeometry(r, h * 0.1, 8);
+    tip.translate(x, h * 0.36, 0);
+    parts.push(tip);
+  }
+  return safeMergeGeometries(parts);
 }
 

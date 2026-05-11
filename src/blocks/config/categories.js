@@ -75,6 +75,14 @@ export const BLOCK_CATEGORIES = {
     label: 'Industrial',
     types: ['tank', 'valve', 'vent', 'iBeam', 'catwalk', 'grateFloor', 'ductX', 'ductZ', 'ductCorner', 'hopper', 'conveyor']
   },
+  machinery: {
+    label: 'Machinery',
+    types: ['assemblyArm', 'stamperPress', 'industrialFan', 'controlPanel', 'hazardSign', 'conveyorAmmo']
+  },
+  munitions: {
+    label: 'Munitions',
+    types: ['bullet', 'bulletTip', 'shellCasing', 'cartridgeBox', 'magazine', 'magazineDrum', 'ammoCan', 'ammoCrate', 'gunpowderBarrel', 'artilleryShell', 'mortarShell', 'rocketShell', 'grenade', 'explosiveBarrel', 'primerBox']
+  },
   electrical: {
     label: 'Electrical',
     types: ['transformer', 'powerBox', 'outlet', 'switchBox', 'fuseBox', 'cableX', 'cableY', 'cableZ', 'cableElbow', 'cableElbowY', 'cableT', 'lightFixture', 'cableHanging', 'cableDroop', 'cableLoop', 'spotlight', 'bulb']
