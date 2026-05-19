@@ -4775,9 +4775,9 @@ export function getBlockBounds(type, dimensions = { w: 1, h: 1, d: 1 }) {
  * Check if two axis-aligned bounding boxes overlap
  */
 export function boundsOverlap(a, b) {
-  // Add epsilon for floating point tolerance
-  // Using larger epsilon to better handle fractional block heights
-  const eps = 0.01;
+  // Permissive epsilon so blocks can clip slightly and connect cleanly
+  // Larger eps = more tolerance for near-touching / minor overlap
+  const eps = 0.05;
   return (
     a.min.x < b.max.x - eps && a.max.x > b.min.x + eps &&
     a.min.y < b.max.y - eps && a.max.y > b.min.y + eps &&

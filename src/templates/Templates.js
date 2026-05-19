@@ -51,7 +51,7 @@ export const TEMPLATE_CATEGORIES = {
   },
   ruins: {
     label: 'Ruins & Huts',
-    templates: ['decayedTenement', 'ancientTemple', 'hutVillage', 'triumphalArch', 'aqueductRuin']
+    templates: ['decayedTenement', 'ancientTemple', 'hutVillage', 'triumphalArch', 'aqueductRuin', 'watchtower']
   }
 };
 
@@ -9154,6 +9154,256 @@ export const TEMPLATES = {
       { type: 'logZ', position: { x: 18, y: 2, z: 7 }, color: '#5A4A3A' },
       { type: 'logZ', position: { x: 18, y: 3, z: 7 }, color: '#5A4A3A' },
       { type: 'sphere', position: { x: 18, y: 4, z: 7 }, color: '#3A5A2A' },
+    ]
+  },
+
+  watchtower: {
+    name: 'Classic Watchtower',
+    category: 'ruins',
+    description: 'Stone watchtower with ladders, arrow slits, crenellated battlement, and pointed roof flag',
+    blocks: [
+      // ====================================================
+      // GROUND (grass with stone path)
+      // ====================================================
+      ...makeFloor(0, 0, 0, 10, 10, '#5A6A3A'),
+      // Stone path to the door
+      { type: 'panel', position: { x: 4, y: 0, z: 0 }, color: '#A09080' },
+      { type: 'panel', position: { x: 5, y: 0, z: 0 }, color: '#A09080' },
+      { type: 'panel', position: { x: 4, y: 0, z: 1 }, color: '#A09080' },
+      { type: 'panel', position: { x: 5, y: 0, z: 1 }, color: '#A09080' },
+      { type: 'panel', position: { x: 4, y: 0, z: 2 }, color: '#A09080' },
+      { type: 'panel', position: { x: 5, y: 0, z: 2 }, color: '#A09080' },
+
+      // ====================================================
+      // STONE FOUNDATION (raised plinth, slightly wider than tower)
+      // ====================================================
+      ...makeFloor(2, 1, 2, 6, 6, '#5A5A5A'),
+      // Foundation trim (slightly lighter top edge)
+      { type: 'slabTop', position: { x: 2, y: 1, z: 2 }, color: '#7A7A7A' },
+      { type: 'slabTop', position: { x: 7, y: 1, z: 2 }, color: '#7A7A7A' },
+      { type: 'slabTop', position: { x: 2, y: 1, z: 7 }, color: '#7A7A7A' },
+      { type: 'slabTop', position: { x: 7, y: 1, z: 7 }, color: '#7A7A7A' },
+
+      // ====================================================
+      // TOWER FOOTPRINT — 4x4 at x=3..6, z=3..6
+      // Stone walls (#7A6A55 weathered), rises y=2..6 (5 stories)
+      // ====================================================
+
+      // === LEVEL 1 (y=2) - ground floor with door ===
+      // Front wall (z=3) with door opening at x=4
+      { type: 'cube', position: { x: 3, y: 2, z: 3 }, color: '#7A6A55' },
+      // door opening at (4, 2, 3)
+      { type: 'doorFrame', position: { x: 4, y: 2, z: 3 }, color: '#5A3A1A' },
+      { type: 'cube', position: { x: 5, y: 2, z: 3 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 2, z: 3 }, color: '#7A6A55' },
+      // Back wall (z=6)
+      ...makeRow(3, 2, 6, 4, 'X', 'cube', '#7A6A55'),
+      // Left wall (x=3)
+      { type: 'cube', position: { x: 3, y: 2, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 3, y: 2, z: 5 }, color: '#7A6A55' },
+      // Right wall (x=6)
+      { type: 'cube', position: { x: 6, y: 2, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 2, z: 5 }, color: '#7A6A55' },
+      // Floor inside (wood planks)
+      { type: 'cube', position: { x: 4, y: 2, z: 4 }, color: '#8B6F47' },
+      { type: 'cube', position: { x: 5, y: 2, z: 4 }, color: '#8B6F47' },
+      { type: 'cube', position: { x: 4, y: 2, z: 5 }, color: '#8B6F47' },
+      { type: 'cube', position: { x: 5, y: 2, z: 5 }, color: '#8B6F47' },
+      // Wait - those replace the empty interior, but actually we want OPEN interior.
+      // Removing those - the ground is the foundation.
+
+      // === LEVEL 2 (y=3) - first upper level with arrow slits ===
+      // Front wall
+      { type: 'cube', position: { x: 3, y: 3, z: 3 }, color: '#7A6A55' },
+      { type: 'arrowSlit', position: { x: 4, y: 3, z: 3 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 5, y: 3, z: 3 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 3, z: 3 }, color: '#7A6A55' },
+      // Back wall
+      { type: 'cube', position: { x: 3, y: 3, z: 6 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 4, y: 3, z: 6 }, color: '#7A6A55' },
+      { type: 'arrowSlit', position: { x: 5, y: 3, z: 6 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 6, y: 3, z: 6 }, color: '#7A6A55' },
+      // Left wall
+      { type: 'arrowSlit', position: { x: 3, y: 3, z: 4 }, color: '#1A1A1A' },
+      { type: 'cube', position: { x: 3, y: 3, z: 5 }, color: '#7A6A55' },
+      // Right wall
+      { type: 'cube', position: { x: 6, y: 3, z: 4 }, color: '#7A6A55' },
+      { type: 'arrowSlit', position: { x: 6, y: 3, z: 5 }, color: '#1A1A1A' },
+      // Interior wood floor at this level (partial, with ladder hole)
+      { type: 'slab', position: { x: 5, y: 3, z: 4 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 5, y: 3, z: 5 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 4, y: 3, z: 5 }, color: '#8B6F47' },
+      // ladder hole at (4, 3, 4)
+
+      // === LEVEL 3 (y=4) - second upper level ===
+      ...makeRow(3, 4, 3, 4, 'X', 'cube', '#7A6A55'),
+      ...makeRow(3, 4, 6, 4, 'X', 'cube', '#7A6A55'),
+      { type: 'cube', position: { x: 3, y: 4, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 3, y: 4, z: 5 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 4, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 4, z: 5 }, color: '#7A6A55' },
+      // Arrow slits replacing some cubes (overwrite with narrow blocks)
+      { type: 'arrowSlit', position: { x: 4, y: 4, z: 3 }, color: '#1A1A1A' },
+      { type: 'arrowSlit', position: { x: 5, y: 4, z: 6 }, color: '#1A1A1A' },
+      // Floor at level 3 (partial)
+      { type: 'slab', position: { x: 5, y: 4, z: 4 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 5, y: 4, z: 5 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 4, y: 4, z: 5 }, color: '#8B6F47' },
+
+      // === LEVEL 4 (y=5) - third upper level (near top) ===
+      ...makeRow(3, 5, 3, 4, 'X', 'cube', '#7A6A55'),
+      ...makeRow(3, 5, 6, 4, 'X', 'cube', '#7A6A55'),
+      { type: 'cube', position: { x: 3, y: 5, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 3, y: 5, z: 5 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 5, z: 4 }, color: '#7A6A55' },
+      { type: 'cube', position: { x: 6, y: 5, z: 5 }, color: '#7A6A55' },
+      // Bigger windows (window frames)
+      { type: 'windowFrame', position: { x: 4, y: 5, z: 3 }, color: '#3A3A3A' },
+      { type: 'windowFrame', position: { x: 5, y: 5, z: 6 }, color: '#3A3A3A' },
+      { type: 'windowFrame', position: { x: 3, y: 5, z: 4 }, color: '#3A3A3A' },
+      { type: 'windowFrame', position: { x: 6, y: 5, z: 5 }, color: '#3A3A3A' },
+      // Floor for the observation deck above
+      { type: 'slab', position: { x: 4, y: 5, z: 4 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 5, y: 5, z: 4 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 4, y: 5, z: 5 }, color: '#8B6F47' },
+      { type: 'slab', position: { x: 5, y: 5, z: 5 }, color: '#8B6F47' },
+
+      // === LEVEL 5 (y=6) - corbel / overhang course ===
+      // Slightly wider parapet base extending out (corbel ring)
+      { type: 'cornice', position: { x: 3, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 4, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 5, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 6, y: 6, z: 3 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 3, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 4, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 5, y: 6, z: 6 }, color: '#A09080' },
+      { type: 'cornice', position: { x: 6, y: 6, z: 6 }, color: '#A09080' },
+      // Side corbels (use cubes since cornice is X-aligned)
+      { type: 'cube', position: { x: 3, y: 6, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 3, y: 6, z: 5 }, color: '#A09080' },
+      { type: 'cube', position: { x: 6, y: 6, z: 4 }, color: '#A09080' },
+      { type: 'cube', position: { x: 6, y: 6, z: 5 }, color: '#A09080' },
+
+      // === LEVEL 6 (y=7) - OBSERVATION DECK with CRENELLATIONS ===
+      // Floor of the deck
+      ...makeFloor(3, 7, 3, 4, 4, '#8B6F47'),
+      // Crenellated battlement perimeter (alternating merlons)
+      { type: 'merlon', position: { x: 3, y: 8, z: 3 }, color: '#A09080' },
+      // gap (crenel)
+      { type: 'merlon', position: { x: 5, y: 8, z: 3 }, color: '#A09080' },
+      // gap
+      { type: 'merlon', position: { x: 3, y: 8, z: 6 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 5, y: 8, z: 6 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 3, y: 8, z: 4 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 6, y: 8, z: 3 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 6, y: 8, z: 5 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 4, y: 8, z: 6 }, color: '#A09080' },
+      // Some additional merlons for symmetry
+      { type: 'merlon', position: { x: 4, y: 8, z: 3 }, color: '#A09080' }, // extra fill
+      { type: 'merlon', position: { x: 6, y: 8, z: 4 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 3, y: 8, z: 5 }, color: '#A09080' },
+      { type: 'merlon', position: { x: 6, y: 8, z: 6 }, color: '#A09080' },
+
+      // === ROOF - pointed wooden cap on a small inner sentinel post ===
+      // Central post
+      { type: 'logZ', position: { x: 4, y: 8, z: 4 }, color: '#5A3A1A' },
+      { type: 'logZ', position: { x: 4, y: 9, z: 4 }, color: '#5A3A1A' },
+      { type: 'logZ', position: { x: 4, y: 10, z: 4 }, color: '#5A3A1A' },
+      // Wooden conical/pyramidal cap roof
+      { type: 'cube', position: { x: 4, y: 8, z: 5 }, color: '#7A4A1A' },
+      { type: 'cube', position: { x: 5, y: 8, z: 4 }, color: '#7A4A1A' },
+      { type: 'cube', position: { x: 5, y: 8, z: 5 }, color: '#7A4A1A' },
+      { type: 'roofPeak', position: { x: 4, y: 9, z: 5 }, color: '#7A4A1A' },
+      { type: 'roofPeak', position: { x: 5, y: 9, z: 4 }, color: '#7A4A1A' },
+      { type: 'roofPeak', position: { x: 5, y: 9, z: 5 }, color: '#7A4A1A' },
+      { type: 'pyramid', position: { x: 4, y: 9, z: 4 }, color: '#7A4A1A' },
+      // Finial on the very top
+      { type: 'finial', position: { x: 4, y: 10, z: 4 }, color: '#A09080' },
+      // Flag pole + banner
+      { type: 'pillarRound2', position: { x: 4, y: 11, z: 4 }, color: '#5A3A1A' },
+      { type: 'banner', position: { x: 4, y: 11, z: 4 }, color: '#C70039' },
+
+      // === LADDERS - external (outside the tower, against back wall) ===
+      // Outside ladder running up the back wall (z=7, just outside the foundation)
+      { type: 'ladder', position: { x: 4, y: 2, z: 7 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 3, z: 7 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 4, z: 7 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 5, z: 7 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 6, z: 7 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 7, z: 7 }, color: '#8B6F47' },
+
+      // === INTERIOR LADDERS - between floors (in the ladder hole position) ===
+      // Ground -> Level 2 ladder at (4, 4)
+      { type: 'ladder', position: { x: 4, y: 2, z: 4 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 3, z: 4 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 4, z: 4 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 5, z: 4 }, color: '#8B6F47' },
+      { type: 'ladder', position: { x: 4, y: 6, z: 4 }, color: '#8B6F47' },
+
+      // === DOOR (heavy wooden) ===
+      { type: 'doorFrame', position: { x: 4, y: 3, z: 3 }, color: '#5A3A1A' },
+      // Torches flanking the door
+      { type: 'torch', position: { x: 3, y: 3, z: 3 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.4, radius: 4 } },
+      { type: 'torch', position: { x: 5, y: 3, z: 3 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.4, radius: 4 } },
+
+      // === BRAZIER ON ROOF DECK (signal fire) ===
+      { type: 'barrel', position: { x: 5, y: 7, z: 5 }, color: '#3A3A3A' },
+      { type: 'cone', position: { x: 5, y: 8, z: 5 }, color: '#FF4500', emissive: { enabled: true, color: '#FF6600', intensity: 2.5, radius: 6 } },
+      { type: 'sphere', position: { x: 5, y: 9, z: 5 }, color: '#FFAA00', emissive: { enabled: true, color: '#FFAA00', intensity: 1.5, radius: 3 } },
+
+      // === BUTTRESSES (decorative diagonal supports at corners) ===
+      { type: 'buttress', position: { x: 2, y: 2, z: 3 }, color: '#7A6A55' },
+      { type: 'buttress', position: { x: 7, y: 2, z: 3 }, color: '#7A6A55' },
+      { type: 'buttress', position: { x: 2, y: 2, z: 6 }, color: '#7A6A55' },
+      { type: 'buttress', position: { x: 7, y: 2, z: 6 }, color: '#7A6A55' },
+
+      // === SURROUNDING DETAIL ===
+      // Wooden palisade fence around tower (partial, gap at front)
+      { type: 'fence', position: { x: 1, y: 1, z: 1 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 2, y: 1, z: 1 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 7, y: 1, z: 1 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 8, y: 1, z: 1 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 1, y: 1, z: 2 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 1, y: 1, z: 3 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 1, y: 1, z: 6 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 1, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 8, y: 1, z: 2 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 8, y: 1, z: 3 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 8, y: 1, z: 6 }, color: '#5A4A3A' },
+      { type: 'fenceZ', position: { x: 8, y: 1, z: 7 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 1, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 2, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 7, y: 1, z: 8 }, color: '#5A4A3A' },
+      { type: 'fence', position: { x: 8, y: 1, z: 8 }, color: '#5A4A3A' },
+      // Gate at front
+      { type: 'gateDouble', position: { x: 4, y: 1, z: 0 }, color: '#5A3A1A' },
+      { type: 'gateDouble', position: { x: 5, y: 1, z: 0 }, color: '#5A3A1A' },
+
+      // Firewood stack near tower
+      { type: 'logX', position: { x: 8, y: 1, z: 5 }, color: '#5A4A3A' },
+      { type: 'logX', position: { x: 8, y: 2, z: 5 }, color: '#5A4A3A' },
+      { type: 'logX', position: { x: 8, y: 1, z: 6 }, color: '#5A4A3A' },
+      // Barrel of water
+      { type: 'barrel', position: { x: 1, y: 1, z: 5 }, color: '#4682B4' },
+      // Crate of supplies
+      { type: 'crate', position: { x: 8, y: 1, z: 2 }, color: '#5A4A3A' },
+      // Hay bale (using slab + sack)
+      { type: 'sack', position: { x: 1, y: 1, z: 6 }, color: '#D4A95B' },
+      { type: 'sack', position: { x: 1, y: 1, z: 7 }, color: '#D4A95B' },
+
+      // === VEGETATION around the tower ===
+      { type: 'bush', position: { x: 0, y: 1, z: 0 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 9, y: 1, z: 0 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 0, y: 1, z: 9 }, color: '#3A5A2A' },
+      { type: 'bush', position: { x: 9, y: 1, z: 9 }, color: '#3A5A2A' },
+      { type: 'grass', position: { x: 6, y: 1, z: 0 }, color: '#5A7A3A' },
+      { type: 'grass', position: { x: 3, y: 1, z: 9 }, color: '#5A7A3A' },
+      { type: 'flower', position: { x: 9, y: 1, z: 4 }, color: '#FFAA00' },
+      { type: 'flower', position: { x: 0, y: 1, z: 4 }, color: '#FF66AA' },
+      // Vines climbing stone
+      { type: 'vine', position: { x: 3, y: 4, z: 3 }, color: '#3A5A2A' },
+      { type: 'vine', position: { x: 6, y: 5, z: 6 }, color: '#3A5A2A' },
+      { type: 'moss', position: { x: 2, y: 1, z: 5 }, color: '#5A7A3A' },
     ]
   }
 };

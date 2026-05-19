@@ -62,7 +62,9 @@ const LOWER_BLOCKS = [
   // Additional low blocks
   'step', 'platform', 'landing', 'stairsSingle', 'spiralStep',
   'drain', 'grate', 'grateFloor', 'pallet', 'derrickPlatform', 'pumpBase',
-  'awning', 'canopy', 'tarp', 'lightFixture', 'shelf'
+  'awning', 'canopy', 'tarp', 'lightFixture', 'shelf',
+  // Munitions / packaging (short containers)
+  'cartridgeBox', 'primerBox', 'conveyorAmmo'
 ];
 
 // Blocks that occupy the upper part of a grid cell (beams with Y offset, slabTop)
@@ -76,15 +78,32 @@ const UPPER_BLOCKS = [
 // Blocks that are narrow/centered and don't fill the full cell (can coexist with lower blocks)
 const NARROW_BLOCKS = [
   'pillar', 'pillar2', 'pillar4', 'pillarRound', 'pillarRound2',
-  'fence', 'fenceZ', 'railing', 'railingZ',
-  'wall', 'wall4', 'wall8', 'panel',
+  'fence', 'fenceZ', 'fenceCorner', 'fenceCornerInner', 'fencePost', 'fenceEnd', 'fenceT', 'fenceCross',
+  'railing', 'railingZ', 'railingCorner', 'railingCornerInner', 'railingPost', 'railingEnd', 'railingSlope', 'railingSlopeZ',
+  'picket', 'picketZ', 'lattice', 'latticeZ',
+  'wall', 'wall4', 'wall8', 'panel', 'wallFront', 'wallBack',
   // Additional narrow blocks
   'post', 'bollard', 'downspout', 'antenna', 'torch', 'chain', 'finial', 'banner',
   'conduit', 'conduitCorner', 'cable', 'cableX', 'cableY', 'cableZ',
   'cableElbow', 'cableElbowY', 'cableT', 'cableHanging', 'cableDroop', 'cableLoop',
   'pipeX', 'pipeY', 'pipeZ', 'pipeElbowXZ', 'pipeElbowXZ2', 'pipeElbowXZ3', 'pipeElbowXZ4',
   'pipeElbowXY', 'pipeElbowXY2', 'pipeElbowYZ', 'pipeElbowYZ2', 'pipeCross', 'pipeT', 'pipeTY', 'pipeTZ',
-  'derrickLeg', 'wellHead', 'pipelineX', 'pipelineZ'
+  'derrickLeg', 'wellHead', 'pipelineX', 'pipelineZ',
+  // Decorative & detail blocks (thin / small)
+  'cross', 'frame', 'sign', 'hazardSign', 'star', 'heart', 'flower', 'mushroom', 'grass', 'bush', 'moss', 'vine', 'coral',
+  'bulb', 'lightFixture', 'spotlight', 'monitor', 'speaker', 'outlet', 'switchBox', 'fuseBox', 'powerBox',
+  'valve', 'vent', 'alienVent', 'trafficCone', 'barrier',
+  'crystal', 'crystalSmall', 'crystalLarge', 'crystalCluster', 'crystalSpike', 'crystalFlat', 'crystalShard', 'crystalFormation',
+  'gem', 'pill', 'pebbles', 'rockSmall', 'rockFlat', 'slate',
+  'stalactite', 'stalagmite', 'mushroomCluster',
+  // Munitions (small upright items)
+  'bullet', 'bulletTip', 'shellCasing', 'grenade', 'primerBox',
+  'magazine', 'magazineDrum',
+  // Machinery (thin/wall-mounted)
+  'industrialFan', 'controlPanel', 'hazardSign',
+  // Trim/molding
+  'trim', 'trimZ', 'trimCorner', 'cornerTrim', 'edgeTrim', 'edgeCorner', 'edgeSlope', 'edgeSlopeZ',
+  'moldingCorner', 'dentil', 'baluster', 'windowSill', 'cornice', 'column', 'capital', 'base'
 ];
 
 // Pipe and conduit blocks that can connect/overlap at same grid position
